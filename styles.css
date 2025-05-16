@@ -316,6 +316,20 @@ button.danger:hover {
         justify-content: center;
     }
     
+    /* Hide button text on mobile, show only icons */
+    header .button-group button span {
+        display: none;
+    }
+    
+    header .button-group button i {
+        margin-right: 0;
+    }
+    
+    header .button-group button {
+        padding: 0.5rem;
+        min-width: unset;
+    }
+    
     main {
         padding: 0.5rem;
     }

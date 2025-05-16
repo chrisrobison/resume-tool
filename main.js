@@ -9,7 +9,7 @@
                 label: "",
                 email: "",
                 phone: "",
-                url: "",
+                website: "",
                 summary: "",
                 location: {
                     address: "",
@@ -34,7 +34,9 @@
         state: {
             loaded: false,
             currentEditIndex: -1,
-            currentSection: null
+            currentSection: null,
+            touchEndX: 0,
+            touchStartX: 0
         },
         init() {
             app.initLocalStorage();
@@ -70,24 +72,25 @@
             // Improve touch experience on mobile devices
             // Add touch events to handle swipe between tabs
             const tabsContainer = $('.tabs');
-            let touchStartX = 0;
-            let touchEndX = 0;
+            app.state.touchStartX = 0;
+            app.state.touchEndX = 0;
             
             document.addEventListener('touchstart', e => {
-                touchStartX = e.changedTouches[0].screenX;
+                app.state.touchStartX = e.changedTouches[0].screenX;
             }, false);
             
             document.addEventListener('touchend', e => {
-                touchEndX = e.changedTouches[0].screenX;
+                app.state.touchEndX = e.changedTouches[0].screenX;
                 app.handleSwipe();
             }, false);
             
             // Handle resize events to adjust UI for different screen sizes
             window.addEventListener('resize', app.handleResize);
 
-            // Import/Export buttons
+            // Import/Export/Copy buttons
             $('#import-button').addEventListener('click', () => app.openModal('import-modal'));
             $('#export-button').addEventListener('click', app.exportResume);
+            $('#copy-button').addEventListener('click', app.copyResume);
 
             // Import methods
             $('#import-paste').addEventListener('click', app.importFromText);
@@ -159,7 +162,7 @@
             $('#save-project').addEventListener('click', () => app.saveItem('project'));
 
             // Basic info fields
-            const basicFields = ['name', 'label', 'email', 'phone', 'url', 'image', 'summary'];
+            const basicFields = ['name', 'label', 'email', 'phone', 'website', 'picture', 'summary'];
             basicFields.forEach(field => {
                 $(`#${field}`).addEventListener('change', e => {
                     app.data.basics[field] = e.target.value;
@@ -271,10 +274,10 @@
                 </div>`;
             }
             
-            if (app.data.basics.url) {
+            if (app.data.basics.website) {
                 html += `<div class="preview-contact-item">
                     <i class="fa-solid fa-globe"></i>
-                    <span>${app.escapeHtml(app.data.basics.url)}</span>
+                    <span>${app.escapeHtml(app.data.basics.website)}</span>
                 </div>`;
             }
             
@@ -682,12 +685,14 @@
         updateFormFields() {
             // Update basic fields
             const basics = app.data.basics;
-            ['name', 'label', 'email', 'phone', 'url', 'image', 'summary'].forEach(field => {
+            ['name', 'label', 'email', 'phone', 'website', 'picture', 'summary'].forEach(field => {
                 if (basics[field]) {
                     $(`#${field}`).value = basics[field];
                 }
             });
             
+            $("#pictureImg").src = basics.picture;
+
             // Update location fields
             const location = basics.location;
             ['address', 'postalCode', 'city', 'region', 'countryCode'].forEach(field => {
@@ -1309,6 +1314,65 @@
                 return false;
             }
         },
+        
+        // Create a copy of the current resume with a new ID
+        copyResume() {
+            if (!app.isLocalStorageAvailable()) {
+                app.showToast('localStorage is not available. Cannot copy resume.', 'error');
+                return false;
+            }
+            
+            try {
+                // Generate a new unique ID
+                const newResumeId = `resume_${Date.now()}`;
+                
+                // Create a deep copy of the current resume data
+                const resumeCopy = JSON.parse(JSON.stringify(app.data));
+                
+                // Update the metadata
+                resumeCopy.meta.id = newResumeId;
+                resumeCopy.meta.name = resumeCopy.meta.name ? `${resumeCopy.meta.name} (Copy)` : 'Copy of Resume';
+                resumeCopy.meta.lastModified = new Date().toISOString();
+                
+                // Save to localStorage
+                const registry = app.getSavedResumes();
+                
+                // Add to registry
+                registry.push({
+                    id: newResumeId,
+                    name: resumeCopy.meta.name,
+                    savedDate: resumeCopy.meta.lastModified,
+                    basics: {
+                        name: resumeCopy.basics.name || 'Unnamed',
+                        label: resumeCopy.basics.label || ''
+                    }
+                });
+                
+                // Update registry
+                localStorage.setItem('resumeRegistry', JSON.stringify(registry));
+                
+                // Save the new resume data
+                localStorage.setItem(`resume_${newResumeId}`, JSON.stringify(resumeCopy));
+                
+                // Load the copied resume
+                app.data = resumeCopy;
+                
+                // Update UI
+                app.updateFormFields();
+                app.renderProfiles();
+                app.renderWork();
+                app.renderEducation();
+                app.renderSkills();
+                app.renderProjects();
+                
+                app.showToast('Resume copied successfully!');
+                return true;
+            } catch (e) {
+                console.error('Error copying resume:', e);
+                app.showToast('Error copying resume. Please try again.', 'error');
+                return false;
+            }
+        },
 
         // Get saved resumes registry
         getSavedResumes() {
@@ -1666,7 +1730,7 @@
             if (currentIndex === -1) return; // Not on a main tab
             
             // Left swipe (next tab)
-            if (touchEndX + SWIPE_THRESHOLD < touchStartX) {
+            if (app.state.touchEndX + SWIPE_THRESHOLD < app.state.touchStartX) {
                 const nextIndex = Math.min(currentIndex + 1, tabs.length - 1);
                 if (nextIndex !== currentIndex) {
                     const nextTab = tabs[nextIndex];
@@ -1675,7 +1739,7 @@
                 }
             }
             // Right swipe (previous tab)
-            else if (touchEndX > touchStartX + SWIPE_THRESHOLD) {
+            else if (app.state.touchEndX > app.state.touchStartX + SWIPE_THRESHOLD) {
                 const prevIndex = Math.max(currentIndex - 1, 0);
                 if (prevIndex !== currentIndex) {
                     const prevTab = tabs[prevIndex];
@@ -1706,10 +1770,10 @@
                 "basics": {
                     "name": "John Doe",
                     "label": "Full Stack Developer",
-                    "image": "",
+                    "picture": "",
                     "email": "john.doe@example.com",
                     "phone": "(123) 456-7890",
-                    "url": "https://johndoe.com",
+                    "website": "https://johndoe.com",
                     "summary": "Experienced full stack developer with a passion for creating responsive and user-friendly web applications. Over 5 years of industry experience.",
                     "location": {
                         "address": "123 Main St",
