@@ -13,10 +13,11 @@
 <header>
     <h1><i class="fa-solid fa-file-lines"></i> Resume.json Editor</h1>
     <div class="button-group">
-        <button id="save-button" class="secondary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
-        <button id="load-button" class="secondary"><i class="fa-solid fa-folder-open"></i> Load</button>
-        <button id="import-button"><i class="fa-solid fa-file-import"></i> Import</button>
-        <button id="export-button" class="success"><i class="fa-solid fa-file-export"></i> Export</button>
+        <button id="save-button"><i class="fa-solid fa-floppy-disk"></i> <span>Save</span></button>
+        <button id="copy-button"><i class="fa-solid fa-copy"></i> <span>Copy</span></button>
+        <button id="load-button"><i class="fa-solid fa-folder-open"></i> <span>Load</span></button>
+        <button id="import-button"><i class="fa-solid fa-file-import"></i> <span>Import</span></button>
+        <button id="export-button" class="success"><i class="fa-solid fa-file-export"></i> <span>Export</span></button>
     </div>
 </header>
 
@@ -57,11 +58,12 @@
                         </div>
                         <div class="input-group">
                             <label for="url">Website</label>
-                            <input type="url" id="url" name="url">
+                            <input type="url" id="website" name="website">
                         </div>
                         <div class="input-group">
                             <label for="image">Image URL</label>
-                            <input type="url" id="image" name="image">
+                            <input type="url" id="picture" name="picture">
+                            <img id="pictureImg" width="100">
                         </div>
                     </div>
                     <div class="input-group">
