@@ -201,6 +201,9 @@
                 window.print();
             });
             
+            // PDF button
+            $('#preview-pdf').addEventListener('click', app.makePdf);
+            
  
         },
         
@@ -1762,6 +1765,46 @@
                     previewContainer.style.overflowY = 'auto';
                 }
             }
+        },
+        
+        // Generate PDF from the preview container
+        makePdf() {
+            const previewContainer = $('#preview-container');
+            const themeClass = $('.preview-modern, .preview-classic, .preview-minimal', previewContainer);
+            const fileName = `${app.data.basics.name || 'resume'}_${new Date().toISOString().split('T')[0]}.pdf`;
+            
+            // Show toast to indicate PDF generation is starting
+            app.showToast('Generating PDF...');
+            
+            // Clone the preview container to avoid modifying the original
+            const element = previewContainer.cloneNode(true);
+            
+            // Configure PDF options
+            const options = {
+                margin: [10, 10, 10, 10],
+                filename: fileName,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                }
+            };
+            
+            // Generate PDF
+            html2pdf().from(element).set(options).save()
+                .then(() => {
+                    app.showToast('PDF generated successfully!');
+                })
+                .catch(error => {
+                    console.error('Error generating PDF:', error);
+                    app.showToast('Error generating PDF. Please try again.', 'error');
+                });
         },
     
     // Utility function for loading test data
