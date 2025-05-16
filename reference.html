@@ -1,0 +1,3087 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+    <meta charset="utf-8">
+    <title>Resume.json Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --background-color: #fff;
+            --text-color: #333;
+            --header-background: #3a86ff;
+            --header-color: #fff;
+            --section-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --primary-color: #3a86ff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --highlight-color: #ffbe0b;
+            box-sizing: border-box;
+            font-family: "Lexend", "Helvetica Neue", "Helvetica", sans-serif;
+            font-size: 16px;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header, footer {
+            background-color: var(--header-background);
+            color: var(--header-color);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            padding: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        footer {
+            margin-top: auto;
+            font-size: 0.8rem;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .card {
+            background-color: var(--section-bg);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        textarea {
+            min-height: 100px;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #2a75e0;
+        }
+
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+
+        button.secondary:hover {
+            background-color: #5a6268;
+        }
+
+        button.success {
+            background-color: var(--success-color);
+        }
+
+        button.success:hover {
+            background-color: #218838;
+        }
+
+        button.danger {
+            background-color: var(--danger-color);
+        }
+
+        button.danger:hover {
+            background-color: #c82333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .resume-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .resume-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .resume-section-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .resume-item {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .resume-item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .resume-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .small-button {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .icon-button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        .icon-button:hover {
+            color: var(--primary-color);
+        }
+
+        #import-options, #export-options {
+            margin-top: 1rem;
+        }
+
+        #json-input, #json-output {
+            width: 100%;
+            height: 300px;
+            font-family: monospace;
+            white-space: pre;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .flex-row {
+                flex-direction: column;
+            }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--secondary-color);
+        }
+        
+        .drag-drop-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .drag-drop-area:hover, .drag-drop-area.dragover {
+            background-color: rgba(58, 134, 255, 0.1);
+        }
+        
+        .help-text {
+            font-size: 0.8rem;
+            color: var(--secondary-color);
+            margin-top: 0.25rem;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: var(--success-color);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: transform 0.3s, opacity 0.3s;
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast.error {
+            background-color: var(--danger-color);
+        }
+
+        /* Preview Styles */
+        #preview-container {
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        
+        .preview-loading {
+            padding: 2rem;
+            text-align: center;
+            color: var(--secondary-color);
+        }
+        
+        /* Theme: Modern */
+        .preview-modern {
+            font-family: 'Lexend', sans-serif;
+            color: #2d3748;
+            padding: 0;
+        }
+        
+        .preview-modern .preview-header {
+            background-color: #4a6cf7;
+            color: white;
+            padding: 2.5rem 3rem;
+            position: relative;
+        }
+        
+        .preview-modern .preview-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .preview-modern .preview-title {
+            font-size: 1.2rem;
+            font-weight: 300;
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .preview-modern .preview-contact {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        
+        .preview-modern .preview-contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .preview-modern .preview-contact-item i {
+            opacity: 0.7;
+        }
+        
+        .preview-modern .preview-body {
+            padding: 2rem 3rem;
+        }
+        
+        .preview-modern .preview-section {
+            margin-bottom: 2rem;
+        }
+        
+        .preview-modern .preview-section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #4a6cf7;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        
+        .preview-modern .preview-item {
+            margin-bottom: 1.5rem;
+        }
+        
+        .preview-modern .preview-item-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .preview-modern .preview-item-subtitle {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #4a5568;
+        }
+        
+        .preview-modern .preview-item-date {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .preview-modern .preview-item-location {
+            color: #718096;
+            font-size: 0.9rem;
+            font-style: italic;
+            margin-bottom: 0.5rem;
+        }
+        
+        .preview-modern .preview-summary {
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+        
+        .preview-modern .preview-highlights {
+            margin-top: 0.75rem;
+        }
+        
+        .preview-modern .preview-highlights-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .preview-modern .preview-highlights-list {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        
+        .preview-modern .preview-highlights-list li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .preview-modern .preview-skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        
+        .preview-modern .preview-skill {
+            background-color: #edf2f7;
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .preview-modern .preview-skill.advanced {
+            background-color: #ebf8ff;
+            border-left: 3px solid #4299e1;
+        }
+        
+        .preview-modern .preview-skill.intermediate {
+            background-color: #e6fffa;
+            border-left: 3px solid #38b2ac;
+        }
+        
+        .preview-modern .preview-skill.expert {
+            background-color: #e6f6ff;
+            border-left: 3px solid #3182ce;
+        }
+        
+        /* Theme: Classic */
+        .preview-classic {
+            font-family: 'Georgia', serif;
+            color: #333;
+            padding: 2rem 3rem;
+            line-height: 1.6;
+        }
+        
+        .preview-classic .preview-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 1.5rem;
+        }
+        
+        .preview-classic .preview-name {
+            font-size: 2.2rem;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .preview-classic .preview-title {
+            font-size: 1.1rem;
+            margin: 0 0 1rem 0;
+            font-style: italic;
+        }
+        
+        .preview-classic .preview-contact {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        
+        .preview-classic .preview-section {
+            margin-bottom: 2rem;
+        }
+        
+        .preview-classic .preview-section-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 0.3rem;
+        }
+        
+        .preview-classic .preview-item {
+            margin-bottom: 1.5rem;
+        }
+        
+        .preview-classic .preview-item-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .preview-classic .preview-item-subtitle {
+            font-style: italic;
+        }
+        
+        .preview-classic .preview-item-date {
+            color: #666;
+        }
+        
+        .preview-classic .preview-item-location {
+            color: #666;
+            font-style: italic;
+        }
+        
+        .preview-classic .preview-highlights-list li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .preview-classic .preview-skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .preview-classic .preview-skill {
+            background-color: #f8f9fa;
+            padding: 0.3rem 0.6rem;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+        
+        /* Theme: Minimal */
+        .preview-minimal {
+            font-family: 'Lexend', sans-serif;
+            color: #333;
+            padding: 2rem 3rem;
+            line-height: 1.5;
+        }
+        
+        .preview-minimal .preview-header {
+            margin-bottom: 2rem;
+        }
+        
+        .preview-minimal .preview-name {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+        }
+        
+        .preview-minimal .preview-title {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #666;
+            margin: 0 0 1rem 0;
+        }
+        
+        .preview-minimal .preview-contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .preview-minimal .preview-section {
+            margin-bottom: 2rem;
+        }
+        
+        .preview-minimal .preview-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1rem;
+            color: #888;
+        }
+        
+        .preview-minimal .preview-item {
+            margin-bottom: 1.25rem;
+        }
+        
+        .preview-minimal .preview-item-title {
+            font-weight: 600;
+        }
+        
+        .preview-minimal .preview-item-subtitle {
+            font-weight: 400;
+        }
+        
+        .preview-minimal .preview-item-date,
+        .preview-minimal .preview-item-location {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        .preview-minimal .preview-summary {
+            margin: 0.75rem 0;
+        }
+        
+        .preview-minimal .preview-highlights-list {
+            padding-left: 1.2rem;
+        }
+        
+        .preview-minimal .preview-highlights-list li {
+            margin-bottom: 0.3rem;
+        }
+        
+        .preview-minimal .preview-skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .preview-minimal .preview-skill {
+            font-size: 0.85rem;
+            color: #666;
+            background: none;
+            border: 1px solid #ddd;
+            padding: 0.25rem 0.5rem;
+            border-radius: 2px;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #preview-container, #preview-container * {
+                visibility: visible;
+            }
+            #preview-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                box-shadow: none;
+            }
+            .preview-header, .preview-body {
+                padding: 20px 40px !important;
+            }
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .alert.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .resume-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+        
+        .resume-item-card {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .resume-item-card:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .resume-info {
+            flex-grow: 1;
+        }
+        
+        .resume-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .resume-date {
+            font-size: 0.85rem;
+            color: var(--secondary-color);
+        }
+        
+        .resume-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .edit-name-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .edit-name-form input {
+            flex-grow: 1;
+        }
+
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" integrity="sha512-fD9DI5bZwQxOi7MhYWnnNPlvXdp/2Pj3XSTRrFs5FQa4mizyGLnJcN6tuvUS6LbmgN1ut+XGSABKvjN0H6Aoow==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+<header>
+    <h1><i class="fa-solid fa-file-lines"></i> Resume.json Editor</h1>
+    <div class="button-group">
+        <button id="save-button" class="secondary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+        <button id="load-button" class="secondary"><i class="fa-solid fa-folder-open"></i> Load</button>
+        <button id="import-button"><i class="fa-solid fa-file-import"></i> Import</button>
+        <button id="export-button" class="success"><i class="fa-solid fa-file-export"></i> Export</button>
+    </div>
+</header>
+
+<main>
+    <div class="container">
+        <div class="card">
+            <div class="tabs">
+                <div class="tab active" data-tab="basics">Basics</div>
+                <div class="tab" data-tab="work">Work</div>
+                <div class="tab" data-tab="education">Education</div>
+                <div class="tab" data-tab="skills">Skills</div>
+                <div class="tab" data-tab="projects">Projects</div>
+                <div class="tab" data-tab="meta">Meta</div>
+                <div class="tab" data-tab="preview">Preview</div>
+            </div>
+            
+            <div id="basics-panel" class="panel active">
+                <div class="resume-section">
+                    <div class="resume-section-header">
+                        <div class="resume-section-title">Basic Information</div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name">
+                        </div>
+                        <div class="input-group">
+                            <label for="label">Job Title</label>
+                            <input type="text" id="label" name="label">
+                        </div>
+                        <div class="input-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email">
+                        </div>
+                        <div class="input-group">
+                            <label for="phone">Phone</label>
+                            <input type="tel" id="phone" name="phone">
+                        </div>
+                        <div class="input-group">
+                            <label for="url">Website</label>
+                            <input type="url" id="url" name="url">
+                        </div>
+                        <div class="input-group">
+                            <label for="image">Image URL</label>
+                            <input type="url" id="image" name="image">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="summary">Summary</label>
+                        <textarea id="summary" name="summary"></textarea>
+                    </div>
+                </div>
+                
+                <div class="resume-section">
+                    <div class="resume-section-header">
+                        <div class="resume-section-title">Location</div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="address">Address</label>
+                            <input type="text" id="address" name="address">
+                        </div>
+                        <div class="input-group">
+                            <label for="postalCode">Postal Code</label>
+                            <input type="text" id="postalCode" name="postalCode">
+                        </div>
+                        <div class="input-group">
+                            <label for="city">City</label>
+                            <input type="text" id="city" name="city">
+                        </div>
+                        <div class="input-group">
+                            <label for="region">Region/State</label>
+                            <input type="text" id="region" name="region">
+                        </div>
+                        <div class="input-group">
+                            <label for="countryCode">Country Code</label>
+                            <input type="text" id="countryCode" name="countryCode">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="resume-section">
+                    <div class="resume-section-header">
+                        <div class="resume-section-title">Profiles</div>
+                        <button id="add-profile" class="small-button"><i class="fa-solid fa-plus"></i> Add Profile</button>
+                    </div>
+                    <div id="profiles-container">
+                        <div class="empty-state" id="profiles-empty">
+                            <i class="fa-solid fa-user-plus fa-2x"></i>
+                            <p>No profiles added yet. Click the "Add Profile" button to add social media profiles.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="work-panel" class="panel">
+                <div class="resume-section">
+                    <div class="resume-section-header">
+                        <div class="resume-section-title">Work Experience</div>
+                        <button id="add-work" class="small-button"><i class="fa-solid fa-plus"></i> Add Work Experience</button>
+                    </div>
+                    <div id="work-container">
+                        <div class="empty-state" id="work-empty">
+                            <i class="fa-solid fa-briefcase fa-2x"></i>
+                            <p>No work experience added yet. Click the "Add Work Experience" button to add your professional history.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="education-panel" class="panel">
+                <div class="resume-section">
+                    <div class="resume-section-header">
+                        <div class="resume-section-title">Education</div>
+                        <button id="add-education" class="small-button"><i class="fa-solid fa-plus"></i> Add Education</button>
+                    </div>
+                    <div id="education-container">
+                        <div class="empty-state" id="education-empty">
+                            <i class="fa-solid fa-graduation-cap fa-2x"></i>
+                            <p>No education added yet. Click the "Add Education" button to add your educational background.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="skills-panel" class="panel">
+                <div class="resume-section">
+                    <div class="resume-section-header">
+                        <div class="resume-section-title">Skills</div>
+                        <button id="add-skill" class="small-button"><i class="fa-solid fa-plus"></i> Add Skill</button>
+                    </div>
+                    <div id="skills-container">
+                        <div class="empty-state" id="skills-empty">
+                            <i class="fa-solid fa-code fa-2x"></i>
+                            <p>No skills added yet. Click the "Add Skill" button to add your professional skills.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="projects-panel" class="panel">
+                <div class="resume-section">
+                    <div class="resume-section-header">
+                        <div class="resume-section-title">Projects</div>
+                        <button id="add-project" class="small-button"><i class="fa-solid fa-plus"></i> Add Project</button>
+                    </div>
+                    <div id="projects-container">
+                        <div class="empty-state" id="projects-empty">
+                            <i class="fa-solid fa-diagram-project fa-2x"></i>
+                            <p>No projects added yet. Click the "Add Project" button to add your notable projects.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="meta-panel" class="panel">
+                <div class="resume-section">
+                    <div class="resume-section-header">
+                        <div class="resume-section-title">Meta Information</div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="theme">Theme</label>
+                            <input type="text" id="theme" name="theme">
+                        </div>
+                        <div class="input-group">
+                            <label for="version">Schema Version</label>
+                            <input type="text" id="version" name="version" value="1.0.0" disabled>
+                            <span class="help-text">Based on JSON Resume schema</span>
+                        </div>
+                        <div class="input-group">
+                            <label for="language">Language</label>
+                            <input type="text" id="language" name="language" placeholder="en">
+                        </div>
+                        <div class="input-group">
+                            <label for="lastModified">Last Modified</label>
+                            <input type="text" id="lastModified" name="lastModified" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="preview-panel" class="panel">
+                <div class="resume-section">
+                    <div class="resume-section-header">
+                        <div class="resume-section-title">Resume Preview</div>
+                        <div class="button-group">
+                            <button id="preview-refresh" class="small-button"><i class="fa-solid fa-sync"></i> Refresh</button>
+                            <button id="preview-print" class="small-button success"><i class="fa-solid fa-print"></i> Print</button>
+                        </div>
+                    </div>
+                    <div id="preview-theme-selector" class="input-group" style="max-width: 200px; margin-bottom: 1rem;">
+                        <label for="preview-theme">Theme</label>
+                        <select id="preview-theme">
+                            <option value="modern">Modern</option>
+                            <option value="classic">Classic</option>
+                            <option value="minimal">Minimal</option>
+                        </select>
+                    </div>
+                    <!-- PREVIEW CONTAINER -->
+                    <div id="preview-container" class="card">
+                        <div class="preview-loading">Loading preview...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Import Modal -->
+<div id="import-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Import Resume.json</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="tabs">
+            <div class="tab active" data-modal-tab="paste">Paste JSON</div>
+            <div class="tab" data-modal-tab="file">Upload File</div>
+            <div class="tab" data-modal-tab="url">From URL</div>
+        </div>
+        
+        <div id="paste-panel" class="panel active">
+            <div class="input-group">
+                <label for="json-input">Paste JSON</label>
+                <textarea id="json-input" placeholder="Paste your resume.json content here..."></textarea>
+            </div>
+            <div class="button-group">
+                <button id="import-paste" class="success"><i class="fa-solid fa-check"></i> Import</button>
+                <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+            </div>
+        </div>
+        
+        <div id="file-panel" class="panel">
+            <div class="input-group">
+                <label for="file-input">Upload JSON File</label>
+                <div id="drag-drop-area" class="drag-drop-area">
+                    <i class="fa-solid fa-cloud-arrow-up fa-2x"></i>
+                    <p>Drag & drop your resume.json file here or click to browse</p>
+                    <input type="file" id="file-input" accept=".json" style="display: none;">
+                </div>
+                <div id="file-name" class="hidden"></div>
+            </div>
+            <div class="button-group">
+                <button id="import-file" class="success" disabled><i class="fa-solid fa-check"></i> Import</button>
+                <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+            </div>
+        </div>
+        
+        <div id="url-panel" class="panel">
+            <div class="input-group">
+                <label for="url-input">JSON URL</label>
+                <input type="url" id="url-input" placeholder="https://example.com/resume.json">
+            </div>
+            <div class="button-group">
+                <button id="import-url" class="success"><i class="fa-solid fa-check"></i> Import</button>
+                <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div id="export-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Export Resume.json</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="input-group">
+            <label for="json-output">Resume JSON</label>
+            <textarea id="json-output" readonly></textarea>
+        </div>
+        <div class="button-group">
+            <button id="copy-json" class="secondary"><i class="fa-solid fa-copy"></i> Copy to Clipboard</button>
+            <button id="download-json" class="success"><i class="fa-solid fa-download"></i> Download JSON</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profile-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Add Profile</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="profile-network">Network</label>
+                <input type="text" id="profile-network" placeholder="LinkedIn, Twitter, GitHub, etc.">
+            </div>
+            <div class="input-group">
+                <label for="profile-username">Username</label>
+                <input type="text" id="profile-username">
+            </div>
+            <div class="input-group">
+                <label for="profile-url">URL</label>
+                <input type="url" id="profile-url">
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="save-profile" class="success"><i class="fa-solid fa-check"></i> Save</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Work Modal -->
+<div id="work-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Add Work Experience</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="work-name">Company</label>
+                <input type="text" id="work-name">
+            </div>
+            <div class="input-group">
+                <label for="work-position">Position</label>
+                <input type="text" id="work-position">
+            </div>
+            <div class="input-group">
+                <label for="work-startDate">Start Date</label>
+                <input type="text" id="work-startDate" placeholder="YYYY-MM-DD">
+            </div>
+            <div class="input-group">
+                <label for="work-endDate">End Date</label>
+                <input type="text" id="work-endDate" placeholder="YYYY-MM-DD or 'Present'">
+            </div>
+            <div class="input-group">
+                <label for="work-url">Company Website</label>
+                <input type="url" id="work-url">
+            </div>
+            <div class="input-group">
+                <label for="work-location">Location</label>
+                <input type="text" id="work-location">
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="work-summary">Summary</label>
+            <textarea id="work-summary"></textarea>
+        </div>
+        <div class="input-group">
+            <label for="work-highlights">Highlights (one per line)</label>
+            <textarea id="work-highlights" placeholder="• Accomplished X by implementing Y which led to Z"></textarea>
+        </div>
+        <div class="button-group">
+            <button id="save-work" class="success"><i class="fa-solid fa-check"></i> Save</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Education Modal -->
+<div id="education-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Add Education</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="education-institution">Institution</label>
+                <input type="text" id="education-institution">
+            </div>
+            <div class="input-group">
+                <label for="education-area">Area of Study</label>
+                <input type="text" id="education-area">
+            </div>
+            <div class="input-group">
+                <label for="education-studyType">Degree Type</label>
+                <input type="text" id="education-studyType" placeholder="Bachelor's, Master's, Ph.D.">
+            </div>
+            <div class="input-group">
+                <label for="education-startDate">Start Date</label>
+                <input type="text" id="education-startDate" placeholder="YYYY-MM-DD">
+            </div>
+            <div class="input-group">
+                <label for="education-endDate">End Date</label>
+                <input type="text" id="education-endDate" placeholder="YYYY-MM-DD or 'Present'">
+            </div>
+            <div class="input-group">
+                <label for="education-gpa">GPA</label>
+                <input type="text" id="education-gpa">
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="education-courses">Courses (one per line)</label>
+            <textarea id="education-courses"></textarea>
+        </div>
+        <div class="button-group">
+            <button id="save-education" class="success"><i class="fa-solid fa-check"></i> Save</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Skill Modal -->
+<div id="skills-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Add Skill</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="skill-name">Skill Name</label>
+                <input type="text" id="skill-name" placeholder="JavaScript, Project Management, etc.">
+            </div>
+            <div class="input-group">
+                <label for="skill-level">Level</label>
+                <input type="text" id="skill-level" placeholder="Beginner, Intermediate, Advanced, Master">
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="skill-keywords">Keywords (one per line)</label>
+            <textarea id="skill-keywords" placeholder="React, Redux, Node.js"></textarea>
+        </div>
+        <div class="button-group">
+            <button id="save-skill" class="success"><i class="fa-solid fa-check"></i> Save</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Project Modal -->
+<div id="projects-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Add Project</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="project-name">Project Name</label>
+                <input type="text" id="project-name">
+            </div>
+            <div class="input-group">
+                <label for="project-startDate">Start Date</label>
+                <input type="text" id="project-startDate" placeholder="YYYY-MM-DD">
+            </div>
+            <div class="input-group">
+                <label for="project-endDate">End Date</label>
+                <input type="text" id="project-endDate" placeholder="YYYY-MM-DD or 'Present'">
+            </div>
+            <div class="input-group">
+                <label for="project-url">URL</label>
+                <input type="url" id="project-url">
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="project-description">Description</label>
+            <textarea id="project-description"></textarea>
+        </div>
+        <div class="input-group">
+            <label for="project-highlights">Highlights (one per line)</label>
+            <textarea id="project-highlights"></textarea>
+        </div>
+        <div class="input-group">
+            <label for="project-keywords">Keywords (one per line)</label>
+            <textarea id="project-keywords"></textarea>
+        </div>
+        <div class="button-group">
+            <button id="save-project" class="success"><i class="fa-solid fa-check"></i> Save</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Save Modal -->
+<div id="save-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Save Resume</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="input-group">
+            <label for="save-name">Resume Name</label>
+            <input type="text" id="save-name" placeholder="My Resume">
+            <div class="help-text">Choose a name to identify this resume version.</div>
+        </div>
+        <div id="save-existing-section" class="hidden">
+            <div class="alert warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                A resume with this name already exists. Saving will overwrite the existing version.
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="save-resume" class="success"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Load Modal -->
+<div id="load-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Load Resume</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div id="saved-resumes-list" class="resume-list">
+            <div class="empty-state">
+                <i class="fa-solid fa-folder-open fa-2x"></i>
+                <p>No saved resumes found. Save a resume first to see it here.</p>
+            </div>
+        </div>
+        <div class="button-group">
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
+<footer>
+    <p>Resume.json Editor | Based on <a href="https://jsonresume.org/schema/" target="_blank">JSON Resume Schema</a></p>
+</footer>
+
+<script>
+(function() {
+    const $ = str => document.querySelector(str);
+    const $$ = str => document.querySelectorAll(str);
+
+    const app = {
+        data: {
+            basics: {
+                name: "",
+                label: "",
+                email: "",
+                phone: "",
+                url: "",
+                summary: "",
+                location: {
+                    address: "",
+                    postalCode: "",
+                    city: "",
+                    countryCode: "",
+                    region: ""
+                },
+                profiles: []
+            },
+            work: [],
+            education: [],
+            skills: [],
+            projects: [],
+            meta: {
+                theme: "",
+                version: "1.0.0",
+                language: "en",
+                lastModified: new Date().toISOString()
+            }
+        },
+        state: {
+            loaded: false,
+            currentEditIndex: -1,
+            currentSection: null
+        },
+        init() {
+            app.initLocalStorage();
+            app.setupEventListeners();
+            app.setupSaveLoadEventListeners();
+            app.state.loaded = true;
+            
+            // Set current date in lastModified field
+            $('#lastModified').value = new Date().toISOString().split('T')[0];
+       },
+        setupEventListeners() {
+            // Tab navigation
+            $$('.tab')?.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    if (tabId) {
+                        app.switchTab(tabId);
+                    } else if (tab.dataset.modalTab) {
+                        app.switchModalTab(tab.dataset.modalTab);
+                    }
+                });
+            });
+
+            // Modal close buttons
+            $$('.modal-close, .modal-cancel').forEach(btn => {
+                btn.addEventListener('click', app.closeAllModals);
+            });
+
+            // Import/Export buttons
+            $('#import-button').addEventListener('click', () => app.openModal('import-modal'));
+            $('#export-button').addEventListener('click', app.exportResume);
+
+            // Import methods
+            $('#import-paste').addEventListener('click', app.importFromText);
+            $('#import-file').addEventListener('click', app.importFromFile);
+            $('#import-url').addEventListener('click', app.importFromUrl);
+
+            // File input handling
+            $('#file-input').addEventListener('change', event => {
+                const fileName = event.target.files[0]?.name || '';
+                if (fileName) {
+                    $('#file-name').textContent = `Selected file: ${fileName}`;
+                    $('#file-name').classList.remove('hidden');
+                    $('#import-file').disabled = false;
+                }
+            });
+
+            // Drag and drop handling
+            const dragDropArea = $('#drag-drop-area');
+            dragDropArea.addEventListener('click', () => $('#file-input').click());
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dragDropArea.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dragDropArea.addEventListener(eventName, () => {
+                    dragDropArea.classList.add('dragover');
+                });
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dragDropArea.addEventListener(eventName, () => {
+                    dragDropArea.classList.remove('dragover');
+                });
+            });
+            
+            dragDropArea.addEventListener('drop', e => {
+                const file = e.dataTransfer.files[0];
+                if (file && file.type === 'application/json') {
+                    const fileInput = $('#file-input');
+                    fileInput.files = e.dataTransfer.files;
+                    $('#file-name').textContent = `Selected file: ${file.name}`;
+                    $('#file-name').classList.remove('hidden');
+                    $('#import-file').disabled = false;
+                } else {
+                    app.showToast('Please drop a valid JSON file.', 'error');
+                }
+            });
+
+            // Export actions
+            $('#copy-json').addEventListener('click', app.copyToClipboard);
+            $('#download-json').addEventListener('click', app.downloadJson);
+
+            // Add item buttons
+            $('#add-profile').addEventListener('click', () => app.openAddModal('profile'));
+            $('#add-work').addEventListener('click', () => app.openAddModal('work'));
+            $('#add-education').addEventListener('click', () => app.openAddModal('education'));
+            $('#add-skill').addEventListener('click', () => app.openAddModal('skills'));
+            $('#add-project').addEventListener('click', () => app.openAddModal('projects'));
+
+            // Save item buttons
+            $('#save-profile').addEventListener('click', () => app.saveItem('profile'));
+            $('#save-work').addEventListener('click', () => app.saveItem('work'));
+            $('#save-education').addEventListener('click', () => app.saveItem('education'));
+            $('#save-skill').addEventListener('click', () => app.saveItem('skill'));
+            $('#save-project').addEventListener('click', () => app.saveItem('project'));
+
+            // Basic info fields
+            const basicFields = ['name', 'label', 'email', 'phone', 'url', 'image', 'summary'];
+            basicFields.forEach(field => {
+                $(`#${field}`).addEventListener('change', e => {
+                    app.data.basics[field] = e.target.value;
+                });
+            });
+
+            // Location fields
+            const locationFields = ['address', 'postalCode', 'city', 'region', 'countryCode'];
+            locationFields.forEach(field => {
+                $(`#${field}`).addEventListener('change', e => {
+                    app.data.basics.location[field] = e.target.value;
+                });
+            });
+
+            // Meta fields
+            $('#theme').addEventListener('change', e => {
+                app.data.meta.theme = e.target.value;
+            });
+            
+            $('#language').addEventListener('change', e => {
+                app.data.meta.language = e.target.value;
+            });
+
+            // Theme selector for preview
+            $('#preview-theme').addEventListener('change', () => {
+                app.renderPreview();
+            });
+            
+            // Refresh button
+            $('#preview-refresh').addEventListener('click', () => {
+                app.renderPreview();
+            });
+            
+            // Print button
+            $('#preview-print').addEventListener('click', () => {
+                window.print();
+            });
+            
+ 
+        },
+        
+        formatDate(dateStr) {
+            if (!dateStr) return '';
+            
+            // Handle 'Present' text
+            if (dateStr.toLowerCase() === 'present') {
+                return 'Present';
+            }
+            
+            // Try to parse and format the date
+            try {
+                // Check if it's already in YYYY-MM-DD format
+                if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                    const parts = dateStr.split('-');
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    return `${months[parseInt(parts[1]) - 1]} ${parts[0]}`;
+                }
+                
+                // Try as a Date object
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+                }
+            } catch (e) {
+                // If there's an error, just return the original string
+                console.log("Date parse error:", e);
+            }
+            
+            return dateStr;
+        },
+
+        // HTML escaping function for security
+        escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        },
+                
+        renderPreview() {
+            const container = $('#preview-container');
+            const theme = $('#preview-theme').value || 'modern';
+            
+            // Create the preview HTML structure based on selected theme
+            let html = `<div class="preview-${theme}">`;
+            
+            // Header section
+            html += `<div class="preview-header">
+                <h1 class="preview-name">${app.escapeHtml(app.data.basics.name || 'Your Name')}</h1>
+                <p class="preview-title">${app.escapeHtml(app.data.basics.label || 'Your Job Title')}</p>
+                <div class="preview-contact">`;
+            
+            // Contact information
+            if (app.data.basics.email) {
+                html += `<div class="preview-contact-item">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>${app.escapeHtml(app.data.basics.email)}</span>
+                </div>`;
+            }
+            
+            if (app.data.basics.phone) {
+                html += `<div class="preview-contact-item">
+                    <i class="fa-solid fa-phone"></i>
+                    <span>${app.escapeHtml(app.data.basics.phone)}</span>
+                </div>`;
+            }
+            
+            if (app.data.basics.url) {
+                html += `<div class="preview-contact-item">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>${app.escapeHtml(app.data.basics.url)}</span>
+                </div>`;
+            }
+            
+            if (app.data.basics.location) {
+                const location = app.data.basics.location;
+                const locationParts = [];
+                
+                if (location.city) locationParts.push(location.city);
+                if (location.region) locationParts.push(location.region);
+                if (location.countryCode) locationParts.push(location.countryCode);
+                
+                if (locationParts.length > 0) {
+                    html += `<div class="preview-contact-item">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>${app.escapeHtml(locationParts.join(', '))}</span>
+                    </div>`;
+                }
+            }
+            
+            // Social profiles
+            if (app.data.basics.profiles && app.data.basics.profiles.length > 0) {
+                app.data.basics.profiles.forEach(profile => {
+                    let icon = 'fa-globe';
+                    
+                    // Set appropriate icon based on network
+                    if (profile.network) {
+                        const network = profile.network.toLowerCase();
+                        if (network.includes('linkedin')) icon = 'fa-linkedin';
+                        else if (network.includes('github')) icon = 'fa-github';
+                        else if (network.includes('twitter')) icon = 'fa-twitter';
+                        else if (network.includes('facebook')) icon = 'fa-facebook';
+                        else if (network.includes('instagram')) icon = 'fa-instagram';
+                    }
+                    
+                    html += `<div class="preview-contact-item">
+                        <i class="fa-brands ${icon}"></i>
+                        <span>${profile.url ? `<a href="${app.escapeHtml(profile.url)}" target="_blank">${app.escapeHtml(profile.username || profile.network)}</a>` : app.escapeHtml(profile.username || profile.network)}</span>
+                    </div>`;
+                });
+            }
+            
+            html += `</div></div>`; // Close header
+            
+            // Body content
+            html += `<div class="preview-body">`;
+            
+            // Summary section
+            if (app.data.basics.summary) {
+                html += `<div class="preview-section">
+                    <h2 class="preview-section-title">Summary</h2>
+                    <div class="preview-summary">${app.escapeHtml(app.data.basics.summary)}</div>
+                </div>`;
+            }
+            
+            // Work Experience section
+            if (app.data.work && app.data.work.length > 0) {
+                html += `<div class="preview-section">
+                    <h2 class="preview-section-title">Work Experience</h2>`;
+                
+                app.data.work.forEach(job => {
+                    html += `<div class="preview-item">
+                        <div class="preview-item-title">${app.escapeHtml(job.name || '')}</div>
+                        <div class="preview-item-subtitle">${app.escapeHtml(job.position || '')}</div>`;
+                    
+                    // Date range
+                    if (job.startDate || job.endDate) {
+                        html += `<div class="preview-item-date">
+                            ${app.escapeHtml(app.formatDate(job.startDate) || '')}
+                            ${job.startDate && job.endDate ? ' - ' : ''}
+                            ${app.escapeHtml(app.formatDate(job.endDate) || '')}
+                        </div>`;
+                    }
+                    
+                    // Location
+                    if (job.location) {
+                        html += `<div class="preview-item-location">${app.escapeHtml(job.location)}</div>`;
+                    }
+                    
+                    // Summary
+                    if (job.summary) {
+                        html += `<div class="preview-summary">${job.summary}</div>`;
+                    }
+                    
+                    // Highlights
+                    if (job.highlights && job.highlights.length > 0) {
+                        html += `<div class="preview-highlights">
+                            <div class="preview-highlights-title">Key Achievements</div>
+                            <ul class="preview-highlights-list">`;
+                        
+                        job.highlights.forEach(highlight => {
+                            html += `<li>${app.escapeHtml(highlight)}</li>`;
+                        });
+                        
+                        html += `</ul></div>`;
+                    }
+                    
+                    html += `</div>`; // Close preview-item
+                });
+                
+                html += `</div>`; // Close preview-section
+            }
+            
+            // Education section
+            if (app.data.education && app.data.education.length > 0) {
+                html += `<div class="preview-section">
+                    <h2 class="preview-section-title">Education</h2>`;
+                
+                app.data.education.forEach(edu => {
+                    html += `<div class="preview-item">
+                        <div class="preview-item-title">${app.escapeHtml(edu.institution || '')}</div>`;
+                    
+                    if (edu.studyType || edu.area) {
+                        html += `<div class="preview-item-subtitle">
+                            ${app.escapeHtml(edu.studyType || '')}
+                            ${edu.studyType && edu.area ? ' in ' : ''}
+                            ${app.escapeHtml(edu.area || '')}
+                        </div>`;
+                    }
+                    
+                    // Date range
+                    if (edu.startDate || edu.endDate) {
+                        html += `<div class="preview-item-date">
+                            ${app.escapeHtml(app.formatDate(edu.startDate) || '')}
+                            ${edu.startDate && edu.endDate ? ' - ' : ''}
+                            ${app.escapeHtml(app.formatDate(edu.endDate) || '')}
+                        </div>`;
+                    }
+                    
+                    // GPA
+                    if (edu.gpa) {
+                        html += `<div class="preview-summary">GPA: ${app.escapeHtml(edu.gpa)}</div>`;
+                    }
+                    
+                    // Courses
+                    if (edu.courses && edu.courses.length > 0) {
+                        html += `<div class="preview-highlights">
+                            <div class="preview-highlights-title">Relevant Courses</div>
+                            <ul class="preview-highlights-list">`;
+                        
+                        edu.courses.forEach(course => {
+                            html += `<li>${app.escapeHtml(course)}</li>`;
+                        });
+                        
+                        html += `</ul></div>`;
+                    }
+                    
+                    html += `</div>`; // Close preview-item
+                });
+                
+                html += `</div>`; // Close preview-section
+            }
+            
+            // Skills section
+            if (app.data.skills && app.data.skills.length > 0) {
+                html += `<div class="preview-section">
+                    <h2 class="preview-section-title">Skills</h2>`;
+                
+                app.data.skills.forEach(skill => {
+                    html += `<div class="preview-item">
+                        <div class="preview-item-title">${app.escapeHtml(skill.name || '')}</div>`;
+                    
+                    if (skill.level) {
+                        html += `<div class="preview-item-subtitle">Level: ${app.escapeHtml(skill.level)}</div>`;
+                    }
+                    
+                    // Keywords
+                    if (skill.keywords && skill.keywords.length > 0) {
+                        html += `<div class="preview-skills-list">`;
+                        
+                        skill.keywords.forEach(keyword => {
+                            let skillClass = "";
+                            if (skill.level) {
+                                const level = skill.level.toLowerCase();
+                                if (level.includes('expert') || level.includes('master')) {
+                                    skillClass = "expert";
+                                } else if (level.includes('advanced') || level.includes('proficient')) {
+                                    skillClass = "advanced";
+                                } else if (level.includes('intermediate')) {
+                                    skillClass = "intermediate";
+                                }
+                            }
+                            
+                            html += `<span class="preview-skill ${skillClass}">${app.escapeHtml(keyword)}</span>`;
+                        });
+                        
+                        html += `</div>`;
+                    }
+                    
+                    html += `</div>`; // Close preview-item
+                });
+                
+                html += `</div>`; // Close preview-section
+            }
+            
+            // Projects section
+            if (app.data.projects && app.data.projects.length > 0) {
+                html += `<div class="preview-section">
+                    <h2 class="preview-section-title">Projects</h2>`;
+                
+                app.data.projects.forEach(project => {
+                    html += `<div class="preview-item">
+                        <div class="preview-item-title">
+                            ${project.url ? `<a href="${app.escapeHtml(project.url)}" target="_blank">${app.escapeHtml(project.name || '')}</a>` : app.escapeHtml(project.name || '')}
+                        </div>`;
+                    
+                    // Date range
+                    if (project.startDate || project.endDate) {
+                        html += `<div class="preview-item-date">
+                            ${app.escapeHtml(app.formatDate(project.startDate) || '')}
+                            ${project.startDate && project.endDate ? ' - ' : ''}
+                            ${app.escapeHtml(app.formatDate(project.endDate) || '')}
+                        </div>`;
+                    }
+                    
+                    // Description
+                    if (project.description) {
+                        html += `<div class="preview-summary">${app.escapeHtml(project.description)}</div>`;
+                    }
+                    
+                    // Highlights
+                    if (project.highlights && project.highlights.length > 0) {
+                        html += `<div class="preview-highlights">
+                            <div class="preview-highlights-title">Highlights</div>
+                            <ul class="preview-highlights-list">`;
+                        
+                        project.highlights.forEach(highlight => {
+                            html += `<li>${app.escapeHtml(highlight)}</li>`;
+                        });
+                        
+                        html += `</ul></div>`;
+                    }
+                    
+                    // Keywords
+                    if (project.keywords && project.keywords.length > 0) {
+                        html += `<div class="preview-skills-list">`;
+                        
+                        project.keywords.forEach(keyword => {
+                            html += `<span class="preview-skill">${app.escapeHtml(keyword)}</span>`;
+                        });
+                        
+                        html += `</div>`;
+                    }
+                    
+                    html += `</div>`; // Close preview-item
+                });
+                
+                html += `</div>`; // Close preview-section
+            }
+            
+            html += `</div>`; // Close preview-body
+            html += `</div>`; // Close preview-theme container
+            
+            // Update the container with the generated HTML
+            container.innerHTML = html;
+        },
+
+
+        switchTab(tabId) {
+            // Deactivate all tabs and panels
+            $$('.tab').forEach(t => t.classList.remove('active'));
+            $$('.panel').forEach(p => p.classList.remove('active'));
+            
+            // Activate selected tab and panel
+            $(`[data-tab="${tabId}"]`).classList.add('active');
+            $(`#${tabId}-panel`).classList.add('active');
+            
+            // If switching to preview tab, render the preview
+            if (tabId === 'preview') {
+                app.renderPreview();
+            }
+        },
+        
+        switchModalTab(tabId) {
+            // For modal tabs
+            const modalTabs = $$('[data-modal-tab]');
+            const modalPanels = $$('#import-modal .panel');
+            
+            modalTabs.forEach(t => t.classList.remove('active'));
+            modalPanels.forEach(p => p.classList.remove('active'));
+            
+            $(`[data-modal-tab="${tabId}"]`).classList.add('active');
+            $(`#${tabId}-panel`).classList.add('active');
+        },
+        
+        openModal(modalId) {
+            $(`#${modalId}`).classList.remove('hidden');
+            
+            if (modalId === 'export-modal') {
+                app.data.meta.lastModified = new Date().toISOString();
+                $('#json-output').value = JSON.stringify(app.data, null, 2);
+            }
+        },
+        
+        closeAllModals() {
+            $$('.modal-backdrop').forEach(modal => {
+                modal.classList.add('hidden');
+            });
+            
+            // Reset current edit state
+            app.state.currentEditIndex = -1;
+            app.state.currentSection = null;
+        },
+        
+        importFromText() {
+            const jsonText = $('#json-input').value.trim();
+            try {
+                if (!jsonText) {
+                    throw new Error('No JSON content provided');
+                }
+                
+                const resumeData = JSON.parse(jsonText);
+                app.loadResumeData(resumeData);
+                app.closeAllModals();
+                app.showToast('Resume data imported successfully!');
+            } catch (error) {
+                app.showToast(`Error importing JSON: ${error.message}`, 'error');
+            }
+        },
+        
+        importFromFile() {
+            const fileInput = $('#file-input');
+            if (!fileInput.files || !fileInput.files[0]) {
+                app.showToast('Please select a file first', 'error');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = e => {
+                try {
+                    const resumeData = JSON.parse(e.target.result);
+                    app.loadResumeData(resumeData);
+                    app.closeAllModals();
+                    app.showToast('Resume data imported from file successfully!');
+                } catch (error) {
+                    app.showToast(`Error parsing JSON file: ${error.message}`, 'error');
+                }
+            };
+            
+            reader.onerror = () => {
+                app.showToast('Error reading file', 'error');
+            };
+            
+            reader.readAsText(file);
+        },
+        
+        importFromUrl() {
+            const url = $('#url-input').value.trim();
+            if (!url) {
+                app.showToast('Please enter a valid URL', 'error');
+                return;
+            }
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(resumeData => {
+                    app.loadResumeData(resumeData);
+                    app.closeAllModals();
+                    app.showToast('Resume data imported from URL successfully!');
+                })
+                .catch(error => {
+                    app.showToast(`Error fetching from URL: ${error.message}`, 'error');
+                });
+        },
+        
+        loadResumeData(resumeData) {
+            // Merge with default structure to ensure all fields exist
+            app.data = {
+                basics: {
+                    ...app.data.basics,
+                    ...resumeData.basics,
+                    location: {
+                        ...app.data.basics.location,
+                        ...(resumeData.basics?.location || {})
+                    },
+                    profiles: resumeData.basics?.profiles || []
+                },
+                work: resumeData.work || [],
+                education: resumeData.education || [],
+                skills: resumeData.skills || [],
+                projects: resumeData.projects || [],
+                meta: {
+                    ...app.data.meta,
+                    ...(resumeData.meta || {})
+                }
+            };
+            
+            // Update form fields
+            app.updateFormFields();
+            
+            // Update item containers
+            app.renderProfiles();
+            app.renderWork();
+            app.renderEducation();
+            app.renderSkills();
+            app.renderProjects();
+        },
+        
+        updateFormFields() {
+            // Update basic fields
+            const basics = app.data.basics;
+            ['name', 'label', 'email', 'phone', 'url', 'image', 'summary'].forEach(field => {
+                if (basics[field]) {
+                    $(`#${field}`).value = basics[field];
+                }
+            });
+            
+            // Update location fields
+            const location = basics.location;
+            ['address', 'postalCode', 'city', 'region', 'countryCode'].forEach(field => {
+                if (location[field]) {
+                    $(`#${field}`).value = location[field];
+                }
+            });
+            
+            // Update meta fields
+            const meta = app.data.meta;
+            if (meta.theme) $('#theme').value = meta.theme;
+            if (meta.language) $('#language').value = meta.language;
+            $('#lastModified').value = new Date(meta.lastModified || new Date()).toISOString().split('T')[0];
+        },
+        
+        exportResume() {
+            // Update lastModified timestamp
+            app.data.meta.lastModified = new Date().toISOString();
+            
+            // Format the JSON with proper indentation
+            const jsonOutput = JSON.stringify(app.data, null, 2);
+            $('#json-output').value = jsonOutput;
+            
+            app.openModal('export-modal');
+        },
+        
+        copyToClipboard() {
+            const jsonOutput = $('#json-output');
+            jsonOutput.select();
+            document.execCommand('copy');
+            
+            app.showToast('JSON copied to clipboard!');
+        },
+        
+        downloadJson() {
+            const jsonOutput = $('#json-output').value;
+            const blob = new Blob([jsonOutput], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = `resume_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            app.showToast('JSON file downloaded!');
+        },
+        
+        openAddModal(type) {
+            app.state.currentSection = type;
+            app.state.currentEditIndex = -1;
+            
+            // Clear the form fields
+            $$(`#${type}-modal input, #${type}-modal textarea`).forEach(input => {
+                input.value = '';
+            });
+            
+            // Change modal title based on action
+            $(`#${type}-modal .modal-title`).textContent = `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            
+            // Open the modal
+            $(`#${type}-modal`).classList.remove('hidden');
+        },
+        
+        openEditModal(type, index) {
+            app.state.currentSection = type;
+            app.state.currentEditIndex = index;
+            
+            const item = app.data[type][index];
+            
+            // Change modal title based on action
+            $(`#${type}-modal .modal-title`).textContent = `Edit ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            
+            // Fill form fields with item data
+            if (type === 'profile') {
+                $('#profile-network').value = item.network || '';
+                $('#profile-username').value = item.username || '';
+                $('#profile-url').value = item.url || '';
+            } else if (type === 'work') {
+                $('#work-name').value = item.name || '';
+                $('#work-position').value = item.position || '';
+                $('#work-startDate').value = item.startDate || '';
+                $('#work-endDate').value = item.endDate || '';
+                $('#work-url').value = item.url || '';
+                $('#work-location').value = item.location || '';
+                $('#work-summary').value = item.summary || '';
+                $('#work-highlights').value = (item.highlights || []).join('\n');
+            } else if (type === 'education') {
+                $('#education-institution').value = item.institution || '';
+                $('#education-area').value = item.area || '';
+                $('#education-studyType').value = item.studyType || '';
+                $('#education-startDate').value = item.startDate || '';
+                $('#education-endDate').value = item.endDate || '';
+                $('#education-gpa').value = item.gpa || '';
+                $('#education-courses').value = (item.courses || []).join('\n');
+            } else if (type === 'skills') {
+                $('#skill-name').value = item.name || '';
+                $('#skill-level').value = item.level || '';
+                $('#skill-keywords').value = (item.keywords || []).join('\n');
+            } else if (type === 'projects') {
+                $('#project-name').value = item.name || '';
+                $('#project-startDate').value = item.startDate || '';
+                $('#project-endDate').value = item.endDate || '';
+                $('#project-url').value = item.url || '';
+                $('#project-description').value = item.description || '';
+                $('#project-highlights').value = (item.highlights || []).join('\n');
+                $('#project-keywords').value = (item.keywords || []).join('\n');
+            }
+            
+            // Open the modal
+            $(`#${type}-modal`).classList.remove('hidden');
+        },
+        
+        saveItem(type) {
+            const isEditing = app.state.currentEditIndex !== -1;
+            let newItem;
+            
+            if (type === 'profile') {
+                // Get values from form
+                const network = $('#profile-network').value.trim();
+                const username = $('#profile-username').value.trim();
+                const url = $('#profile-url').value.trim();
+                
+                if (!network) {
+                    app.showToast('Network name is required', 'error');
+                    return;
+                }
+                
+                newItem = { network, username, url };
+                
+                if (isEditing) {
+                    app.data.basics.profiles[app.state.currentEditIndex] = newItem;
+                } else {
+                    app.data.basics.profiles.push(newItem);
+                }
+                
+                app.renderProfiles();
+            } else if (type === 'work') {
+                const name = $('#work-name').value.trim();
+                const position = $('#work-position').value.trim();
+                const startDate = $('#work-startDate').value.trim();
+                const endDate = $('#work-endDate').value.trim();
+                const url = $('#work-url').value.trim();
+                const location = $('#work-location').value.trim();
+                const summary = $('#work-summary').value.trim();
+                const highlights = $('#work-highlights').value.trim()
+                    .split('\n')
+                    .filter(item => item.trim())
+                    .map(item => item.trim());
+                
+                if (!name || !position) {
+                    app.showToast('Company name and position are required', 'error');
+                    return;
+                }
+                
+                newItem = { 
+                    name, position, startDate, endDate, url, location, summary, 
+                    highlights 
+                };
+                
+                if (isEditing) {
+                    app.data.work[app.state.currentEditIndex] = newItem;
+                } else {
+                    app.data.work.push(newItem);
+                }
+                
+                app.renderWork();
+            } else if (type === 'education') {
+                const institution = $('#education-institution').value.trim();
+                const area = $('#education-area').value.trim();
+                const studyType = $('#education-studyType').value.trim();
+                const startDate = $('#education-startDate').value.trim();
+                const endDate = $('#education-endDate').value.trim();
+                const gpa = $('#education-gpa').value.trim();
+                const courses = $('#education-courses').value.trim()
+                    .split('\n')
+                    .filter(item => item.trim())
+                    .map(item => item.trim());
+                
+                if (!institution) {
+                    app.showToast('Institution name is required', 'error');
+                    return;
+                }
+                
+                newItem = { 
+                    institution, area, studyType, startDate, endDate, gpa, courses 
+                };
+                
+                if (isEditing) {
+                    app.data.education[app.state.currentEditIndex] = newItem;
+                } else {
+                    app.data.education.push(newItem);
+                }
+                
+                app.renderEducation();
+            } else if (type === 'skill') {
+                const name = $('#skill-name').value.trim();
+                const level = $('#skill-level').value.trim();
+                const keywords = $('#skill-keywords').value.trim()
+                    .split('\n')
+                    .filter(item => item.trim())
+                    .map(item => item.trim());
+                
+                if (!name) {
+                    app.showToast('Skill name is required', 'error');
+                    return;
+                }
+                
+                newItem = { name, level, keywords };
+                
+                if (isEditing) {
+                    app.data.skills[app.state.currentEditIndex] = newItem;
+                } else {
+                    app.data.skills.push(newItem);
+                }
+                
+                app.renderSkills();
+            } else if (type === 'project') {
+                const name = $('#project-name').value.trim();
+                const startDate = $('#project-startDate').value.trim();
+                const endDate = $('#project-endDate').value.trim();
+                const url = $('#project-url').value.trim();
+                const description = $('#project-description').value.trim();
+                const highlights = $('#project-highlights').value.trim()
+                    .split('\n')
+                    .filter(item => item.trim())
+                    .map(item => item.trim());
+                const keywords = $('#project-keywords').value.trim()
+                    .split('\n')
+                    .filter(item => item.trim())
+                    .map(item => item.trim());
+                
+                if (!name) {
+                    app.showToast('Project name is required', 'error');
+                    return;
+                }
+                
+                newItem = { 
+                    name, startDate, endDate, url, description, highlights, keywords 
+                };
+                
+                if (isEditing) {
+                    app.data.projects[app.state.currentEditIndex] = newItem;
+                } else {
+                    app.data.projects.push(newItem);
+                }
+                
+                app.renderProjects();
+            }
+            
+            app.closeAllModals();
+            app.showToast(`${isEditing ? 'Updated' : 'Added'} ${type} successfully!`);
+        },
+        
+        renderProfiles() {
+            const container = $('#profiles-container');
+            const profiles = app.data.basics.profiles;
+            
+            if (profiles.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" id="profiles-empty">
+                        <i class="fa-solid fa-user-plus fa-2x"></i>
+                        <p>No profiles added yet. Click the "Add Profile" button to add social media profiles.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            profiles.forEach((profile, index) => {
+                html += `
+                    <div class="resume-item">
+                        <div class="resume-item-header">
+                            <strong>${profile.network}</strong>
+                            <div class="resume-item-actions">
+                                <button class="icon-button edit-profile" data-index="${index}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button class="icon-button delete-profile" data-index="${index}">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            ${profile.username ? `<div>Username: ${profile.username}</div>` : ''}
+                            ${profile.url ? `<div>URL: <a href="${profile.url}" target="_blank">${profile.url}</a></div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Add event listeners for edit/delete buttons
+            $$('.edit-profile').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    app.openEditModal('profile', index);
+                });
+            });
+            
+            $$('.delete-profile').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    if (confirm('Are you sure you want to delete this profile?')) {
+                        app.data.basics.profiles.splice(index, 1);
+                        app.renderProfiles();
+                        app.showToast('Profile deleted successfully!');
+                    }
+                });
+            });
+        },
+        
+        renderWork() {
+            const container = $('#work-container');
+            const work = app.data.work;
+            
+            if (work.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" id="work-empty">
+                        <i class="fa-solid fa-briefcase fa-2x"></i>
+                        <p>No work experience added yet. Click the "Add Work Experience" button to add your professional history.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            work.forEach((job, index) => {
+                html += `
+                    <div class="resume-item">
+                        <div class="resume-item-header">
+                            <strong>${job.name} - ${job.position}</strong>
+                            <div class="resume-item-actions">
+                                <button class="icon-button edit-work" data-index="${index}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button class="icon-button delete-work" data-index="${index}">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            ${job.startDate || job.endDate ? 
+                              `<div>${job.startDate || ''} ${job.startDate && job.endDate ? ' - ' : ''} ${job.endDate || ''}</div>` : ''}
+                            ${job.location ? `<div>Location: ${job.location}</div>` : ''}
+                            ${job.url ? `<div>Website: <a href="${job.url}" target="_blank">${job.url}</a></div>` : ''}
+                            ${job.summary ? `<div>Summary: ${job.summary}</div>` : ''}
+                            ${job.highlights && job.highlights.length > 0 ? 
+                              `<div>
+                                <strong>Highlights:</strong>
+                                <ul>${job.highlights.map(highlight => `<li>${highlight}</li>`).join('')}</ul>
+                              </div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Add event listeners for edit/delete buttons
+            $$('.edit-work').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    app.openEditModal('work', index);
+                });
+            });
+            
+            $$('.delete-work').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    if (confirm('Are you sure you want to delete this work experience?')) {
+                        app.data.work.splice(index, 1);
+                        app.renderWork();
+                        app.showToast('Work experience deleted successfully!');
+                    }
+                });
+            });
+        },
+        
+        renderEducation() {
+            const container = $('#education-container');
+            const education = app.data.education;
+            
+            if (education.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" id="education-empty">
+                        <i class="fa-solid fa-graduation-cap fa-2x"></i>
+                        <p>No education added yet. Click the "Add Education" button to add your educational background.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            education.forEach((edu, index) => {
+                html += `
+                    <div class="resume-item">
+                        <div class="resume-item-header">
+                            <strong>${edu.institution} ${edu.studyType && edu.area ? `- ${edu.studyType} in ${edu.area}` : 
+                              edu.studyType ? `- ${edu.studyType}` : edu.area ? `- ${edu.area}` : ''}</strong>
+                            <div class="resume-item-actions">
+                                <button class="icon-button edit-education" data-index="${index}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button class="icon-button delete-education" data-index="${index}">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            ${edu.startDate || edu.endDate ? 
+                              `<div>${edu.startDate || ''} ${edu.startDate && edu.endDate ? ' - ' : ''} ${edu.endDate || ''}</div>` : ''}
+                            ${edu.gpa ? `<div>GPA: ${edu.gpa}</div>` : ''}
+                            ${edu.courses && edu.courses.length > 0 ? 
+                              `<div>
+                                <strong>Courses:</strong>
+                                <ul>${edu.courses.map(course => `<li>${course}</li>`).join('')}</ul>
+                              </div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Add event listeners for edit/delete buttons
+            $$('.edit-education').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    app.openEditModal('education', index);
+                });
+            });
+            
+            $$('.delete-education').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    if (confirm('Are you sure you want to delete this education entry?')) {
+                        app.data.education.splice(index, 1);
+                        app.renderEducation();
+                        app.showToast('Education entry deleted successfully!');
+                    }
+                });
+            });
+        },
+        
+        renderSkills() {
+            const container = $('#skills-container');
+            const skills = app.data.skills;
+            
+            if (skills.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" id="skills-empty">
+                        <i class="fa-solid fa-code fa-2x"></i>
+                        <p>No skills added yet. Click the "Add Skill" button to add your professional skills.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            skills.forEach((skill, index) => {
+                html += `
+                    <div class="resume-item">
+                        <div class="resume-item-header">
+                            <strong>${skill.name}${skill.level ? ` - ${skill.level}` : ''}</strong>
+                            <div class="resume-item-actions">
+                                <button class="icon-button edit-skill" data-index="${index}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button class="icon-button delete-skill" data-index="${index}">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            ${skill.keywords && skill.keywords.length > 0 ? 
+                              `<div>Keywords: ${skill.keywords.join(', ')}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Add event listeners for edit/delete buttons
+            $$('.edit-skill').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    app.openEditModal('skills', index);
+                });
+            });
+            
+            $$('.delete-skill').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    if (confirm('Are you sure you want to delete this skill?')) {
+                        app.data.skills.splice(index, 1);
+                        app.renderSkills();
+                        app.showToast('Skill deleted successfully!');
+                    }
+                });
+            });
+        },
+        
+        renderProjects() {
+            const container = $('#projects-container');
+            const projects = app.data.projects;
+            
+            if (projects.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" id="projects-empty">
+                        <i class="fa-solid fa-diagram-project fa-2x"></i>
+                        <p>No projects added yet. Click the "Add Project" button to add your notable projects.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            projects.forEach((project, index) => {
+                html += `
+                    <div class="resume-item">
+                        <div class="resume-item-header">
+                            <strong>${project.name}</strong>
+                            <div class="resume-item-actions">
+                                <button class="icon-button edit-project" data-index="${index}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button class="icon-button delete-project" data-index="${index}">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            ${project.startDate || project.endDate ? 
+                              `<div>${project.startDate || ''} ${project.startDate && project.endDate ? ' - ' : ''} ${project.endDate || ''}</div>` : ''}
+                            ${project.url ? `<div>URL: <a href="${project.url}" target="_blank">${project.url}</a></div>` : ''}
+                            ${project.description ? `<div>Description: ${project.description}</div>` : ''}
+                            ${project.highlights && project.highlights.length > 0 ? 
+                              `<div>
+                                <strong>Highlights:</strong>
+                                <ul>${project.highlights.map(highlight => `<li>${highlight}</li>`).join('')}</ul>
+                              </div>` : ''}
+                            ${project.keywords && project.keywords.length > 0 ? 
+                              `<div>Keywords: ${project.keywords.join(', ')}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Add event listeners for edit/delete buttons
+            $$('.edit-project').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    app.openEditModal('projects', index);
+                });
+            });
+            
+            $$('.delete-project').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.dataset.index);
+                    if (confirm('Are you sure you want to delete this project?')) {
+                        app.data.projects.splice(index, 1);
+                        app.renderProjects();
+                        app.showToast('Project deleted successfully!');
+                    }
+                });
+            });
+        },
+        
+        showToast(message, type = 'success') {
+            const toast = $('#toast');
+            toast.textContent = message;
+            toast.className = 'toast';
+            
+            if (type === 'error') {
+                toast.classList.add('error');
+            }
+            
+            // Show the toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            // Hide the toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        },
+        
+        // Initialize localStorage management
+        initLocalStorage() {
+            // Check if localStorage is available
+            if (!app.isLocalStorageAvailable()) {
+                console.warn('localStorage is not available. Resume saving functionality will be disabled.');
+                $('#save-button').disabled = true;
+                $('#load-button').disabled = true;
+                return;
+            }
+            
+            // Initialize the saved resumes registry if it doesn't exist
+            if (!localStorage.getItem('resumeRegistry')) {
+                localStorage.setItem('resumeRegistry', JSON.stringify([]));
+            }
+        },
+
+        // Check if localStorage is available
+        isLocalStorageAvailable() {
+            try {
+                const test = 'test';
+                localStorage.setItem(test, test);
+                localStorage.removeItem(test);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        },
+
+        // Get saved resumes registry
+        getSavedResumes() {
+            if (!app.isLocalStorageAvailable()) return [];
+            
+            try {
+                return JSON.parse(localStorage.getItem('resumeRegistry') || '[]');
+            } catch (e) {
+                console.error('Error parsing resume registry:', e);
+                return [];
+            }
+        },
+
+        // Save resume to localStorage
+        saveResumeToStorage(name) {
+            if (!app.isLocalStorageAvailable()) {
+                app.showToast('localStorage is not available. Cannot save resume.', 'error');
+                return false;
+            }
+            
+            try {
+                const registry = app.getSavedResumes();
+                const saveDate = new Date().toISOString();
+                
+                // Update metadata
+                app.data.meta.lastModified = saveDate;
+                app.data.meta.name = name;
+                
+                // Generate a unique ID if it doesn't exist
+                const resumeId = app.data.meta.id || `resume_${Date.now()}`;
+                app.data.meta.id = resumeId;
+                
+                // Check if this resume already exists in registry
+                const existingIndex = registry.findIndex(r => r.id === resumeId);
+                
+                if (existingIndex >= 0) {
+                    // Update existing entry
+                    registry[existingIndex] = {
+                        id: resumeId,
+                        name: name,
+                        savedDate: saveDate,
+                        basics: {
+                            name: app.data.basics.name || 'Unnamed',
+                            label: app.data.basics.label || ''
+                        }
+                    };
+                } else {
+                    // Add new entry
+                    registry.push({
+                        id: resumeId,
+                        name: name,
+                        savedDate: saveDate,
+                        basics: {
+                            name: app.data.basics.name || 'Unnamed',
+                            label: app.data.basics.label || ''
+                        }
+                    });
+                }
+                
+                // Save updated registry
+                localStorage.setItem('resumeRegistry', JSON.stringify(registry));
+                
+                // Save the actual resume data
+                localStorage.setItem(`resume_${resumeId}`, JSON.stringify(app.data));
+                
+                return true;
+            } catch (e) {
+                console.error('Error saving resume:', e);
+                app.showToast('Error saving resume. Please try again.', 'error');
+                return false;
+            }
+        },
+
+        // Load resume from localStorage
+        loadResumeFromStorage(resumeId) {
+            if (!app.isLocalStorageAvailable()) {
+                app.showToast('localStorage is not available. Cannot load resume.', 'error');
+                return false;
+            }
+            
+            try {
+                const resumeData = localStorage.getItem(`resume_${resumeId}`);
+                
+                if (!resumeData) {
+                    app.showToast('Resume not found.', 'error');
+                    return false;
+                }
+                
+                const parsedData = JSON.parse(resumeData);
+                app.loadResumeData(parsedData);
+                
+                app.showToast('Resume loaded successfully!');
+                return true;
+            } catch (e) {
+                console.error('Error loading resume:', e);
+                app.showToast('Error loading resume. Please try again.', 'error');
+                return false;
+            }
+        },
+
+        // Delete resume from localStorage
+        deleteResumeFromStorage(resumeId) {
+            if (!app.isLocalStorageAvailable()) {
+                app.showToast('localStorage is not available. Cannot delete resume.', 'error');
+                return false;
+            }
+            
+            try {
+                // Remove from registry
+                const registry = app.getSavedResumes();
+                const updatedRegistry = registry.filter(r => r.id !== resumeId);
+                localStorage.setItem('resumeRegistry', JSON.stringify(updatedRegistry));
+                
+                // Remove the actual resume data
+                localStorage.removeItem(`resume_${resumeId}`);
+                
+                return true;
+            } catch (e) {
+                console.error('Error deleting resume:', e);
+                app.showToast('Error deleting resume. Please try again.', 'error');
+                return false;
+            }
+        },
+
+        // Rename resume in localStorage
+        renameResumeInStorage(resumeId, newName) {
+            if (!app.isLocalStorageAvailable()) {
+                app.showToast('localStorage is not available. Cannot rename resume.', 'error');
+                return false;
+            }
+            
+            try {
+                // Update registry
+                const registry = app.getSavedResumes();
+                const resumeIndex = registry.findIndex(r => r.id === resumeId);
+                
+                if (resumeIndex === -1) {
+                    app.showToast('Resume not found.', 'error');
+                    return false;
+                }
+                
+                registry[resumeIndex].name = newName;
+                localStorage.setItem('resumeRegistry', JSON.stringify(registry));
+                
+                // Update the resume data if it's the current one
+                if (app.data.meta.id === resumeId) {
+                    app.data.meta.name = newName;
+                    app.saveResumeToStorage(newName);
+                } else {
+                    // Otherwise, load, update, and save back
+                    const resumeData = JSON.parse(localStorage.getItem(`resume_${resumeId}`));
+                    if (resumeData) {
+                        resumeData.meta.name = newName;
+                        localStorage.setItem(`resume_${resumeId}`, JSON.stringify(resumeData));
+                    }
+                }
+                
+                return true;
+            } catch (e) {
+                console.error('Error renaming resume:', e);
+                app.showToast('Error renaming resume. Please try again.', 'error');
+                return false;
+            }
+        },
+
+        // Open save modal
+        openSaveModal() {
+            const modal = $('#save-modal');
+            const nameInput = $('#save-name');
+            const warningSection = $('#save-existing-section');
+            
+            // Set default name from current resume if available, otherwise use basics name
+            nameInput.value = app.data.meta.name || (app.data.basics.name ? `${app.data.basics.name}'s Resume` : 'My Resume');
+            
+            // Check if this name already exists
+            const registry = app.getSavedResumes();
+            const existingResume = registry.find(r => r.name === nameInput.value && r.id !== app.data.meta.id);
+            
+            warningSection.classList.toggle('hidden', !existingResume);
+            
+            // Add event listener for name input changes
+            nameInput.oninput = function() {
+                const newName = nameInput.value.trim();
+                const existingResume = registry.find(r => r.name === newName && r.id !== app.data.meta.id);
+                warningSection.classList.toggle('hidden', !existingResume);
+            };
+            
+            modal.classList.remove('hidden');
+        },
+
+        // Open load modal
+        openLoadModal() {
+            const modal = $('#load-modal');
+            app.renderSavedResumesList();
+            modal.classList.remove('hidden');
+        },
+
+        // Render the list of saved resumes
+        renderSavedResumesList() {
+            const container = $('#saved-resumes-list');
+            const resumes = app.getSavedResumes();
+            
+            if (resumes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-folder-open fa-2x"></i>
+                        <p>No saved resumes found. Save a resume first to see it here.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort resumes by date (newest first)
+            resumes.sort((a, b) => new Date(b.savedDate) - new Date(a.savedDate));
+            
+            let html = '';
+            resumes.forEach(resume => {
+                const savedDate = new Date(resume.savedDate);
+                const formattedDate = savedDate.toLocaleDateString() + ' ' + savedDate.toLocaleTimeString();
+                
+                html += `
+                    <div class="resume-item-card" data-id="${resume.id}">
+                        <div class="resume-info">
+                            <div class="resume-name">${app.escapeHtml(resume.name)}</div>
+                            <div class="resume-date">
+                                <strong>${app.escapeHtml(resume.basics.name || 'Unnamed')}</strong>
+                                ${resume.basics.label ? ` - ${app.escapeHtml(resume.basics.label)}` : ''}
+                                <div>Last saved: ${formattedDate}</div>
+                            </div>
+                            <div class="edit-name-form hidden" data-id="${resume.id}">
+                                <input type="text" class="rename-input" value="${app.escapeHtml(resume.name)}">
+                                <button class="small-button save-rename" data-id="${resume.id}">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                <button class="small-button cancel-rename">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="resume-item-actions">
+                            <button class="icon-button load-resume" data-id="${resume.id}" title="Load this resume">
+                                <i class="fa-solid fa-folder-open"></i>
+                            </button>
+                            <button class="icon-button rename-resume" data-id="${resume.id}" title="Rename">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button class="icon-button delete-resume" data-id="${resume.id}" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Add event listeners
+            $$('.load-resume').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const resumeId = btn.dataset.id;
+                    if (app.loadResumeFromStorage(resumeId)) {
+                        app.closeAllModals();
+                    }
+                });
+            });
+            
+            $$('.rename-resume').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const resumeId = btn.dataset.id;
+                    const card = btn.closest('.resume-item-card');
+                    const nameDisplay = card.querySelector('.resume-name');
+                    const editForm = card.querySelector('.edit-name-form');
+                    
+                    nameDisplay.classList.add('hidden');
+                    editForm.classList.remove('hidden');
+                    editForm.querySelector('input').focus();
+                });
+            });
+            
+            $$('.save-rename').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const resumeId = btn.dataset.id;
+                    const card = btn.closest('.resume-item-card');
+                    const newName = card.querySelector('.rename-input').value.trim();
+                    
+                    if (!newName) {
+                        app.showToast('Resume name cannot be empty', 'error');
+                        return;
+                    }
+                    
+                    if (app.renameResumeInStorage(resumeId, newName)) {
+                        app.showToast('Resume renamed successfully!');
+                        app.renderSavedResumesList();
+                    }
+                });
+            });
+            
+            $$('.cancel-rename').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const card = btn.closest('.resume-item-card');
+                    const nameDisplay = card.querySelector('.resume-name');
+                    const editForm = card.querySelector('.edit-name-form');
+                    
+                    nameDisplay.classList.remove('hidden');
+                    editForm.classList.add('hidden');
+                });
+            });
+            
+            $$('.delete-resume').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const resumeId = btn.dataset.id;
+                    
+                    if (confirm('Are you sure you want to delete this resume? This action cannot be undone.')) {
+                        if (app.deleteResumeFromStorage(resumeId)) {
+                            app.showToast('Resume deleted successfully!');
+                            app.renderSavedResumesList();
+                        }
+                    }
+                });
+            });
+        },
+
+        // Add event listeners for save/load functionality
+        setupSaveLoadEventListeners() {
+            // Open save modal
+            $('#save-button').addEventListener('click', app.openSaveModal);
+            
+            // Open load modal
+            $('#load-button').addEventListener('click', app.openLoadModal);
+            
+            // Save button in modal
+            $('#save-resume').addEventListener('click', () => {
+                const name = $('#save-name').value.trim();
+                
+                if (!name) {
+                    app.showToast('Please enter a name for your resume', 'error');
+                    return;
+                }
+                
+                if (app.saveResumeToStorage(name)) {
+                    app.showToast('Resume saved successfully!');
+                    app.closeAllModals();
+                }
+            });
+        },
+
+
+        // Utility function for loading test data
+        loadSampleData() {
+            const sampleData = {
+                "basics": {
+                    "name": "John Doe",
+                    "label": "Full Stack Developer",
+                    "image": "",
+                    "email": "john.doe@example.com",
+                    "phone": "(123) 456-7890",
+                    "url": "https://johndoe.com",
+                    "summary": "Experienced full stack developer with a passion for creating responsive and user-friendly web applications. Over 5 years of industry experience.",
+                    "location": {
+                        "address": "123 Main St",
+                        "postalCode": "12345",
+                        "city": "San Francisco",
+                        "countryCode": "US",
+                        "region": "California"
+                    },
+                    "profiles": [
+                        {
+                            "network": "LinkedIn",
+                            "username": "johndoe",
+                            "url": "https://linkedin.com/in/johndoe"
+                        },
+                        {
+                            "network": "GitHub",
+                            "username": "johndoe",
+                            "url": "https://github.com/johndoe"
+                        }
+                    ]
+                },
+                "work": [
+                    {
+                        "name": "Tech Solutions Inc.",
+                        "position": "Senior Developer",
+                        "url": "https://techsolutions.example.com",
+                        "startDate": "2020-01-01",
+                        "endDate": "Present",
+                        "summary": "Lead developer for the company's main product.",
+                        "highlights": [
+                            "Implemented new features that increased user engagement by 25%",
+                            "Mentored junior developers",
+                            "Refactored legacy code, improving performance by 40%"
+                        ],
+                        "location": "San Francisco, CA"
+                    },
+                    {
+                        "name": "WebDev Co",
+                        "position": "Frontend Developer",
+                        "url": "https://webdevco.example.com",
+                        "startDate": "2018-03-01",
+                        "endDate": "2019-12-31",
+                        "summary": "Specialized in building responsive UI components.",
+                        "highlights": [
+                            "Developed a component library used across multiple projects",
+                            "Collaborated with UX team to improve user experience"
+                        ],
+                        "location": "Remote"
+                    }
+                ],
+                "education": [
+                    {
+                        "institution": "University of California",
+                        "area": "Computer Science",
+                        "studyType": "Bachelor",
+                        "startDate": "2014-09-01",
+                        "endDate": "2018-05-31",
+                        "gpa": "3.8",
+                        "courses": [
+                            "Data Structures",
+                            "Algorithms",
+                            "Web Development",
+                            "Database Systems"
+                        ]
+                    }
+                ],
+                "skills": [
+                    {
+                        "name": "Frontend Development",
+                        "level": "Expert",
+                        "keywords": [
+                            "HTML",
+                            "CSS",
+                            "JavaScript",
+                            "React",
+                            "Vue"
+                        ]
+                    },
+                    {
+                        "name": "Backend Development",
+                        "level": "Advanced",
+                        "keywords": [
+                            "Node.js",
+                            "Express",
+                            "Python",
+                            "Django"
+                        ]
+                    }
+                ],
+                "projects": [
+                    {
+                        "name": "E-commerce Platform",
+                        "description": "Built a scalable e-commerce platform with React and Node.js",
+                        "highlights": [
+                            "Implemented secure payment processing",
+                            "Created an admin dashboard for inventory management"
+                        ],
+                        "keywords": [
+                            "React",
+                            "Node.js",
+                            "MongoDB",
+                            "Redux"
+                        ],
+                        "startDate": "2019-06-01",
+                        "endDate": "2019-12-31",
+                        "url": "https://github.com/johndoe/ecommerce"
+                    }
+                ],
+                "meta": {
+                    "theme": "elegant",
+                    "version": "1.0.0",
+                    "language": "en",
+                    "lastModified": "2023-05-01T12:00:00Z"
+                }
+            };
+            
+            app.loadResumeData(sampleData);
+            app.showToast('Sample data loaded successfully!');
+        }
+    }
+    
+    // Initialize the application
+    window.app = app;
+    document.addEventListener('DOMContentLoaded', app.init.bind(app));
+})();
+</script>
+</body>
+</html>
