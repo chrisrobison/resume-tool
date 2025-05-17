@@ -12,7 +12,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
+<div class="menu-backdrop"></div>
 <header>
+    <div class="hamburger-menu"><i class="fa-solid fa-bars"></i></div>
     <h1><i class="fa-solid fa-file-lines"></i> Resume.json Editor</h1>
     <div class="button-group">
         <button id="save-button"><i class="fa-solid fa-floppy-disk"></i> <span>Save</span></button>
@@ -21,22 +23,34 @@
         <button id="import-button"><i class="fa-solid fa-file-import"></i> <span>Import</span></button>
         <button id="export-button" class="success"><i class="fa-solid fa-file-export"></i> <span>Export</span></button>
         <button id="settings-button"><i class="fa-solid fa-gear"></i> <span>Settings</span></button>
-        <button id="jobs-button"><i class="fa-solid fa-briefcase"></i> <span>Jobs</span></button>
     </div>
 </header>
 
 <main>
-    <div class="container">
-        <div class="card">
-            <div class="tabs" role="tablist">
-                <div class="tab active" data-tab="basics" role="tab" aria-selected="true">Basics</div>
-                <div class="tab" data-tab="work" role="tab">Work</div>
-                <div class="tab" data-tab="education" role="tab">Education</div>
-                <div class="tab" data-tab="skills" role="tab">Skills</div>
-                <div class="tab" data-tab="projects" role="tab">Projects</div>
-                <div class="tab" data-tab="meta" role="tab">Meta</div>
-                <div class="tab" data-tab="preview" role="tab">Preview</div>
+    <div class="sidebar">
+        <div class="sidebar-nav">
+            <div class="sidebar-nav-item active" data-view="resume">
+                <i class="fa-solid fa-file-lines"></i> Resume
             </div>
+            <div class="sidebar-nav-item" data-view="jobs">
+                <i class="fa-solid fa-briefcase"></i> Jobs
+            </div>
+        </div>
+    </div>
+    
+    <div class="content-area">
+        <div id="resume-view" class="view-container active">
+            <div class="container">
+                <div class="card">
+                    <div class="tabs" role="tablist">
+                        <div class="tab active" data-tab="basics" role="tab" aria-selected="true">Basics</div>
+                        <div class="tab" data-tab="work" role="tab">Work</div>
+                        <div class="tab" data-tab="education" role="tab">Education</div>
+                        <div class="tab" data-tab="skills" role="tab">Skills</div>
+                        <div class="tab" data-tab="projects" role="tab">Projects</div>
+                        <div class="tab" data-tab="meta" role="tab">Meta</div>
+                        <div class="tab" data-tab="preview" role="tab">Preview</div>
+                    </div>
             
             <div id="basics-panel" class="panel active" role="tabpanel" aria-labelledby="basics-tab">
                 <div class="resume-section">
@@ -238,6 +252,27 @@
                     <!-- PREVIEW CONTAINER -->
                     <div id="preview-container" class="card">
                         <div class="preview-loading">Loading preview...</div>
+                    </div>
+                </div>
+            </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="jobs-view" class="view-container">
+            <div class="container">
+                <div class="card">
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Saved Jobs</div>
+                            <button id="add-job" class="small-button"><i class="fa-solid fa-plus"></i> Add Job</button>
+                        </div>
+                        <div id="jobs-container">
+                            <div class="empty-state" id="jobs-empty">
+                                <i class="fa-solid fa-briefcase fa-2x"></i>
+                                <p>No jobs saved yet. Click "Add Job" to add a job posting and generate customized resumes.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -46,8 +46,43 @@
             
             // Set current date in lastModified field
             $('#lastModified').value = new Date().toISOString().split('T')[0];
+            
+            // Initialize view handlers after DOM is loaded
+            const sidebarItems = $$('.sidebar-nav-item');
+            if (sidebarItems.length > 0) {
+                sidebarItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        const viewId = item.dataset.view;
+                        if (viewId) {
+                            app.switchView(viewId);
+                        }
+                    });
+                });
+            }
        },
         setupEventListeners() {
+            // Sidebar navigation
+            $$('.sidebar-nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const viewId = item.dataset.view;
+                    if (viewId) {
+                        app.switchView(viewId);
+                    }
+                });
+            });
+            
+            // Hamburger menu toggle
+            $('.hamburger-menu').addEventListener('click', () => {
+                $('.sidebar').classList.toggle('active');
+                $('.menu-backdrop').classList.toggle('active');
+            });
+            
+            // Menu backdrop click to close sidebar on mobile
+            $('.menu-backdrop').addEventListener('click', () => {
+                $('.sidebar').classList.remove('active');
+                $('.menu-backdrop').classList.remove('active');
+            });
+            
             // Tab navigation
             $$('.tab')?.forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -87,12 +122,14 @@
             // Handle resize events to adjust UI for different screen sizes
             window.addEventListener('resize', app.handleResize);
 
-            // Import/Export/Copy/Settings/Jobs buttons
+            // Import/Export/Copy/Settings buttons
             $('#import-button').addEventListener('click', () => app.openModal('import-modal'));
             $('#export-button').addEventListener('click', app.exportResume);
             $('#copy-button').addEventListener('click', app.copyResume);
             $('#settings-button').addEventListener('click', () => app.openModal('settings-modal'));
-            $('#jobs-button').addEventListener('click', app.openJobsModal);
+            
+            // Add job button
+            $('#add-job').addEventListener('click', app.openJobsModal);
 
             // Import methods
             $('#import-paste').addEventListener('click', app.importFromText);
@@ -249,6 +286,240 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        },
+        
+        // Balance JSON brackets and braces
+        balanceJsonBrackets(jsonString) {
+            try {
+                let openBraces = 0;
+                let openBrackets = 0;
+                let inString = false;
+                let escaped = false;
+                
+                // First pass - count unbalanced brackets
+                for (let i = 0; i < jsonString.length; i++) {
+                    const char = jsonString[i];
+                    
+                    // Handle string literals correctly
+                    if (char === '"' && !escaped) {
+                        inString = !inString;
+                    }
+                    
+                    // Only count brackets outside of strings
+                    if (!inString) {
+                        if (char === '{') openBraces++;
+                        if (char === '}') openBraces--;
+                        if (char === '[') openBrackets++;
+                        if (char === ']') openBrackets--;
+                    }
+                    
+                    // Track escaped characters
+                    escaped = char === '\\' && !escaped;
+                }
+                
+                // Add any missing closing braces or brackets
+                let balanced = jsonString;
+                
+                // Add missing closing brackets
+                for (let i = 0; i < openBrackets; i++) {
+                    balanced += ']';
+                }
+                
+                // Add missing closing braces
+                for (let i = 0; i < openBraces; i++) {
+                    balanced += '}';
+                }
+                
+                // Fix any negative balance (too many closing brackets/braces)
+                if (openBraces < 0 || openBrackets < 0) {
+                    // This is harder to fix - try to just take the first valid object
+                    const match = jsonString.match(/^\s*\{.*?\}\s*[,;]?/s);
+                    if (match) {
+                        balanced = match[0].replace(/[,;]\s*$/, '');
+                    }
+                }
+                
+                return balanced;
+            } catch (error) {
+                console.warn("Error balancing JSON brackets:", error);
+                return jsonString; // Return original if we can't fix it
+            }
+        },
+        
+        // Try to fix JSON at specific error position
+        fixJsonAtPosition(jsonString, errorPosition) {
+            try {
+                // Get a window around the error
+                const start = Math.max(0, errorPosition - 20);
+                const end = Math.min(jsonString.length, errorPosition + 20);
+                const errorContext = jsonString.substring(start, end);
+                
+                console.log(`JSON error around position ${errorPosition}:`, errorContext);
+                
+                // Look for common patterns that can cause issues
+                let fixed = jsonString;
+                
+                // Check for unclosed string (missing quotation mark)
+                const unclosedStringMatch = errorContext.match(/"([^"\\]*(\\.[^"\\]*)*)$/);
+                if (unclosedStringMatch) {
+                    // Fix by adding closing quote
+                    fixed = jsonString.substring(0, errorPosition) + '"' + jsonString.substring(errorPosition);
+                    return fixed;
+                }
+                
+                // Check for trailing comma in an object or array
+                if (errorContext.includes(',}') || errorContext.includes(',]')) {
+                    fixed = jsonString.replace(/,\s*([}\]])/g, '$1');
+                    return fixed;
+                }
+                
+                // Check for missing comma between object properties
+                const missingCommaMatch = errorContext.match(/"[^"]*"\s*:\s*("[^"]*"|[0-9]+|true|false|null)\s*"/);
+                if (missingCommaMatch) {
+                    // Fix by adding a comma before the next property
+                    const insertPos = start + missingCommaMatch[0].length - 1;
+                    fixed = jsonString.substring(0, insertPos) + ', ' + jsonString.substring(insertPos);
+                    return fixed;
+                }
+                
+                // If we can't identify the specific issue, just truncate at the error position
+                return jsonString.substring(0, errorPosition) + '}}';
+            } catch (error) {
+                console.warn("Error fixing JSON:", error);
+                return jsonString; // Return original if fix fails
+            }
+        },
+        
+        // Safe JSON parsing with error handling and cleanup
+        safeParseJson(jsonString) {
+            if (!jsonString) return null;
+            
+            try {
+                // First, see if it's already valid JSON
+                try {
+                    return JSON.parse(jsonString);
+                } catch (initialError) {
+                    // Continue with cleanup if direct parsing fails
+                    console.log("Initial JSON parse failed, attempting cleanup");
+                }
+                
+                // Look for JSON content within a larger string
+                let extractedJson = jsonString;
+                const jsonMatch = jsonString.match(/```json\n([\s\S]*?)\n```/) || 
+                                 jsonString.match(/```\n([\s\S]*?)\n```/) ||
+                                 jsonString.match(/\{[\s\S]*\}/);
+                                  
+                if (jsonMatch) {
+                    // Extract the JSON from code blocks or from the first { to last }
+                    extractedJson = jsonMatch[0].replace(/```json\n|```\n|```/g, '');
+                }
+                
+                // Check for data that might be appended after valid JSON 
+                // (often happens with LocalStorage corruption)
+                let truncatedJson = extractedJson;
+                try {
+                    // Try to find the minimal valid JSON by cutting at the last valid brace
+                    const lastBraceIndex = extractedJson.lastIndexOf('}');
+                    if (lastBraceIndex > 0) {
+                        truncatedJson = extractedJson.substring(0, lastBraceIndex + 1);
+                        // Test if this is valid
+                        JSON.parse(truncatedJson);
+                        // If we get here, we found valid JSON by truncating
+                        return JSON.parse(truncatedJson); 
+                    }
+                } catch (error) {
+                    // Continue with other cleanup methods
+                }
+                
+                // Clean up the JSON string:
+                // 1. Replace literal newlines in strings with escaped newlines
+                // This regex approach can sometimes fail, so we wrap it in try/catch
+                let cleanedJson = extractedJson;
+                try {
+                    cleanedJson = extractedJson.replace(/"([^"]*)"/g, (match, p1) => {
+                        // Replace literal newlines with escaped newlines in JSON string values
+                        return '"' + p1.replace(/\n/g, '\\n').replace(/\r/g, '\\r') + '"';
+                    });
+                } catch (regexError) {
+                    console.warn("Regex cleanup failed, continuing with other methods");
+                }
+                
+                // 2. Fix other common issues
+                let fixedJson = cleanedJson;
+                try {
+                    fixedJson = cleanedJson
+                        // Remove any non-standard JSON control characters
+                        .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+                        // Fix unescaped backslashes
+                        .replace(/([^\\])\\([^"\\/bfnrtu])/g, '$1\\\\$2')
+                        // Fix trailing commas in arrays/objects
+                        .replace(/,\s*([\]}])/g, '$1');
+                } catch (cleanupError) {
+                    console.warn("JSON cleanup steps failed, using original");
+                    fixedJson = extractedJson;
+                }
+                
+                // 3. Try more aggressive fixes if standard cleanup didn't work
+                try {
+                    // First attempt with our cleaned JSON
+                    return JSON.parse(fixedJson);
+                } catch (parseError) {
+                    console.log("Standard cleanup failed, trying more aggressive approaches");
+                    
+                    // Log more specific error information
+                    console.log("Parse error details:", parseError.message);
+                    
+                    try {
+                        // Check for missing closing brackets or braces
+                        const balancedJson = app.balanceJsonBrackets(fixedJson);
+                        return JSON.parse(balancedJson);
+                    } catch (bracketError) {
+                        // Try removing or fixing problem areas indicated in error messages
+                        const errorPos = parseError.message.match(/position (\d+)/);
+                        if (errorPos && errorPos[1]) {
+                            const position = parseInt(errorPos[1]);
+                            
+                            // Create a fixed version by analyzing the context around the error
+                            let contextFixedJson = app.fixJsonAtPosition(fixedJson, position);
+                            try {
+                                return JSON.parse(contextFixedJson);
+                            } catch (contextFixError) {
+                                // Last resort - remove problem area completely
+                                const truncatedJson = fixedJson.substring(0, Math.max(0, position - 10)) + "}";
+                                try {
+                                    return JSON.parse(truncatedJson);
+                                } catch (truncateError) {
+                                    // Give up and return an empty object
+                                    console.error("All JSON parsing attempts failed");
+                                    return null;
+                                }
+                            }
+                        } else {
+                            // Remove all non-ASCII characters as a last resort
+                            const asciiOnly = extractedJson.replace(/[^\x20-\x7E]/g, '');
+                            try {
+                                return JSON.parse(asciiOnly);
+                            } catch (asciiError) {
+                                console.error("ASCII-only parsing failed");
+                                return null;
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error parsing JSON:', error);
+                // Log a portion of the problematic JSON
+                if (jsonString && typeof jsonString === 'string') {
+                    const preview = jsonString.length > 100 ? 
+                        jsonString.substring(0, 100) + '...' : jsonString;
+                    console.error('Problematic JSON preview:', preview);
+                } else {
+                    console.error('Invalid JSON input (not a string):', typeof jsonString);
+                }
+                
+                // Return an empty object instead of null to avoid errors when accessing properties
+                return null;
+            }
         },
                 
         renderPreview() {
@@ -567,6 +838,38 @@
             $(`#${tabId}-panel`).classList.add('active');
         },
         
+        switchView(viewId) {
+            console.log(`Switching to view: ${viewId}`);
+            
+            // Make sure the elements exist
+            const sidebarItem = $(`[data-view="${viewId}"]`);
+            const viewContainer = $(`#${viewId}-view`);
+            
+            if (!sidebarItem || !viewContainer) {
+                console.error(`View elements not found for: ${viewId}`);
+                return;
+            }
+            
+            // Deactivate all sidebar items and view containers
+            $$('.sidebar-nav-item').forEach(item => item.classList.remove('active'));
+            $$('.view-container').forEach(view => view.classList.remove('active'));
+            
+            // Activate selected sidebar item and view container
+            sidebarItem.classList.add('active');
+            viewContainer.classList.add('active');
+            
+            // Close the sidebar on mobile after selecting a view
+            if (window.innerWidth <= 768) {
+                $('.sidebar').classList.remove('active');
+                $('.menu-backdrop').classList.remove('active');
+            }
+            
+            // If we're switching to the jobs view, refresh the jobs list
+            if (viewId === 'jobs') {
+                setTimeout(() => app.renderJobsList(), 0);
+            }
+        },
+        
         openModal(modalId) {
             $(`#${modalId}`).classList.remove('hidden');
             
@@ -593,7 +896,11 @@
                     throw new Error('No JSON content provided');
                 }
                 
-                const resumeData = JSON.parse(jsonText);
+                const resumeData = app.safeParseJson(jsonText);
+                if (!resumeData) {
+                    throw new Error('Invalid JSON format');
+                }
+                
                 app.loadResumeData(resumeData);
                 app.closeAllModals();
                 app.showToast('Resume data imported successfully!');
@@ -614,7 +921,10 @@
             
             reader.onload = e => {
                 try {
-                    const resumeData = JSON.parse(e.target.result);
+                    const resumeData = app.safeParseJson(e.target.result);
+                    if (!resumeData) {
+                        throw new Error('Invalid JSON format in file');
+                    }
                     app.loadResumeData(resumeData);
                     app.closeAllModals();
                     app.showToast('Resume data imported from file successfully!');
@@ -1101,7 +1411,7 @@
             const container = $('#education-container');
             const education = app.data.education;
             
-            if (education.length === 0) {
+            if (!education || education.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state" id="education-empty">
                         <i class="fa-solid fa-graduation-cap fa-2x"></i>
@@ -1320,9 +1630,44 @@
                 return;
             }
             
-            // Initialize the saved resumes registry if it doesn't exist
-            if (!localStorage.getItem('resumeRegistry')) {
-                localStorage.setItem('resumeRegistry', JSON.stringify([]));
+            // Initialize or repair registries if needed
+            try {
+                // Check if resumeRegistry exists and can be parsed
+                const resumeRegistry = localStorage.getItem('resumeRegistry');
+                if (!resumeRegistry) {
+                    localStorage.setItem('resumeRegistry', JSON.stringify([]));
+                } else {
+                    // Try to parse it to make sure it's valid
+                    try {
+                        JSON.parse(resumeRegistry);
+                    } catch (e) {
+                        console.warn('Resume registry corrupted, resetting');
+                        localStorage.setItem('resumeRegistry', JSON.stringify([]));
+                    }
+                }
+                
+                // Check if savedJobs exists and can be parsed
+                const savedJobs = localStorage.getItem('savedJobs');
+                if (!savedJobs) {
+                    localStorage.setItem('savedJobs', JSON.stringify([]));
+                } else {
+                    // Try to parse it to make sure it's valid
+                    try {
+                        JSON.parse(savedJobs);
+                    } catch (e) {
+                        console.warn('Jobs registry corrupted, resetting');
+                        localStorage.setItem('savedJobs', JSON.stringify([]));
+                    }
+                }
+            } catch (error) {
+                console.error('Error initializing localStorage:', error);
+                // Attempt to reset both registries
+                try {
+                    localStorage.setItem('resumeRegistry', JSON.stringify([]));
+                    localStorage.setItem('savedJobs', JSON.stringify([]));
+                } catch (resetError) {
+                    console.error('Failed to reset localStorage registries:', resetError);
+                }
             }
         },
 
@@ -1402,7 +1747,9 @@
             if (!app.isLocalStorageAvailable()) return [];
             
             try {
-                return JSON.parse(localStorage.getItem('resumeRegistry') || '[]');
+                const registryData = localStorage.getItem('resumeRegistry') || '[]';
+                const parsedData = app.safeParseJson(registryData);
+                return parsedData || [];
             } catch (e) {
                 console.error('Error parsing resume registry:', e);
                 return [];
@@ -1484,7 +1831,12 @@
                     return false;
                 }
                 
-                const parsedData = JSON.parse(resumeData);
+                const parsedData = app.safeParseJson(resumeData);
+                if (!parsedData) {
+                    app.showToast('Error parsing resume data.', 'error');
+                    return false;
+                }
+                
                 app.loadResumeData(parsedData);
                 
                 app.showToast('Resume loaded successfully!');
@@ -1967,9 +2319,9 @@
             // Format the resume data as string
             const resumeStr = JSON.stringify(resume, null, 2);
             
-            // Create a simplified prompt for Claude
+            // Create a more explicit prompt for Claude to get cleaner JSON
             const prompt = `
-Create a JSON object containing a tailored resume and cover letter for this job description:
+You must create a valid, properly escaped JSON object containing a tailored resume and cover letter for this job description:
 \`\`\`
 ${jobDescription.substring(0, 1000)}${jobDescription.length > 1000 ? '...' : ''}
 \`\`\`
@@ -1979,12 +2331,17 @@ Based on this resume:
 ${resumeStr.substring(0, 4000)}${resumeStr.length > 4000 ? '...' : ''}
 \`\`\`
 
-Return only a valid JSON object with this structure:
+IMPORTANT:
+1. Your response MUST be ONLY a valid JSON object with NO explanation or additional text
+2. The JSON must be properly escaped - all quotes within strings must be escaped, no unescaped newlines in strings
+3. Use the EXACT structure shown below, with these three fields:
 {
   "resume": {/* Tailored resume object */},
   "coverLetter": "Cover letter text",
   "jobDescription": "Original job description"
-}`;
+}
+4. Make sure all strings are properly quoted and all JSON syntax is correct
+5. Do not include any markdown formatting like \`\`\`json or \`\`\` in your response`;
 
             // Call Claude API with the special browser header
             fetch('https://api.anthropic.com/v1/messages', {
@@ -1998,13 +2355,14 @@ Return only a valid JSON object with this structure:
                 body: JSON.stringify({
                     model: 'claude-3-haiku-20240307',
                     max_tokens: 4000,
+                    temperature: 0.2, // Lower temperature for more consistent output
                     messages: [
                         {
                             role: 'user',
                             content: prompt
                         }
                     ],
-                    system: "You are an expert resume customizer who creates tailored resumes and cover letters. Always respond with valid JSON."
+                    system: "You are an expert at creating valid, properly escaped JSON. Never include markdown code blocks or any text outside the JSON. Always produce syntactically valid JSON that would pass JSON.parse() without errors."
                 })
             })
             .then(response => {
@@ -2021,36 +2379,25 @@ Return only a valid JSON object with this structure:
                 // Extract the JSON from Claude's response
                 const responseText = data.content[0].text;
                 
-                // Parse the JSON response - try different patterns
-                try {
-                    let jsonResult;
-                    
-                    // Try to match JSON inside code blocks first
-                    const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/) || 
-                                      responseText.match(/```\n([\s\S]*?)\n```/) ||
-                                      responseText.match(/{[\s\S]*}/);
-                                  
-                    if (jsonMatch) {
-                        const jsonString = jsonMatch[0].replace(/```json\n|```\n|```/g, '');
-                        jsonResult = JSON.parse(jsonString);
-                    } else {
-                        // Try to parse the whole response as JSON
-                        jsonResult = JSON.parse(responseText);
-                    }
-                    
-                    // Check if the response has the expected structure
-                    if (!jsonResult.resume || !jsonResult.coverLetter || !jsonResult.jobDescription) {
-                        throw new Error('Invalid response structure from Claude API');
-                    }
-                    
-                    // Process the tailored resume
-                    app.processTailoredResume(jsonResult);
-                    app.closeAllModals();
-                    app.showToast('Resume tailored successfully!');
-                } catch (error) {
-                    console.error('Error parsing Claude response:', error);
-                    app.showToast(`Error parsing Claude response: ${error.message}`, 'error');
+                // Use our safe JSON parsing function
+                const jsonResult = app.safeParseJson(responseText);
+                
+                if (!jsonResult) {
+                    app.showToast('Error parsing response from Claude API. Invalid JSON format.', 'error');
+                    return;
                 }
+                
+                // Check if the response has the expected structure
+                if (!jsonResult.resume || !jsonResult.coverLetter || !jsonResult.jobDescription) {
+                    console.error('Invalid response structure:', jsonResult);
+                    app.showToast('Invalid response structure from Claude API', 'error');
+                    return;
+                }
+                
+                // Process the tailored resume
+                app.processTailoredResume(jsonResult);
+                app.closeAllModals();
+                app.showToast('Resume tailored successfully!');
             })
             .catch(error => {
                 console.error('Error calling Claude API directly:', error);
@@ -2065,26 +2412,36 @@ Return only a valid JSON object with this structure:
             // Format the resume data as string
             const resumeStr = JSON.stringify(resume, null, 2);
             
-            // Create a simplified system message for OpenAI
-            const systemMessage = "You are an expert resume customizer who creates tailored resumes and cover letters. " +
-                                 "Create a tailored resume and cover letter based on the provided resume and job description. " +
-                                 "Respond with ONLY a valid JSON object containing resume, coverLetter, and jobDescription fields.";
+            // Create a more explicit system message for OpenAI to ensure clean JSON
+            const systemMessage = "You are an expert at creating valid, properly escaped JSON. You specialize in tailoring resumes and writing cover letters. " +
+                                 "Respond ONLY with a complete, syntactically valid JSON object. No markdown, no code blocks, no explanations. " +
+                                 "Ensure all quotes in strings are escaped properly and there are no unescaped newlines in string values. " +
+                                 "Your response must be parseable by JSON.parse() without any modifications.";
             
-            // Create a simplified user message
-            const userMessage = `Job Description: 
+            // Create a more detailed user message with clear instructions
+            const userMessage = `Create a tailored resume and cover letter for this job description:
+\`\`\`
 ${jobDescription.substring(0, 1000)}${jobDescription.length > 1000 ? '...' : ''}
+\`\`\`
 
-Resume: 
+Based on this original resume:
+\`\`\`json
 ${resumeStr.substring(0, 4000)}${resumeStr.length > 4000 ? '...' : ''}
+\`\`\`
 
-Return ONLY a valid JSON object with this structure:
+IMPORTANT REQUIREMENTS:
+1. Return ONLY a valid JSON object with NO explanations or text outside the JSON
+2. The JSON must be properly escaped - all quotes within strings must be escaped with backslash
+3. All newlines within strings must be escaped as \\n
+4. Your response must use this exact structure:
 {
   "resume": {/* Tailored resume object */},
   "coverLetter": "Cover letter text",
   "jobDescription": "Original job description"
-}`;
+}
+5. Do NOT wrap your response in \`\`\`json or any other markdown`;
 
-            // Call OpenAI API
+            // Call OpenAI API with reduced temperature for more predictable output
             fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
@@ -2103,8 +2460,9 @@ Return ONLY a valid JSON object with this structure:
                             content: userMessage
                         }
                     ],
-                    temperature: 0.7,
-                    max_tokens: 4000
+                    temperature: 0.2, // Lower temperature for more consistent output
+                    max_tokens: 4000,
+                    response_format: { type: "json_object" } // Request JSON format explicitly if available
                 })
             })
             .then(response => {
@@ -2121,36 +2479,25 @@ Return ONLY a valid JSON object with this structure:
                 // Extract the response content
                 const responseText = data.choices[0].message.content;
                 
-                // Parse the JSON response
-                try {
-                    // Try to match JSON inside code blocks first
-                    const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/) || 
-                                      responseText.match(/```\n([\s\S]*?)\n```/) ||
-                                      responseText.match(/{[\s\S]*}/);
-                                  
-                    let jsonResult;
-                    
-                    if (jsonMatch) {
-                        const jsonString = jsonMatch[0].replace(/```json\n|```\n|```/g, '');
-                        jsonResult = JSON.parse(jsonString);
-                    } else {
-                        // Try to parse the whole response as JSON
-                        jsonResult = JSON.parse(responseText);
-                    }
-                    
-                    // Check if the response has the expected structure
-                    if (!jsonResult.resume || !jsonResult.coverLetter || !jsonResult.jobDescription) {
-                        throw new Error('Invalid response structure from OpenAI API');
-                    }
-                    
-                    // Process the tailored resume
-                    app.processTailoredResume(jsonResult);
-                    app.closeAllModals();
-                    app.showToast('Resume tailored successfully!');
-                } catch (error) {
-                    console.error('Error parsing OpenAI response:', error);
-                    app.showToast(`Error parsing OpenAI response: ${error.message}`, 'error');
+                // Use our safe JSON parsing function
+                const jsonResult = app.safeParseJson(responseText);
+                
+                if (!jsonResult) {
+                    app.showToast('Error parsing response from OpenAI API. Invalid JSON format.', 'error');
+                    return;
                 }
+                
+                // Check if the response has the expected structure
+                if (!jsonResult.resume || !jsonResult.coverLetter || !jsonResult.jobDescription) {
+                    console.error('Invalid response structure:', jsonResult);
+                    app.showToast('Invalid response structure from OpenAI API', 'error');
+                    return;
+                }
+                
+                // Process the tailored resume
+                app.processTailoredResume(jsonResult);
+                app.closeAllModals();
+                app.showToast('Resume tailored successfully!');
             })
             .catch(error => {
                 console.error('Error calling OpenAI API directly:', error);
@@ -2181,8 +2528,21 @@ Return ONLY a valid JSON object with this structure:
             tailoredResume.meta.jobDescription = data.jobDescription;
             tailoredResume.meta.coverLetter = data.coverLetter;
             
+            // Save the job information
+            const jobInfo = {
+                id: `job_${Date.now()}`,
+                title: app.extractJobTitle(data.jobDescription) || 'Untitled Job',
+                company: app.extractCompanyName(data.jobDescription) || 'Unknown Company',
+                description: data.jobDescription,
+                coverLetter: data.coverLetter,
+                resumeId: newResumeId,
+                date: new Date().toISOString(),
+                status: 'Applied'
+            };
+            
             // Save to localStorage
             const registry = app.getSavedResumes();
+            const jobs = app.getSavedJobs();
             
             // Add to registry
             registry.push({
@@ -2192,11 +2552,16 @@ Return ONLY a valid JSON object with this structure:
                 basics: {
                     name: tailoredResume.basics.name || 'Unnamed',
                     label: tailoredResume.basics.label || ''
-                }
+                },
+                jobId: jobInfo.id
             });
             
-            // Update registry
+            // Add to jobs
+            jobs.push(jobInfo);
+            
+            // Update registry and jobs
             localStorage.setItem('resumeRegistry', JSON.stringify(registry));
+            localStorage.setItem('savedJobs', JSON.stringify(jobs));
             
             // Save the tailored resume data
             localStorage.setItem(`resume_${newResumeId}`, JSON.stringify(tailoredResume));
@@ -2211,6 +2576,9 @@ Return ONLY a valid JSON object with this structure:
             app.renderEducation();
             app.renderSkills();
             app.renderProjects();
+            
+            // Update the jobs list if we're on that view
+            app.renderJobsList();
             
             // Show cover letter in a modal
             if (data.coverLetter) {
@@ -2231,6 +2599,219 @@ Return ONLY a valid JSON object with this structure:
                         });
                 });
             }
+        },
+        
+        // Get saved jobs
+        getSavedJobs() {
+            if (!app.isLocalStorageAvailable()) return [];
+            
+            try {
+                const jobsData = localStorage.getItem('savedJobs') || '[]';
+                const parsedData = app.safeParseJson(jobsData);
+                return parsedData || [];
+            } catch (e) {
+                console.error('Error parsing saved jobs:', e);
+                return [];
+            }
+        },
+        
+        // Extract job title from description
+        extractJobTitle(description) {
+            if (!description) return '';
+            
+            // Simple extraction - look for common patterns
+            const patterns = [
+                /job title:?\s*([^,\n\.]+)/i,
+                /title:?\s*([^,\n\.]+)/i,
+                /position:?\s*([^,\n\.]+)/i,
+                /^([^,\n\.]+)\s+job/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = description.match(pattern);
+                if (match && match[1]) {
+                    return match[1].trim();
+                }
+            }
+            
+            // Fallback: use the first line or first X characters
+            const firstLine = description.split('\n')[0];
+            return firstLine.substring(0, 50).trim();
+        },
+        
+        // Extract company name from description
+        extractCompanyName(description) {
+            if (!description) return '';
+            
+            // Simple extraction - look for common patterns
+            const patterns = [
+                /company:?\s*([^,\n\.]+)/i,
+                /organization:?\s*([^,\n\.]+)/i,
+                /employer:?\s*([^,\n\.]+)/i,
+                /at\s+([^,\n\.]+)/i,
+                /with\s+([^,\n\.]+)/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = description.match(pattern);
+                if (match && match[1]) {
+                    return match[1].trim();
+                }
+            }
+            
+            return 'Unknown Company';
+        },
+        
+        // Render the jobs list
+        renderJobsList() {
+            const container = $('#jobs-container');
+            
+            // Exit if the container doesn't exist yet
+            if (!container) {
+                console.log('Jobs container not found');
+                return;
+            }
+            
+            const jobs = app.getSavedJobs();
+            
+            if (jobs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" id="jobs-empty">
+                        <i class="fa-solid fa-briefcase fa-2x"></i>
+                        <p>No jobs saved yet. Click "Add Job" to add a job posting and generate customized resumes.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort jobs by date (newest first)
+            jobs.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            let html = '';
+            jobs.forEach(job => {
+                const date = new Date(job.date);
+                const formattedDate = date.toLocaleDateString();
+                
+                // Determine status color
+                let statusColor = '#6c757d'; // Default gray
+                if (job.status === 'Applied') statusColor = '#28a745'; // Green
+                if (job.status === 'Interview') statusColor = '#3a86ff'; // Blue
+                if (job.status === 'Rejected') statusColor = '#dc3545'; // Red
+                if (job.status === 'Offer') statusColor = '#ffbe0b'; // Yellow
+                
+                html += `
+                    <div class="resume-item-card" data-id="${job.id}">
+                        <div class="resume-info">
+                            <div class="resume-name">${app.escapeHtml(job.title)}</div>
+                            <div class="resume-date">
+                                <strong>${app.escapeHtml(job.company)}</strong>
+                                <div>Added: ${formattedDate}</div>
+                                <div class="job-status" style="color: ${statusColor}">
+                                    <i class="fa-solid fa-circle" style="font-size: 0.8em;"></i>
+                                    ${job.status}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="resume-item-actions">
+                            <button class="icon-button view-job" data-id="${job.id}" title="View job details">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            <button class="icon-button edit-job-status" data-id="${job.id}" title="Update status">
+                                <i class="fa-solid fa-edit"></i>
+                            </button>
+                            <button class="icon-button delete-job" data-id="${job.id}" title="Delete">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Add event listeners
+            $$('.view-job').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const jobId = btn.dataset.id;
+                    app.viewJobDetails(jobId);
+                });
+            });
+            
+            $$('.edit-job-status').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const jobId = btn.dataset.id;
+                    app.editJobStatus(jobId);
+                });
+            });
+            
+            $$('.delete-job').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const jobId = btn.dataset.id;
+                    if (confirm('Are you sure you want to delete this job? This will not delete the associated resume.')) {
+                        app.deleteJob(jobId);
+                    }
+                });
+            });
+        },
+        
+        // View job details
+        viewJobDetails(jobId) {
+            const jobs = app.getSavedJobs();
+            const job = jobs.find(j => j.id === jobId);
+            
+            if (!job) {
+                app.showToast('Job not found', 'error');
+                return;
+            }
+            
+            // We'll implement a job details modal in the future
+            // For now, just load the associated resume
+            if (job.resumeId) {
+                if (app.loadResumeFromStorage(job.resumeId)) {
+                    // Switch to resume view
+                    app.switchView('resume');
+                }
+            } else {
+                app.showToast('No resume associated with this job', 'error');
+            }
+        },
+        
+        // Edit job status
+        editJobStatus(jobId) {
+            const jobs = app.getSavedJobs();
+            const jobIndex = jobs.findIndex(j => j.id === jobId);
+            
+            if (jobIndex === -1) {
+                app.showToast('Job not found', 'error');
+                return;
+            }
+            
+            // Simple status rotation for now
+            const statusOptions = ['Saved', 'Applied', 'Interview', 'Offer', 'Rejected'];
+            const currentStatus = jobs[jobIndex].status || 'Saved';
+            const currentIndex = statusOptions.indexOf(currentStatus);
+            const newIndex = (currentIndex + 1) % statusOptions.length;
+            jobs[jobIndex].status = statusOptions[newIndex];
+            
+            // Save to localStorage
+            localStorage.setItem('savedJobs', JSON.stringify(jobs));
+            
+            // Update UI
+            app.renderJobsList();
+            app.showToast(`Status updated to "${statusOptions[newIndex]}"`);
+        },
+        
+        // Delete job
+        deleteJob(jobId) {
+            const jobs = app.getSavedJobs();
+            const updatedJobs = jobs.filter(j => j.id !== jobId);
+            
+            // Save to localStorage
+            localStorage.setItem('savedJobs', JSON.stringify(updatedJobs));
+            
+            // Update UI
+            app.renderJobsList();
+            app.showToast('Job deleted successfully');
         },
         
     // Utility function for loading test data
