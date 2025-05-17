@@ -87,10 +87,12 @@
             // Handle resize events to adjust UI for different screen sizes
             window.addEventListener('resize', app.handleResize);
 
-            // Import/Export/Copy buttons
+            // Import/Export/Copy/Settings/Jobs buttons
             $('#import-button').addEventListener('click', () => app.openModal('import-modal'));
             $('#export-button').addEventListener('click', app.exportResume);
             $('#copy-button').addEventListener('click', app.copyResume);
+            $('#settings-button').addEventListener('click', () => app.openModal('settings-modal'));
+            $('#jobs-button').addEventListener('click', app.openJobsModal);
 
             // Import methods
             $('#import-paste').addEventListener('click', app.importFromText);
@@ -709,6 +711,24 @@
             if (meta.theme) $('#theme').value = meta.theme;
             if (meta.language) $('#language').value = meta.language;
             $('#lastModified').value = new Date(meta.lastModified || new Date()).toISOString().split('T')[0];
+            
+            // Update job info section if available
+            if (meta.jobDescription) {
+                $('#job-info-section').classList.remove('hidden');
+                $('#meta-job-description').value = meta.jobDescription;
+                
+                // Add event listener for cover letter button
+                $('#view-cover-letter').addEventListener('click', () => {
+                    if (meta.coverLetter) {
+                        $('#cover-letter-content').textContent = meta.coverLetter;
+                        app.openModal('cover-letter-modal');
+                    } else {
+                        app.showToast('No cover letter available', 'error');
+                    }
+                });
+            } else {
+                $('#job-info-section').classList.add('hidden');
+            }
         },
         
         exportResume() {
@@ -1720,6 +1740,15 @@
                     app.closeAllModals();
                 }
             });
+            
+            // API Settings
+            $('#save-settings').addEventListener('click', app.saveApiSettings);
+            
+            // Job submission
+            $('#submit-job').addEventListener('click', app.submitJob);
+            
+            // Load API settings when the settings modal is opened
+            $('#settings-button').addEventListener('click', app.loadApiSettings);
         },
 
 
@@ -1807,6 +1836,403 @@
                 });
         },
     
+    // API settings management
+        saveApiSettings() {
+            const apiType = $('#api-type').value;
+            const apiKey = $('#api-key').value;
+            
+            if (!apiKey) {
+                app.showToast('Please enter an API key', 'error');
+                return;
+            }
+            
+            // Save API settings to localStorage
+            const useDirect = $('#use-direct-api').checked;
+            localStorage.setItem('resume_api_type', apiType);
+            localStorage.setItem('resume_api_key', apiKey);
+            localStorage.setItem('resume_use_direct_api', useDirect ? 'true' : 'false');
+            
+            app.closeAllModals();
+            app.showToast('API settings saved successfully!');
+        },
+        
+        // Load API settings from localStorage
+        loadApiSettings() {
+            const apiType = localStorage.getItem('resume_api_type');
+            const apiKey = localStorage.getItem('resume_api_key');
+            const useDirect = localStorage.getItem('resume_use_direct_api') === 'true';
+            
+            if (apiType) {
+                $('#api-type').value = apiType;
+            }
+            
+            if (apiKey) {
+                $('#api-key').value = apiKey;
+            }
+            
+            $('#use-direct-api').checked = useDirect;
+            
+            return { apiType, apiKey, useDirect };
+        },
+        
+        // Open the jobs modal and check for API settings
+        openJobsModal() {
+            const { apiType, apiKey } = app.loadApiSettings();
+            
+            // Check if API settings are configured
+            if (!apiKey) {
+                $('#job-api-required').classList.remove('hidden');
+            } else {
+                $('#job-api-required').classList.add('hidden');
+            }
+            
+            app.openModal('jobs-modal');
+        },
+        
+        // Submit job for resume tailoring
+        submitJob() {
+            const jobDescription = $('#job-description').value.trim();
+            const { apiType, apiKey, useDirect } = app.loadApiSettings();
+            
+            if (!jobDescription) {
+                app.showToast('Please enter a job description', 'error');
+                return;
+            }
+            
+            if (!apiKey) {
+                app.showToast('Please configure your API settings first', 'error');
+                $('#job-api-required').classList.remove('hidden');
+                return;
+            }
+            
+            // Show processing message
+            app.showToast('Processing your resume. This may take a minute...');
+            
+            // Determine if we're using browser-direct API or server API
+            console.log(`Using direct API: ${useDirect}`);
+            
+            if (useDirect) {
+                // Use direct browser API call
+                if (apiType === 'claude') {
+                    app.callClaudeDirectly(app.data, jobDescription, apiKey);
+                } else if (apiType === 'chatgpt') {
+                    app.callOpenAIDirectly(app.data, jobDescription, apiKey);
+                } else {
+                    app.showToast('Invalid API type selected', 'error');
+                }
+            } else {
+                // Use server API approach
+                // Create payload for API request
+                const payload = {
+                    resume: app.data,
+                    jobDescription: jobDescription,
+                    apiType: apiType,
+                    apiKey: apiKey
+                };
+                
+                let apiurl = '/api/tailor-resume';
+                console.log(`api url: ${apiurl}`);
+
+                // Call the server API
+                fetch(apiurl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Handle successful response
+                    app.processTailoredResume(data);
+                    app.closeAllModals();
+                    app.showToast('Resume tailored successfully!');
+                })
+                .catch(error => {
+                    console.error('Error tailoring resume:', error);
+                    app.showToast(`Error tailoring resume: ${error.message}`, 'error');
+                });
+            }
+        },
+        
+        // Direct Anthropic Claude API call
+        callClaudeDirectly(resume, jobDescription, apiKey) {
+            console.log('Calling Claude API directly from browser');
+            
+            // Format the resume data as string
+            const resumeStr = JSON.stringify(resume, null, 2);
+            
+            // Create a simplified prompt for Claude
+            const prompt = `
+Create a JSON object containing a tailored resume and cover letter for this job description:
+\`\`\`
+${jobDescription.substring(0, 1000)}${jobDescription.length > 1000 ? '...' : ''}
+\`\`\`
+
+Based on this resume:
+\`\`\`json
+${resumeStr.substring(0, 4000)}${resumeStr.length > 4000 ? '...' : ''}
+\`\`\`
+
+Return only a valid JSON object with this structure:
+{
+  "resume": {/* Tailored resume object */},
+  "coverLetter": "Cover letter text",
+  "jobDescription": "Original job description"
+}`;
+
+            // Call Claude API with the special browser header
+            fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01',
+                    'anthropic-dangerous-direct-browser-access': 'true'
+                },
+                body: JSON.stringify({
+                    model: 'claude-3-haiku-20240307',
+                    max_tokens: 4000,
+                    messages: [
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    system: "You are an expert resume customizer who creates tailored resumes and cover letters. Always respond with valid JSON."
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.content || !data.content[0] || !data.content[0].text) {
+                    throw new Error('Invalid response from Claude API');
+                }
+                
+                // Extract the JSON from Claude's response
+                const responseText = data.content[0].text;
+                
+                // Parse the JSON response - try different patterns
+                try {
+                    let jsonResult;
+                    
+                    // Try to match JSON inside code blocks first
+                    const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/) || 
+                                      responseText.match(/```\n([\s\S]*?)\n```/) ||
+                                      responseText.match(/{[\s\S]*}/);
+                                  
+                    if (jsonMatch) {
+                        const jsonString = jsonMatch[0].replace(/```json\n|```\n|```/g, '');
+                        jsonResult = JSON.parse(jsonString);
+                    } else {
+                        // Try to parse the whole response as JSON
+                        jsonResult = JSON.parse(responseText);
+                    }
+                    
+                    // Check if the response has the expected structure
+                    if (!jsonResult.resume || !jsonResult.coverLetter || !jsonResult.jobDescription) {
+                        throw new Error('Invalid response structure from Claude API');
+                    }
+                    
+                    // Process the tailored resume
+                    app.processTailoredResume(jsonResult);
+                    app.closeAllModals();
+                    app.showToast('Resume tailored successfully!');
+                } catch (error) {
+                    console.error('Error parsing Claude response:', error);
+                    app.showToast(`Error parsing Claude response: ${error.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error calling Claude API directly:', error);
+                app.showToast(`Error calling Claude API: ${error.message}`, 'error');
+            });
+        },
+        
+        // Direct OpenAI API call
+        callOpenAIDirectly(resume, jobDescription, apiKey) {
+            console.log('Calling OpenAI API directly from browser');
+            
+            // Format the resume data as string
+            const resumeStr = JSON.stringify(resume, null, 2);
+            
+            // Create a simplified system message for OpenAI
+            const systemMessage = "You are an expert resume customizer who creates tailored resumes and cover letters. " +
+                                 "Create a tailored resume and cover letter based on the provided resume and job description. " +
+                                 "Respond with ONLY a valid JSON object containing resume, coverLetter, and jobDescription fields.";
+            
+            // Create a simplified user message
+            const userMessage = `Job Description: 
+${jobDescription.substring(0, 1000)}${jobDescription.length > 1000 ? '...' : ''}
+
+Resume: 
+${resumeStr.substring(0, 4000)}${resumeStr.length > 4000 ? '...' : ''}
+
+Return ONLY a valid JSON object with this structure:
+{
+  "resume": {/* Tailored resume object */},
+  "coverLetter": "Cover letter text",
+  "jobDescription": "Original job description"
+}`;
+
+            // Call OpenAI API
+            fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: systemMessage
+                        },
+                        {
+                            role: 'user',
+                            content: userMessage
+                        }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 4000
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+                    throw new Error('Invalid response from OpenAI API');
+                }
+                
+                // Extract the response content
+                const responseText = data.choices[0].message.content;
+                
+                // Parse the JSON response
+                try {
+                    // Try to match JSON inside code blocks first
+                    const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/) || 
+                                      responseText.match(/```\n([\s\S]*?)\n```/) ||
+                                      responseText.match(/{[\s\S]*}/);
+                                  
+                    let jsonResult;
+                    
+                    if (jsonMatch) {
+                        const jsonString = jsonMatch[0].replace(/```json\n|```\n|```/g, '');
+                        jsonResult = JSON.parse(jsonString);
+                    } else {
+                        // Try to parse the whole response as JSON
+                        jsonResult = JSON.parse(responseText);
+                    }
+                    
+                    // Check if the response has the expected structure
+                    if (!jsonResult.resume || !jsonResult.coverLetter || !jsonResult.jobDescription) {
+                        throw new Error('Invalid response structure from OpenAI API');
+                    }
+                    
+                    // Process the tailored resume
+                    app.processTailoredResume(jsonResult);
+                    app.closeAllModals();
+                    app.showToast('Resume tailored successfully!');
+                } catch (error) {
+                    console.error('Error parsing OpenAI response:', error);
+                    app.showToast(`Error parsing OpenAI response: ${error.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error calling OpenAI API directly:', error);
+                app.showToast(`Error calling OpenAI API: ${error.message}`, 'error');
+            });
+        },
+        
+        // Process the tailored resume received from the API
+        processTailoredResume(data) {
+            if (!data || !data.resume) {
+                app.showToast('Invalid response from server', 'error');
+                return;
+            }
+            
+            // Generate a new unique ID for the tailored resume
+            const newResumeId = `resume_${Date.now()}`;
+            
+            // Create a resume copy with the tailored data
+            const tailoredResume = data.resume;
+            
+            // Set metadata
+            tailoredResume.meta = tailoredResume.meta || {};
+            tailoredResume.meta.id = newResumeId;
+            tailoredResume.meta.name = tailoredResume.meta.name ? 
+                `${tailoredResume.meta.name} (Tailored)` : 
+                'Tailored Resume';
+            tailoredResume.meta.lastModified = new Date().toISOString();
+            tailoredResume.meta.jobDescription = data.jobDescription;
+            tailoredResume.meta.coverLetter = data.coverLetter;
+            
+            // Save to localStorage
+            const registry = app.getSavedResumes();
+            
+            // Add to registry
+            registry.push({
+                id: newResumeId,
+                name: tailoredResume.meta.name,
+                savedDate: tailoredResume.meta.lastModified,
+                basics: {
+                    name: tailoredResume.basics.name || 'Unnamed',
+                    label: tailoredResume.basics.label || ''
+                }
+            });
+            
+            // Update registry
+            localStorage.setItem('resumeRegistry', JSON.stringify(registry));
+            
+            // Save the tailored resume data
+            localStorage.setItem(`resume_${newResumeId}`, JSON.stringify(tailoredResume));
+            
+            // Load the tailored resume
+            app.data = tailoredResume;
+            
+            // Update UI
+            app.updateFormFields();
+            app.renderProfiles();
+            app.renderWork();
+            app.renderEducation();
+            app.renderSkills();
+            app.renderProjects();
+            
+            // Show cover letter in a modal
+            if (data.coverLetter) {
+                // Display the cover letter in the modal
+                $('#cover-letter-content').textContent = data.coverLetter;
+                app.openModal('cover-letter-modal');
+                
+                // Add copy to clipboard functionality
+                $('#copy-cover-letter').addEventListener('click', () => {
+                    const coverLetterText = data.coverLetter;
+                    navigator.clipboard.writeText(coverLetterText)
+                        .then(() => {
+                            app.showToast('Cover letter copied to clipboard!');
+                        })
+                        .catch(err => {
+                            console.error('Error copying to clipboard:', err);
+                            app.showToast('Error copying to clipboard.', 'error');
+                        });
+                });
+            }
+        },
+        
     // Utility function for loading test data
         loadSampleData() {
             const sampleData = {

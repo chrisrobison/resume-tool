@@ -20,6 +20,8 @@
         <button id="load-button"><i class="fa-solid fa-folder-open"></i> <span>Load</span></button>
         <button id="import-button"><i class="fa-solid fa-file-import"></i> <span>Import</span></button>
         <button id="export-button" class="success"><i class="fa-solid fa-file-export"></i> <span>Export</span></button>
+        <button id="settings-button"><i class="fa-solid fa-gear"></i> <span>Settings</span></button>
+        <button id="jobs-button"><i class="fa-solid fa-briefcase"></i> <span>Jobs</span></button>
     </div>
 </header>
 
@@ -198,6 +200,18 @@
                         <div class="input-group">
                             <label for="lastModified">Last Modified</label>
                             <input type="text" id="lastModified" name="lastModified" disabled>
+                        </div>
+                        <div id="job-info-section" class="hidden">
+                            <div class="resume-section-header">
+                                <div class="resume-section-title">Job Information</div>
+                            </div>
+                            <div class="input-group">
+                                <label for="meta-job-description">Job Description</label>
+                                <textarea id="meta-job-description" rows="5" disabled></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button id="view-cover-letter" class="small-button"><i class="fa-solid fa-envelope"></i> View Cover Letter</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -542,6 +556,78 @@
 
 <!-- Toast Notification -->
 <div id="toast" class="toast"></div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">API Settings</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="form-grid">
+            <div class="input-group">
+                <label for="api-type">AI Service</label>
+                <select id="api-type">
+                    <option value="claude">Claude (Anthropic)</option>
+                    <option value="chatgpt">ChatGPT (OpenAI)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="api-key">API Key</label>
+                <input type="password" id="api-key" placeholder="Enter your API key">
+                <span class="help-text">Your API key is stored locally and never sent to our servers</span>
+            </div>
+            <div class="input-group checkbox-group">
+                <input type="checkbox" id="use-direct-api" name="use-direct-api">
+                <label for="use-direct-api">Use direct API call from browser (no server required)</label>
+                <span class="help-text">CAUTION: This will send your API key directly from your browser to the AI service</span>
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="save-settings" class="success"><i class="fa-solid fa-check"></i> Save Settings</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Jobs Modal -->
+<div id="jobs-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Tailor Resume for Job</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="input-group">
+            <label for="job-description">Job Description</label>
+            <textarea id="job-description" placeholder="Paste the job description here..." rows="10"></textarea>
+        </div>
+        <div id="job-api-required" class="alert warning hidden">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            API settings required. Please configure your API settings first.
+        </div>
+        <div class="button-group">
+            <button id="submit-job" class="success"><i class="fa-solid fa-magic"></i> Tailor Resume</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Cover Letter Modal -->
+<div id="cover-letter-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Generated Cover Letter</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="input-group">
+            <div id="cover-letter-content" class="card" style="white-space: pre-line; padding: 1rem; max-height: 60vh; overflow-y: auto;"></div>
+        </div>
+        <div class="button-group">
+            <button id="copy-cover-letter" class="secondary"><i class="fa-solid fa-copy"></i> Copy to Clipboard</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+    </div>
+</div>
 
 <footer>
     <p>Resume.json Editor | Based on <a href="https://jsonresume.org/schema/" target="_blank">JSON Resume Schema</a></p>
