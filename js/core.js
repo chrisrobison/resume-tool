@@ -3,7 +3,7 @@ import { $, $$, escapeHtml, showToast } from './utils.js';
 import { defaultResumeData } from './config.js';
 import { setupUIEventListeners, switchTab, switchView } from './ui.js';
 import { initLocalStorage, saveResumeToStorage, loadResumeFromStorage, loadSavedResumesList, saveNamedResume, loadNamedResume, deleteNamedResume } from './storage.js';
-import { setupModals, renderProfiles, renderWork } from './modals.js';
+import { setupModals, renderProfiles, renderWork, hideModal } from './modals.js';
 import { setupPreviewEventListeners, renderPreview } from './preview.js';
 import { setupImportFunctionality, setupExportFunctionality } from './import-export.js';
 import { renderJobs, setupJobEventListeners, loadJobs, saveJob, createDefaultJob, associateResumeWithJob, logApiCall as logJobApiCall } from './jobs.js';
