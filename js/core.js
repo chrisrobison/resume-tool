@@ -1,11 +1,13 @@
 // core.js - Core application functionality
 import { $, $$, escapeHtml, showToast } from './utils.js';
 import { defaultResumeData } from './config.js';
-import { setupUIEventListeners, switchTab } from './ui.js';
+import { setupUIEventListeners, switchTab, switchView } from './ui.js';
 import { initLocalStorage, saveResumeToStorage, loadResumeFromStorage, loadSavedResumesList, saveNamedResume, loadNamedResume, deleteNamedResume } from './storage.js';
 import { setupModals, renderProfiles, renderWork } from './modals.js';
 import { setupPreviewEventListeners, renderPreview } from './preview.js';
 import { setupImportFunctionality, setupExportFunctionality } from './import-export.js';
+import { renderJobs, setupJobEventListeners, loadJobs, saveJob, createDefaultJob, associateResumeWithJob, logApiCall as logJobApiCall } from './jobs.js';
+import { addLog, LOG_TYPES, logApiCall, logJobAction, logResumeAction, renderLogs, setupLogFilters } from './logs.js';
 
 // Main application object
 export const app = {
@@ -13,6 +15,8 @@ export const app = {
     state: {
         loaded: false,
         currentEditIndex: -1,
+        currentEditJob: null,
+        currentStatusJob: null,
         currentSection: null,
         touchEndX: 0,
         touchStartX: 0
@@ -23,6 +27,7 @@ export const app = {
         initLocalStorage();
         this.setupEventListeners();
         this.setupSaveLoadEventListeners();
+        this.setupJobEventListeners();
         this.loadSavedResume();
         this.state.loaded = true;
         
@@ -36,11 +41,50 @@ export const app = {
                 item.addEventListener('click', () => {
                     const viewId = item.dataset.view;
                     if (viewId) {
-                        app.switchView(viewId);
+                        switchView(viewId);
+                        
+                        // Additional actions when switching views
+                        if (viewId === 'jobs') {
+                            renderJobs(this);
+                        } else if (viewId === 'history') {
+                            renderLogs($('#logs-container'));
+                        }
                     }
                 });
             });
         }
+    },
+    
+    // Initialize job management event listeners
+    setupJobEventListeners() {
+        setupJobEventListeners(this);
+        
+        // Add job button
+        $('#add-job-button')?.addEventListener('click', () => {
+            // Create a new job
+            const newJob = createDefaultJob();
+            this.state.currentEditJob = newJob.id;
+            
+            // Clear form fields
+            const form = $('#job-edit-form');
+            if (form) form.reset();
+            
+            // Show edit modal
+            showModal('job-edit-modal');
+        });
+        
+        // Save job button in edit modal
+        $('#save-job-edit')?.addEventListener('click', () => {
+            this.saveJobFromForm();
+        });
+        
+        // Update job status button
+        $('#update-job-status')?.addEventListener('click', () => {
+            this.updateJobStatus();
+        });
+        
+        // Log filters
+        setupLogFilters($('#logs-container'), $('#log-filters-form'));
     },
     
     // Setup event listeners
@@ -240,7 +284,8 @@ export const app = {
     saveNamedResume(name) {
         this.updateMetaLastModified();
         saveResumeToStorage(this.data);
-        return saveNamedResume(this.data, name);
+        const resumeId = saveNamedResume(this.data, name);
+        return resumeId;
     },
     
     // Hide a modal by id
@@ -256,6 +301,17 @@ export const app = {
         if (!this.state.loaded) return;
         this.data.meta.lastModified = new Date().toISOString();
         $('#lastModified').value = this.data.meta.lastModified.split('T')[0];
+    },
+    
+    // Load saved resume from localStorage
+    loadSavedResume() {
+        const savedResume = loadResumeFromStorage();
+        if (savedResume) {
+            this.data = savedResume;
+            this.updateAllFields();
+            return true;
+        }
+        return false;
     },
     
     // Update all form fields from data
@@ -311,6 +367,185 @@ export const app = {
         renderProfiles(this);
         renderWork(this);
         // Also add other render functions for education, skills, projects
+    },
+    
+    // Save job from edit form
+    saveJobFromForm() {
+        // Get form fields
+        const title = $('#edit-job-title').value.trim();
+        const company = $('#edit-job-company').value.trim();
+        const location = $('#edit-job-location').value.trim();
+        const url = $('#edit-job-url').value.trim();
+        const contactName = $('#edit-job-contact-name').value.trim();
+        const contactEmail = $('#edit-job-contact-email').value.trim();
+        const contactPhone = $('#edit-job-contact-phone').value.trim();
+        const description = $('#edit-job-description').value.trim();
+        const notes = $('#edit-job-notes').value.trim();
+        const status = $('#edit-job-status').value;
+        
+        // Validation
+        if (!title || !company) {
+            showToast('Job title and company are required', 'error');
+            return;
+        }
+        
+        // Get all jobs
+        const jobs = loadJobs();
+        let job;
+        
+        // Check if we're editing or creating
+        if (this.state.currentEditJob && jobs[this.state.currentEditJob]) {
+            // Editing existing job
+            job = jobs[this.state.currentEditJob];
+            const oldStatus = job.status;
+            
+            // Update fields
+            job.title = title;
+            job.company = company;
+            job.location = location;
+            job.url = url;
+            job.contactName = contactName;
+            job.contactEmail = contactEmail;
+            job.contactPhone = contactPhone;
+            job.description = description;
+            job.notes = notes;
+            job.dateUpdated = new Date().toISOString();
+            
+            // If status changed, add to history
+            if (status !== oldStatus) {
+                job.status = status;
+                job.statusHistory.push({
+                    from: oldStatus,
+                    to: status,
+                    date: new Date().toISOString(),
+                    notes: 'Status updated while editing job details'
+                });
+                
+                // Set dateApplied if changing to applied
+                if (status === 'applied' && !job.dateApplied) {
+                    job.dateApplied = new Date().toISOString();
+                }
+            }
+            
+            // Log action
+            logJobAction('update_job', job.id, {
+                title: job.title,
+                company: job.company
+            });
+        } else {
+            // Creating new job
+            job = createDefaultJob();
+            job.title = title;
+            job.company = company;
+            job.location = location;
+            job.url = url;
+            job.contactName = contactName;
+            job.contactEmail = contactEmail;
+            job.contactPhone = contactPhone;
+            job.description = description;
+            job.notes = notes;
+            job.status = status;
+            
+            // If status is not default, add to history
+            if (status !== 'saved') {
+                job.statusHistory.push({
+                    from: 'saved',
+                    to: status,
+                    date: new Date().toISOString(),
+                    notes: 'Initial status when creating job'
+                });
+                
+                // Set dateApplied if status is applied
+                if (status === 'applied') {
+                    job.dateApplied = new Date().toISOString();
+                }
+            }
+            
+            // Log action
+            logJobAction('create_job', job.id, {
+                title: job.title,
+                company: job.company
+            });
+        }
+        
+        // Save the job
+        saveJob(job);
+        
+        // Reset state
+        this.state.currentEditJob = null;
+        
+        // Close modal
+        hideModal('job-edit-modal');
+        
+        // Refresh jobs list
+        renderJobs(this);
+        
+        // Show success message
+        showToast('Job saved successfully', 'success');
+    },
+    
+    // Update job status
+    updateJobStatus() {
+        if (!this.state.currentStatusJob) {
+            showToast('No job selected', 'error');
+            return;
+        }
+        
+        const status = $('#job-status-update').value;
+        const statusNotes = $('#job-status-notes').value.trim();
+        
+        // Get all jobs
+        const jobs = loadJobs();
+        
+        // Check if job exists
+        if (!jobs[this.state.currentStatusJob]) {
+            showToast('Job not found', 'error');
+            return;
+        }
+        
+        // Get the job
+        const job = jobs[this.state.currentStatusJob];
+        const oldStatus = job.status;
+        
+        // Update status
+        job.status = status;
+        job.dateUpdated = new Date().toISOString();
+        
+        // Add to history
+        job.statusHistory.push({
+            from: oldStatus,
+            to: status,
+            date: new Date().toISOString(),
+            notes: statusNotes
+        });
+        
+        // Set dateApplied if changing to applied
+        if (status === 'applied' && !job.dateApplied) {
+            job.dateApplied = new Date().toISOString();
+        }
+        
+        // Save the job
+        saveJob(job);
+        
+        // Log action
+        logJobAction('update_job_status', job.id, {
+            title: job.title,
+            company: job.company,
+            oldStatus,
+            newStatus: status
+        });
+        
+        // Reset state
+        this.state.currentStatusJob = null;
+        
+        // Close modal
+        hideModal('job-status-modal');
+        
+        // Refresh jobs list
+        renderJobs(this);
+        
+        // Show success message
+        showToast(`Job status updated to: ${status}`, 'success');
     }
 };
 

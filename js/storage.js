@@ -57,13 +57,18 @@ export function saveNamedResume(resumeData, name) {
     
     try {
         let savedResumes = loadSavedResumesList() || {};
+        
+        // Generate a unique ID for the resume
+        const resumeId = `resume_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        
         savedResumes[name] = {
+            id: resumeId,
             data: resumeData,
             timestamp: new Date().toISOString()
         };
         
         localStorage.setItem(config.storage.savedResumesKey, JSON.stringify(savedResumes));
-        return true;
+        return resumeId;
     } catch (e) {
         console.error('Error saving named resume:', e);
         return false;
