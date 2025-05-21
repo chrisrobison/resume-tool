@@ -3,7 +3,7 @@ import { $, $$, escapeHtml, showToast } from './utils.js';
 import { defaultResumeData } from './config.js';
 import { setupUIEventListeners, switchTab, switchView } from './ui.js';
 import { initLocalStorage, saveResumeToStorage, loadResumeFromStorage, loadSavedResumesList, saveNamedResume, loadNamedResume, deleteNamedResume } from './storage.js';
-import { setupModals, renderProfiles, renderWork, hideModal } from './modals.js';
+import * as modals from './modals.js';
 import { setupPreviewEventListeners, renderPreview } from './preview.js';
 import { setupImportFunctionality, setupExportFunctionality } from './import-export.js';
 import { renderJobs, setupJobEventListeners, loadJobs, saveJob, createDefaultJob, associateResumeWithJob, logApiCall as logJobApiCall } from './jobs.js';
@@ -91,7 +91,7 @@ export const app = {
     setupEventListeners() {
         setupUIEventListeners(this);
         setupPreviewEventListeners(this);
-        setupModals(this);
+        modals.setupModals(this);
         setupImportFunctionality(this);
         setupExportFunctionality(this);
         
@@ -290,10 +290,8 @@ export const app = {
     
     // Hide a modal by id
     hideModal(modalId) {
-        const modal = $(`#${modalId}`);
-        if (modal) {
-            modal.classList.add('hidden');
-        }
+        // Use the imported hideModal function from modals.js
+        modals.hideModal(modalId);
     },
     
     // Update meta.lastModified field
@@ -364,8 +362,8 @@ export const app = {
         $('#lastModified').value = new Date(this.data.meta.lastModified).toISOString().split('T')[0];
         
         // Render all section lists
-        renderProfiles(this);
-        renderWork(this);
+        modals.renderProfiles(this);
+        modals.renderWork(this);
         // Also add other render functions for education, skills, projects
     },
     
@@ -475,7 +473,7 @@ export const app = {
         this.state.currentEditJob = null;
         
         // Close modal
-        hideModal('job-edit-modal');
+        modals.hideModal('job-edit-modal');
         
         // Refresh jobs list
         renderJobs(this);
@@ -539,7 +537,7 @@ export const app = {
         this.state.currentStatusJob = null;
         
         // Close modal
-        hideModal('job-status-modal');
+        modals.hideModal('job-status-modal');
         
         // Refresh jobs list
         renderJobs(this);
