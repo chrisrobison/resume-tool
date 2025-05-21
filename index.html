@@ -35,6 +35,9 @@
             <div class="sidebar-nav-item" data-view="jobs">
                 <i class="fa-solid fa-briefcase"></i> Jobs
             </div>
+            <div class="sidebar-nav-item" data-view="history">
+                <i class="fa-solid fa-clock-rotate-left"></i> History
+            </div>
         </div>
     </div>
     
@@ -265,12 +268,65 @@
                     <div class="resume-section">
                         <div class="resume-section-header">
                             <div class="resume-section-title">Saved Jobs</div>
-                            <button id="add-job" class="small-button"><i class="fa-solid fa-plus"></i> Add Job</button>
+                            <div class="button-group">
+                                <button id="add-job" class="small-button"><i class="fa-solid fa-magic"></i> Tailor Resume for Job</button>
+                                <button id="add-job-button" class="small-button"><i class="fa-solid fa-plus"></i> Add Job Manually</button>
+                            </div>
                         </div>
                         <div id="jobs-container">
                             <div class="empty-state" id="jobs-empty">
                                 <i class="fa-solid fa-briefcase fa-2x"></i>
                                 <p>No jobs saved yet. Click "Add Job" to add a job posting and generate customized resumes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="history-view" class="view-container">
+            <div class="container">
+                <div class="card">
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Activity History</div>
+                        </div>
+                        
+                        <form id="log-filters-form" class="filter-form">
+                            <div class="filter-group">
+                                <div class="input-group">
+                                    <label for="log-filter-type">Event Type</label>
+                                    <select id="log-filter-type">
+                                        <option value="">All Events</option>
+                                        <option value="api_call">API Calls</option>
+                                        <option value="job_action">Job Actions</option>
+                                        <option value="resume_action">Resume Actions</option>
+                                        <option value="system">System Events</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="log-filter-start-date">From Date</label>
+                                    <input type="date" id="log-filter-start-date">
+                                </div>
+                                <div class="input-group">
+                                    <label for="log-filter-end-date">To Date</label>
+                                    <input type="date" id="log-filter-end-date">
+                                </div>
+                                <div class="input-group">
+                                    <label for="log-filter-search">Search</label>
+                                    <input type="text" id="log-filter-search" placeholder="Search logs...">
+                                </div>
+                            </div>
+                            <div class="button-group">
+                                <button type="submit" class="small-button"><i class="fa-solid fa-filter"></i> Apply Filters</button>
+                                <button type="button" id="log-filter-reset" class="small-button secondary"><i class="fa-solid fa-undo"></i> Reset</button>
+                            </div>
+                        </form>
+                        
+                        <div id="logs-container" class="logs-container">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-clock-rotate-left fa-2x"></i>
+                                <p>No activity logs found. Actions will be recorded here as you use the application.</p>
                             </div>
                         </div>
                     </div>
@@ -633,6 +689,10 @@
             <button class="modal-close">&times;</button>
         </div>
         <div class="input-group">
+            <label for="job-title">Job Title / Company</label>
+            <input type="text" id="job-title" placeholder="e.g., Senior Developer at Acme Corp">
+        </div>
+        <div class="input-group">
             <label for="job-description">Job Description</label>
             <textarea id="job-description" placeholder="Paste the job description here..." rows="10"></textarea>
         </div>
@@ -660,6 +720,198 @@
         <div class="button-group">
             <button id="copy-cover-letter" class="secondary"><i class="fa-solid fa-copy"></i> Copy to Clipboard</button>
             <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Job Detail Modal -->
+<div id="job-detail-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Job Details</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="job-detail-content">
+            <div class="job-detail-header">
+                <h2 id="job-detail-title">Job Title</h2>
+                <h3 id="job-detail-company">Company Name</h3>
+                <div id="job-detail-status" class="job-status">Status</div>
+            </div>
+            
+            <div class="job-detail-dates">
+                <div class="date-item">
+                    <label>Created:</label>
+                    <span id="job-detail-date-created"></span>
+                </div>
+                <div class="date-item">
+                    <label>Updated:</label>
+                    <span id="job-detail-date-updated"></span>
+                </div>
+                <div id="job-detail-date-applied-container" class="date-item">
+                    <label>Applied:</label>
+                    <span id="job-detail-date-applied"></span>
+                </div>
+            </div>
+            
+            <div class="job-detail-section">
+                <h4>Location</h4>
+                <p id="job-detail-location">Not specified</p>
+            </div>
+            
+            <div class="job-detail-section">
+                <h4>URL</h4>
+                <a id="job-detail-url" href="#" target="_blank">Not specified</a>
+            </div>
+            
+            <div class="job-detail-section">
+                <h4>Contact Information</h4>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <label>Name:</label>
+                        <span id="job-detail-contact-name">None specified</span>
+                    </div>
+                    <div class="contact-item">
+                        <label>Email:</label>
+                        <span id="job-detail-contact-email">None specified</span>
+                    </div>
+                    <div class="contact-item">
+                        <label>Phone:</label>
+                        <span id="job-detail-contact-phone">None specified</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="job-detail-section">
+                <h4>Job Description</h4>
+                <div class="job-detail-description-container">
+                    <pre id="job-detail-description" class="description-text">No description provided</pre>
+                </div>
+            </div>
+            
+            <div class="job-detail-section">
+                <h4>Notes</h4>
+                <pre id="job-detail-notes" class="notes-text">No notes added</pre>
+            </div>
+            
+            <div class="job-detail-section">
+                <h4>Tailored Resume</h4>
+                <button id="job-detail-resume" class="small-button hidden">View Tailored Resume</button>
+            </div>
+            
+            <div class="job-detail-section">
+                <h4>Status History</h4>
+                <div id="job-detail-status-history" class="status-history">
+                    <div class="empty-text">No status changes recorded</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button id="job-detail-update-status" class="small-button"><i class="fa-solid fa-arrow-right"></i> Update Status</button>
+            <button id="job-detail-edit" class="small-button"><i class="fa-solid fa-pen-to-square"></i> Edit Job</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Job Edit Modal -->
+<div id="job-edit-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Edit Job</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form id="job-edit-form">
+            <div class="form-grid">
+                <div class="input-group">
+                    <label for="edit-job-title">Job Title*</label>
+                    <input type="text" id="edit-job-title" required>
+                </div>
+                <div class="input-group">
+                    <label for="edit-job-company">Company*</label>
+                    <input type="text" id="edit-job-company" required>
+                </div>
+                <div class="input-group">
+                    <label for="edit-job-location">Location</label>
+                    <input type="text" id="edit-job-location">
+                </div>
+                <div class="input-group">
+                    <label for="edit-job-url">Job URL</label>
+                    <input type="url" id="edit-job-url">
+                </div>
+                <div class="input-group">
+                    <label for="edit-job-contact-name">Contact Name</label>
+                    <input type="text" id="edit-job-contact-name">
+                </div>
+                <div class="input-group">
+                    <label for="edit-job-contact-email">Contact Email</label>
+                    <input type="email" id="edit-job-contact-email">
+                </div>
+                <div class="input-group">
+                    <label for="edit-job-contact-phone">Contact Phone</label>
+                    <input type="tel" id="edit-job-contact-phone">
+                </div>
+                <div class="input-group">
+                    <label for="edit-job-status">Status</label>
+                    <select id="edit-job-status">
+                        <option value="saved">Saved</option>
+                        <option value="applied">Applied</option>
+                        <option value="interviewing">Interviewing</option>
+                        <option value="offered">Offered</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="declined">Declined</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="edit-job-description">Job Description</label>
+                <textarea id="edit-job-description" rows="10"></textarea>
+            </div>
+            <div class="input-group">
+                <label for="edit-job-notes">Notes</label>
+                <textarea id="edit-job-notes" rows="4"></textarea>
+            </div>
+            <div class="button-group">
+                <button type="button" id="save-job-edit" class="success"><i class="fa-solid fa-check"></i> Save</button>
+                <button type="button" class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Job Status Update Modal -->
+<div id="job-status-modal" class="modal-backdrop hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Update Job Status</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="form-grid">
+            <div class="job-status-header">
+                <div id="status-update-job-title" class="job-title">Job Title</div>
+                <div id="status-update-job-company" class="job-company">Company Name</div>
+            </div>
+            <div class="input-group">
+                <label for="job-status-update">New Status</label>
+                <select id="job-status-update">
+                    <option value="saved">Saved</option>
+                    <option value="applied">Applied</option>
+                    <option value="interviewing">Interviewing</option>
+                    <option value="offered">Offered</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="declined">Declined</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="job-status-notes">Notes</label>
+                <textarea id="job-status-notes" rows="4" placeholder="Add any notes about this status change..."></textarea>
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="update-job-status" class="success"><i class="fa-solid fa-check"></i> Update Status</button>
+            <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
         </div>
     </div>
 </div>
