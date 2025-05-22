@@ -24,17 +24,55 @@ export function safelyParseJSON(json) {
     }
 }
 
-// Format date in YYYY-MM-DD format
-export function formatDate(dateStr) {
+// Format date with support for different formats
+export function formatDate(dateStr, format = 'YYYY-MM-DD') {
     if (!dateStr) return "";
     if (dateStr.toLowerCase() === "present") return "Present";
     
     try {
         const date = new Date(dateStr);
-        return date.toISOString().split('T')[0];
+        
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            return dateStr;
+        }
+        
+        // Format date based on format parameter
+        switch (format) {
+            case 'YYYY-MM-DD':
+                return date.toISOString().split('T')[0];
+            case 'MM/DD/YYYY':
+                return `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear()}`;
+            case 'MMM YYYY':
+                return `${getMonthName(date.getMonth(), true)} ${date.getFullYear()}`;
+            case 'YYYY':
+                return date.getFullYear().toString();
+            default:
+                return date.toISOString().split('T')[0];
+        }
     } catch (e) {
         return dateStr;
     }
+}
+
+// Helper function to get month name
+function getMonthName(monthIndex, abbreviated = false) {
+    const months = [
+        ['January', 'Jan'],
+        ['February', 'Feb'],
+        ['March', 'Mar'],
+        ['April', 'Apr'],
+        ['May', 'May'],
+        ['June', 'Jun'],
+        ['July', 'Jul'],
+        ['August', 'Aug'],
+        ['September', 'Sep'],
+        ['October', 'Oct'],
+        ['November', 'Nov'],
+        ['December', 'Dec']
+    ];
+    
+    return months[monthIndex][abbreviated ? 1 : 0];
 }
 
 // Get current date in ISO format

@@ -1,0 +1,346 @@
+/* Theme styles */
+/* Modern Theme */
+.modern-theme {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modern-theme .preview-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.modern-theme h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.modern-theme h2 {
+    font-size: 1.5rem;
+    font-weight: normal;
+    color: #7f8c8d;
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.modern-theme .contact-info {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.modern-theme .contact-info div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modern-theme .preview-section {
+    margin-bottom: 2rem;
+}
+
+.modern-theme h3 {
+    font-size: 1.2rem;
+    color: #3498db;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.25rem;
+    margin-top: 0;
+}
+
+.modern-theme .work-item, 
+.modern-theme .education-item, 
+.modern-theme .project-item {
+    margin-bottom: 1.5rem;
+}
+
+.modern-theme .work-header,
+.modern-theme .education-header,
+.modern-theme .project-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.modern-theme .work-title h4,
+.modern-theme .education-title h4,
+.modern-theme .project-title h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #2c3e50;
+}
+
+.modern-theme .work-company,
+.modern-theme .education-institution {
+    color: #7f8c8d;
+}
+
+.modern-theme .work-date,
+.modern-theme .education-date,
+.modern-theme .project-date {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.modern-theme .work-summary,
+.modern-theme .education-summary,
+.modern-theme .project-description {
+    margin: 0.5rem 0;
+}
+
+.modern-theme ul.work-highlights,
+.modern-theme ul.project-highlights {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.modern-theme .skills-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.modern-theme .skill-keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.modern-theme .keyword {
+    background-color: #ecf0f1;
+    padding: 0.1rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+}
+
+/* Classic Theme */
+.classic-theme {
+    font-family: 'Times New Roman', Times, serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: white;
+    line-height: 1.5;
+}
+
+.classic-theme .preview-header.classic {
+    margin-bottom: 1rem;
+}
+
+.classic-theme .classic-name {
+    font-size: 2rem;
+    margin: 0;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.classic-theme .classic-label {
+    font-size: 1.2rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+.classic-theme .classic-contact {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+.classic-theme .classic-divider {
+    border: none;
+    border-top: 1px solid #000;
+    margin: 1rem 0;
+}
+
+.classic-theme .classic-section-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.classic-theme .classic-work-item,
+.classic-theme .classic-education-item,
+.classic-theme .classic-project-item {
+    margin-bottom: 1.2rem;
+}
+
+.classic-theme .classic-work-header,
+.classic-theme .classic-education-header,
+.classic-theme .classic-project-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
+.classic-theme .classic-work-company,
+.classic-theme .classic-education-institution,
+.classic-theme .classic-project-name {
+    font-weight: bold;
+}
+
+.classic-theme .classic-work-position,
+.classic-theme .classic-education-degree {
+    font-style: italic;
+    margin-bottom: 0.25rem;
+}
+
+.classic-theme .classic-work-highlights,
+.classic-theme .classic-project-highlights {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.classic-theme .classic-skill-item {
+    margin-bottom: 0.5rem;
+}
+
+.classic-theme .classic-profiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 0.5rem;
+}
+
+/* Minimal Theme */
+.minimal-theme {
+    font-family: 'Arial', sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: white;
+    line-height: 1.6;
+    color: #333;
+}
+
+.minimal-theme .minimal-header {
+    margin-bottom: 2rem;
+}
+
+.minimal-theme h1 {
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+}
+
+.minimal-theme .minimal-contact {
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.minimal-theme .minimal-label {
+    font-size: 1.1rem;
+    color: #555;
+}
+
+.minimal-theme section {
+    margin-bottom: 2rem;
+}
+
+.minimal-theme h2 {
+    font-size: 1.2rem;
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.25rem;
+}
+
+.minimal-theme .minimal-entry {
+    margin-bottom: 1.5rem;
+}
+
+.minimal-theme h3 {
+    font-size: 1.1rem;
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+}
+
+.minimal-theme .minimal-entry-meta {
+    display: flex;
+    justify-content: space-between;
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.minimal-theme p {
+    margin: 0.5rem 0;
+}
+
+.minimal-theme ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.minimal-theme .minimal-skills {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.minimal-theme .minimal-keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.minimal-theme .minimal-keyword {
+    background-color: #f5f5f5;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.15rem;
+    font-size: 0.8rem;
+}
+
+.minimal-theme .minimal-profiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+
+.minimal-theme .minimal-network {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.minimal-theme a {
+    color: #0077cc;
+    text-decoration: none;
+}
+
+.minimal-theme a:hover {
+    text-decoration: underline;
+}
+
+/* Print styles */
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #fff;
+    }
+    
+    main, header, footer, .sidebar, .menu-backdrop {
+        display: none !important;
+    }
+    
+    .preview {
+        display: block !important;
+        padding: 20px;
+        margin: 0;
+        max-width: 100%;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+}

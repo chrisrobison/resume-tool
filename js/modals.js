@@ -316,16 +316,394 @@ export function renderWork(app) {
 // Similar functions for setupEducationModal, setupSkillsModal, setupProjectsModal, etc.
 // Not included here for brevity, but would follow the same pattern
 
+// Education modal functionality
 function setupEducationModal(app) {
-    // Education modal implementation (similar to work modal)
+    const addEducationBtn = $('#add-education');
+    const saveEducationBtn = $('#save-education');
+    
+    // Add education button
+    if (addEducationBtn) {
+        addEducationBtn.addEventListener('click', () => {
+            app.state.currentEditIndex = -1;
+            clearModalFields('education-modal');
+            showModal('education-modal');
+        });
+    }
+    
+    // Save education button
+    if (saveEducationBtn) {
+        saveEducationBtn.addEventListener('click', () => {
+            const institution = $('#education-institution').value.trim();
+            const studyType = $('#education-studyType').value.trim();
+            const area = $('#education-area').value.trim();
+            const startDate = $('#education-startDate').value.trim();
+            const endDate = $('#education-endDate').value.trim();
+            const score = $('#education-score').value.trim();
+            const url = $('#education-url').value.trim();
+            const coursesText = $('#education-courses').value.trim();
+            
+            if (!institution || !studyType) {
+                showToast('Institution and Study Type are required', 'error');
+                return;
+            }
+            
+            // Process courses as array of strings
+            const courses = coursesText 
+                ? coursesText.split('\n')
+                    .map(h => h.trim())
+                    .filter(h => h.length > 0)
+                    .map(h => h.startsWith('• ') ? h.substring(2) : h)
+                : [];
+            
+            const educationData = {
+                institution,
+                studyType,
+                area,
+                startDate,
+                endDate,
+                score,
+                url,
+                courses
+            };
+            
+            if (app.state.currentEditIndex >= 0) {
+                // Edit existing education
+                app.data.education[app.state.currentEditIndex] = educationData;
+            } else {
+                // Add new education
+                if (!app.data.education) {
+                    app.data.education = [];
+                }
+                app.data.education.push(educationData);
+            }
+            
+            renderEducation(app);
+            hideModal('education-modal');
+            app.updateMetaLastModified();
+        });
+    }
+    
+    // Edit/delete education event delegation
+    $('#education-container').addEventListener('click', (e) => {
+        if (e.target.closest('.edit-item')) {
+            const button = e.target.closest('.edit-item');
+            const index = parseInt(button.dataset.index);
+            
+            if (isNaN(index) || index < 0 || index >= app.data.education.length) return;
+            
+            const education = app.data.education[index];
+            
+            $('#education-institution').value = education.institution || '';
+            $('#education-studyType').value = education.studyType || '';
+            $('#education-area').value = education.area || '';
+            $('#education-startDate').value = education.startDate || '';
+            $('#education-endDate').value = education.endDate || '';
+            $('#education-score').value = education.score || '';
+            $('#education-url').value = education.url || '';
+            $('#education-courses').value = education.courses ? education.courses.map(h => `• ${h}`).join('\n') : '';
+            
+            app.state.currentEditIndex = index;
+            showModal('education-modal');
+        } else if (e.target.closest('.delete-item')) {
+            const button = e.target.closest('.delete-item');
+            const index = parseInt(button.dataset.index);
+            
+            if (isNaN(index) || index < 0 || index >= app.data.education.length) return;
+            
+            if (confirm('Are you sure you want to delete this education?')) {
+                app.data.education.splice(index, 1);
+                renderEducation(app);
+                app.updateMetaLastModified();
+            }
+        }
+    });
 }
 
+// Render education list
+export function renderEducation(app) {
+    const container = $('#education-container');
+    const emptyState = $('#education-empty');
+    
+    if (!container) return;
+    
+    // Clear existing items except empty state
+    Array.from(container.children).forEach(child => {
+        if (child !== emptyState) {
+            container.removeChild(child);
+        }
+    });
+    
+    // Initialize education array if it doesn't exist
+    if (!app.data.education) {
+        app.data.education = [];
+    }
+    
+    // Show or hide empty state
+    if (app.data.education.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+    } else {
+        emptyState.classList.add('hidden');
+    }
+    
+    // Add education entries to the container
+    app.data.education.forEach((education, index) => {
+        const item = createSectionItem(education, index, 'education');
+        container.appendChild(item);
+    });
+}
+
+// Skills modal functionality
 function setupSkillsModal(app) {
-    // Skills modal implementation
+    const addSkillBtn = $('#add-skill');
+    const saveSkillBtn = $('#save-skill');
+    
+    // Add skill button
+    if (addSkillBtn) {
+        addSkillBtn.addEventListener('click', () => {
+            app.state.currentEditIndex = -1;
+            clearModalFields('skills-modal');
+            showModal('skills-modal');
+        });
+    }
+    
+    // Save skill button
+    if (saveSkillBtn) {
+        saveSkillBtn.addEventListener('click', () => {
+            const name = $('#skill-name').value.trim();
+            const level = $('#skill-level').value.trim();
+            const keywordsText = $('#skill-keywords').value.trim();
+            
+            if (!name) {
+                showToast('Skill name is required', 'error');
+                return;
+            }
+            
+            // Process keywords as array of strings
+            const keywords = keywordsText 
+                ? keywordsText.split('\n')
+                    .map(k => k.trim())
+                    .filter(k => k.length > 0)
+                    .map(k => k.startsWith('• ') ? k.substring(2) : k)
+                : [];
+            
+            const skillData = {
+                name,
+                level,
+                keywords
+            };
+            
+            if (app.state.currentEditIndex >= 0) {
+                // Edit existing skill
+                app.data.skills[app.state.currentEditIndex] = skillData;
+            } else {
+                // Add new skill
+                if (!app.data.skills) {
+                    app.data.skills = [];
+                }
+                app.data.skills.push(skillData);
+            }
+            
+            renderSkills(app);
+            hideModal('skills-modal');
+            app.updateMetaLastModified();
+        });
+    }
+    
+    // Edit/delete skill event delegation
+    $('#skills-container').addEventListener('click', (e) => {
+        if (e.target.closest('.edit-item')) {
+            const button = e.target.closest('.edit-item');
+            const index = parseInt(button.dataset.index);
+            
+            if (isNaN(index) || index < 0 || index >= app.data.skills.length) return;
+            
+            const skill = app.data.skills[index];
+            
+            $('#skill-name').value = skill.name || '';
+            $('#skill-level').value = skill.level || '';
+            $('#skill-keywords').value = skill.keywords ? skill.keywords.map(k => `• ${k}`).join('\n') : '';
+            
+            app.state.currentEditIndex = index;
+            showModal('skills-modal');
+        } else if (e.target.closest('.delete-item')) {
+            const button = e.target.closest('.delete-item');
+            const index = parseInt(button.dataset.index);
+            
+            if (isNaN(index) || index < 0 || index >= app.data.skills.length) return;
+            
+            if (confirm('Are you sure you want to delete this skill?')) {
+                app.data.skills.splice(index, 1);
+                renderSkills(app);
+                app.updateMetaLastModified();
+            }
+        }
+    });
 }
 
+// Render skills list
+export function renderSkills(app) {
+    const container = $('#skills-container');
+    const emptyState = $('#skills-empty');
+    
+    if (!container) return;
+    
+    // Clear existing items except empty state
+    Array.from(container.children).forEach(child => {
+        if (child !== emptyState) {
+            container.removeChild(child);
+        }
+    });
+    
+    // Initialize skills array if it doesn't exist
+    if (!app.data.skills) {
+        app.data.skills = [];
+    }
+    
+    // Show or hide empty state
+    if (app.data.skills.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+    } else {
+        emptyState.classList.add('hidden');
+    }
+    
+    // Add skills to the container
+    app.data.skills.forEach((skill, index) => {
+        const item = createSectionItem(skill, index, 'skills');
+        container.appendChild(item);
+    });
+}
+
+// Projects modal functionality
 function setupProjectsModal(app) {
-    // Projects modal implementation
+    const addProjectBtn = $('#add-project');
+    const saveProjectBtn = $('#save-project');
+    
+    // Add project button
+    if (addProjectBtn) {
+        addProjectBtn.addEventListener('click', () => {
+            app.state.currentEditIndex = -1;
+            clearModalFields('projects-modal');
+            showModal('projects-modal');
+        });
+    }
+    
+    // Save project button
+    if (saveProjectBtn) {
+        saveProjectBtn.addEventListener('click', () => {
+            const name = $('#project-name').value.trim();
+            const description = $('#project-description').value.trim();
+            const startDate = $('#project-startDate').value.trim();
+            const endDate = $('#project-endDate').value.trim();
+            const url = $('#project-url').value.trim();
+            const highlightsText = $('#project-highlights').value.trim();
+            
+            if (!name) {
+                showToast('Project name is required', 'error');
+                return;
+            }
+            
+            // Process highlights as array of strings
+            const highlights = highlightsText 
+                ? highlightsText.split('\n')
+                    .map(h => h.trim())
+                    .filter(h => h.length > 0)
+                    .map(h => h.startsWith('• ') ? h.substring(2) : h)
+                : [];
+            
+            const projectData = {
+                name,
+                description,
+                startDate,
+                endDate,
+                url,
+                highlights
+            };
+            
+            if (app.state.currentEditIndex >= 0) {
+                // Edit existing project
+                app.data.projects[app.state.currentEditIndex] = projectData;
+            } else {
+                // Add new project
+                if (!app.data.projects) {
+                    app.data.projects = [];
+                }
+                app.data.projects.push(projectData);
+            }
+            
+            renderProjects(app);
+            hideModal('projects-modal');
+            app.updateMetaLastModified();
+        });
+    }
+    
+    // Edit/delete project event delegation
+    $('#projects-container').addEventListener('click', (e) => {
+        if (e.target.closest('.edit-item')) {
+            const button = e.target.closest('.edit-item');
+            const index = parseInt(button.dataset.index);
+            
+            if (isNaN(index) || index < 0 || index >= app.data.projects.length) return;
+            
+            const project = app.data.projects[index];
+            
+            $('#project-name').value = project.name || '';
+            $('#project-description').value = project.description || '';
+            $('#project-startDate').value = project.startDate || '';
+            $('#project-endDate').value = project.endDate || '';
+            $('#project-url').value = project.url || '';
+            $('#project-highlights').value = project.highlights ? project.highlights.map(h => `• ${h}`).join('\n') : '';
+            
+            app.state.currentEditIndex = index;
+            showModal('projects-modal');
+        } else if (e.target.closest('.delete-item')) {
+            const button = e.target.closest('.delete-item');
+            const index = parseInt(button.dataset.index);
+            
+            if (isNaN(index) || index < 0 || index >= app.data.projects.length) return;
+            
+            if (confirm('Are you sure you want to delete this project?')) {
+                app.data.projects.splice(index, 1);
+                renderProjects(app);
+                app.updateMetaLastModified();
+            }
+        }
+    });
+}
+
+// Render projects list
+export function renderProjects(app) {
+    const container = $('#projects-container');
+    const emptyState = $('#projects-empty');
+    
+    if (!container) return;
+    
+    // Clear existing items except empty state
+    Array.from(container.children).forEach(child => {
+        if (child !== emptyState) {
+            container.removeChild(child);
+        }
+    });
+    
+    // Initialize projects array if it doesn't exist
+    if (!app.data.projects) {
+        app.data.projects = [];
+    }
+    
+    // Show or hide empty state
+    if (app.data.projects.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+    } else {
+        emptyState.classList.add('hidden');
+    }
+    
+    // Add projects to the container
+    app.data.projects.forEach((project, index) => {
+        const item = createSectionItem(project, index, 'projects');
+        container.appendChild(item);
+    });
 }
 
 function setupImportModal(app) {
