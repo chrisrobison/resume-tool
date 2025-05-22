@@ -562,6 +562,45 @@ export const app = {
         
         // Show success message
         utils.showToast(`Job status updated to: ${status}`, 'success');
+    },
+    
+    // Load named resume by ID
+    loadNamedResume(resumeId) {
+        const savedResumes = storage.loadSavedResumesList();
+        if (!savedResumes) return false;
+        
+        console.log("Loading resume with ID:", resumeId);
+        console.log("Available resumes:", savedResumes);
+        
+        // Find the resume with the given ID
+        for (const [name, resumeData] of Object.entries(savedResumes)) {
+            console.log("Checking resume:", name, resumeData.id);
+            if (resumeData.id === resumeId) {
+                console.log("Found matching resume:", name);
+                this.data = resumeData.data;
+                this.updateAllFields();
+                utils.showToast(`Loaded tailored resume for job`, 'success');
+                
+                // Import required modules (they are already imported at the top)
+                // Switch to resume view if not already there
+                const resumeViewItem = utils.$('.sidebar-nav-item[data-view="resume"]');
+                if (resumeViewItem) {
+                    resumeViewItem.click();
+                }
+                
+                // Switch to preview tab
+                const previewTab = utils.$('.tab[data-tab="preview"]');
+                if (previewTab) {
+                    previewTab.click();
+                }
+                
+                return true;
+            }
+        }
+        
+        console.error("Resume not found with ID:", resumeId);
+        utils.showToast('Resume not found', 'error');
+        return false;
     }
 };
 
