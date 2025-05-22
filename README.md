@@ -12,6 +12,10 @@
 - 💾 **Easy Backup**: Import/export to JSON files or copy to clipboard
 - 🔄 **Auto-Save**: Never lose your work with automatic local storage saving
 - 📱 **Works Everywhere**: Responsive design for desktop, tablet, and mobile
+- 🎨 **Multiple Themes**: Choose from Modern, Classic, or Minimal themes
+- 📝 **Job Tracking**: Manage job applications and track status changes
+- 📊 **Activity History**: Track your resume activities and job applications
+- 🤖 **AI Integration**: Optional AI-powered resume tailoring with Claude or OpenAI
 
 ## 🚀 Getting Started
 
@@ -41,23 +45,46 @@ Got an existing JSON Resume? No problem!
 
 ### 🔄 Managing Multiple Resumes
 
-- ➕ Create new resumes with the "+" button
-- 🔄 Switch between them using the dropdown
-- ✏️ Rename, duplicate, or delete resumes with ease
+- 💾 Save resumes with descriptive names
+- 📂 Load saved resumes from local storage
+- 🗑️ Delete resumes you no longer need
+
+### 📊 Job Management
+
+- 📝 Create job entries with detailed information
+- 📊 Track job application status (saved, applied, interviewing, etc.)
+- 📌 Associate tailored resumes with specific jobs
+- 📋 Add notes and contact information for each opportunity
+- 📅 View status history and application timeline
+
+### 🤖 AI Resume Tailoring
+
+- 🔄 Automatically tailor your resume to match job descriptions
+- ✍️ Generate customized cover letters
+- 🔌 Support for both Claude and OpenAI APIs
+- 🔐 Secure API key management
+- 📝 Logging of all AI interactions
 
 ## 🧰 Project Structure
 
 ```
 resume-tool/
-├── index.html           # 🏠 Main application file
-├── reference.html       # 📚 UI reference & components
-└── resume-editor/       # 🧩 Modular version
-    ├── index.html       # 🚪 Entry point
-    └── src/
-        ├── main.js      # 🚀 Application start
-        ├── components/  # 🧩 Web components
-        ├── utils/       # 🔧 Helper functions
-        └── styles/      # 🎨 CSS styles
+├── index.html            # 🏠 Main application HTML
+├── styles.css            # 🎨 Global styles
+├── js/                   # 📁 JavaScript modules
+│   ├── core.js           # 🧠 Main application object
+│   ├── config.js         # ⚙️ Configuration settings
+│   ├── ui.js             # 🖥️ UI management
+│   ├── utils.js          # 🔧 Utility functions
+│   ├── storage.js        # 💾 Local storage operations
+│   ├── modals.js         # 🪟 Modal dialog handling
+│   ├── preview.js        # 👁️ Resume preview rendering
+│   ├── import-export.js  # 📤 Import/export functionality
+│   ├── jobs.js           # 💼 Job management
+│   ├── logs.js           # 📊 Activity logging
+│   └── theme-styles.css  # 🎭 Theme-specific styles
+├── DEVELOPER.md          # 📘 Developer documentation
+└── README.md             # 📝 Project overview
 ```
 
 ## 👩‍💻 Development
@@ -66,27 +93,40 @@ Super simple! No complicated build tools or dependencies!
 
 ### 🏃‍♂️ Running Locally
 
-Simply open `resume-editor/index.html` in your web browser:
+Simply open `index.html` in your web browser:
 
 ```bash
 # Open the file directly or use:
-open resume-editor/index.html
+open index.html
 ```
 
 ### 🛠️ Making Changes
 
-1. Edit files in the `resume-editor/src/` directory
+1. Edit files in the project directory
 2. Refresh your browser to see changes
 3. That's it! No compilation needed! 🎉
+
+### 📋 For Detailed Documentation
+
+For more detailed development information, check out the `DEVELOPER.md` file, which includes:
+
+- 🧠 Complete architecture explanation
+- 📊 Data schemas and models
+- 🧩 Module details and API references
+- 🔍 Troubleshooting guidance
+- 🚀 Future enhancement ideas
 
 ## 🔧 Technical Details
 
 ### Architecture
 
-- 🧩 **Web Components**: Custom elements for a modular design
-- ⚡ **Reactive State**: Smart updates when data changes
+- 📦 **Modular Design**: Clean separation of concerns in specialized modules
+- 🧩 **Namespace Pattern**: Explicit imports and function references for clarity
 - 💾 **Local Storage**: Everything saved right in your browser
 - 🚫 **No Dependencies**: Plain JavaScript - no external libraries!
+- 📝 **JSON Schema**: Based on the standardized JSON Resume format
+- 🎨 **Theme System**: Multiple visual styles for resume previews
+- 🧪 **Event Delegation**: Efficient event handling for dynamic elements
 
 ### 🌐 Browser Support
 
@@ -97,7 +137,9 @@ Works great in all modern browsers:
 
 ## 🔒 Privacy
 
-Your data stays on YOUR device! No servers, no tracking, no data collection. 
+Your data stays on YOUR device! No servers, no tracking, no data collection.
+
+Note: If you choose to use the AI resume tailoring features, job descriptions and resume data will be sent to the AI service (Claude or OpenAI) using your own API key, but you have full control over this process.
 
 ## 🤝 Contributing
 
@@ -117,7 +159,19 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - 🙏 Based on the [JSON Resume](https://jsonresume.org/) schema
 - 💡 Built to make resume creation fun and easy!
+- 🤖 AI assistance from Claude by Anthropic
+
+## 🌟 Features
+
+- ✅ **Complete Resume Editor**: Edit all resume sections with validation
+- ✅ **Multiple Resume Themes**: Modern, Classic, and Minimal designs
+- ✅ **Job Application Tracking**: Full job management system
+- ✅ **Activity History**: Logging of all resume and job activities  
+- ✅ **AI Integration**: Optional resume tailoring with AI models
+- ✅ **Local Storage**: Save multiple resumes and jobs locally
+- ✅ **Import/Export**: Multiple ways to save and share your data
+- ✅ **Responsive Design**: Works on desktop and mobile devices
 
 ---
 
-Happy resume building! 🎉
+Happy resume building and job hunting! 🎉
