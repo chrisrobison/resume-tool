@@ -35,6 +35,10 @@ Return ONLY a valid parseable JSON object with this exact structure (no addition
   "coverLetter": "Plain text cover letter without special characters",
   "jobDescription": "Brief job summary"
 }
+
+IMPORTANT REQUIREMENTS:
+1. Include ALL work entries from the original resume in your response. Do not truncate or limit the number of job entries.
+2. Preserve the original structure of each section including arrays lengths. Never drop any sections or entries.
 `;
 
     // Call Claude API

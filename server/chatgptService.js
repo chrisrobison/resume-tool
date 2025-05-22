@@ -19,7 +19,8 @@ async function tailorResumeWithChatGPT(resume, jobDescription, apiKey) {
         role: 'system',
         content: `You are an expert resume and cover letter writer with extensive knowledge of the job market and hiring practices. 
 Your task is to tailor a resume to a job description and create a matching cover letter.
-Your response must be a valid JSON object containing the tailored resume, cover letter, and original job description.`
+Your response must be a valid JSON object containing the tailored resume, cover letter, and original job description.
+You must preserve ALL job entries in the work history section of the resume. Do not truncate or limit the number of entries.`
       },
       {
         role: 'user',
@@ -55,7 +56,10 @@ Provide your response as a JSON object with the following structure:
   "jobDescription": "The original job description"
 }
 
-DO NOT include any explanations outside of the JSON object. The response should be a valid JSON object that can be parsed.`
+IMPORTANT REQUIREMENTS:
+1. Include ALL work entries from the original resume in your response. Do not truncate or limit the number of job entries.
+2. Preserve the original structure of each section including arrays lengths. Never drop any sections or entries.
+3. DO NOT include any explanations outside of the JSON object. The response should be a valid JSON object that can be parsed.`
       }
     ];
 
