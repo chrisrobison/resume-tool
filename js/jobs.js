@@ -291,6 +291,9 @@ function viewJobDetails(job, app) {
     $('#job-detail-date-created').textContent = new Date(job.dateCreated).toLocaleDateString();
     $('#job-detail-date-updated').textContent = new Date(job.dateUpdated).toLocaleDateString();
     
+    // Store the current job ID for edit/update operations
+    app.state.currentEditJob = job.id;
+    
     if (job.dateApplied) {
         $('#job-detail-date-applied').textContent = new Date(job.dateApplied).toLocaleDateString();
         $('#job-detail-date-applied-container').classList.remove('hidden');

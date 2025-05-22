@@ -734,6 +734,31 @@ function setupSaveLoadModals(app) {
             app.showLoadModal();
         });
     }
+    
+    // Setup job detail edit button
+    const jobDetailEditBtn = $('#job-detail-edit-btn');
+    if (jobDetailEditBtn) {
+        jobDetailEditBtn.addEventListener('click', () => {
+            // Get the current job ID
+            if (!app.state.currentEditJob) {
+                console.error('No job selected for editing');
+                return;
+            }
+            
+            // Hide the job detail modal first
+            hideModal('job-detail-modal');
+            
+            // Find the edit button in the jobs list
+            const jobCard = $(`.job-card[data-job-id="${app.state.currentEditJob}"]`);
+            if (jobCard) {
+                const editButton = jobCard.querySelector('.edit-job');
+                if (editButton) {
+                    // Trigger a click on the edit button
+                    editButton.click();
+                }
+            }
+        });
+    }
 }
 
 function setupJobsModal(app) {
@@ -941,7 +966,9 @@ IMPORTANT:
   "jobDescription": "Original job description"
 }
 4. Make sure all strings are properly quoted and all JSON syntax is correct
-5. Do not include any markdown formatting like \`\`\`json or \`\`\` in your response`;
+5. Do not include any markdown formatting like \`\`\`json or \`\`\` in your response
+6. CRITICAL: Include ALL work entries from the original resume in your response. Do not truncate or limit the number of job entries.
+7. Preserve the original structure of each section including arrays lengths. Never drop any sections or entries.`;
 
         try {
             // Call Claude API with the special browser header
@@ -1080,7 +1107,9 @@ IMPORTANT REQUIREMENTS:
   "coverLetter": "Cover letter text",
   "jobDescription": "Original job description"
 }
-5. Do NOT wrap your response in \`\`\`json or any other markdown`;
+5. Do NOT wrap your response in \`\`\`json or any other markdown
+6. CRITICAL: Include ALL work entries from the original resume in your response. Do not truncate or limit the number of job entries.
+7. Preserve the original structure of each section including arrays lengths.`;
 
         try {
             // Call OpenAI API
