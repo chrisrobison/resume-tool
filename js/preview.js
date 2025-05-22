@@ -295,14 +295,287 @@ function generateModernTheme(resumeData) {
 
 // Generate classic theme HTML
 function generateClassicTheme(resumeData) {
-    // Similar structure to modern but with classic styling
-    // Implementation not shown for brevity
-    return `<div class="preview classic-theme">Classic theme preview not implemented yet</div>`;
+    if (!resumeData || !resumeData.basics) {
+        return '<div class="preview-error">Invalid resume data</div>';
+    }
+    
+    const basics = resumeData.basics;
+    
+    let html = `
+    <div class="preview classic-theme">
+        <div class="preview-header classic">
+            <h1 class="classic-name">${escapeHtml(basics.name || '')}</h1>
+            <div class="classic-contact">
+                ${basics.email ? `<div><i class="fa-solid fa-envelope"></i> ${escapeHtml(basics.email)}</div>` : ''}
+                ${basics.phone ? `<div><i class="fa-solid fa-phone"></i> ${escapeHtml(basics.phone)}</div>` : ''}
+                ${basics.website ? `<div><i class="fa-solid fa-globe"></i> ${escapeHtml(basics.website)}</div>` : ''}
+                ${basics.location && Object.values(basics.location).some(val => val) ? 
+                    `<div><i class="fa-solid fa-location-dot"></i> 
+                        ${[
+                            basics.location.address, 
+                            basics.location.city, 
+                            basics.location.region, 
+                            basics.location.postalCode, 
+                            basics.location.countryCode
+                        ].filter(Boolean).map(escapeHtml).join(', ')}</div>` 
+                    : ''}
+            </div>
+            ${basics.label ? `<div class="classic-label">${escapeHtml(basics.label)}</div>` : ''}
+        </div>
+        
+        <hr class="classic-divider">
+        
+        ${basics.summary ? `
+        <div class="preview-section classic">
+            <h3 class="classic-section-title">PROFESSIONAL SUMMARY</h3>
+            <div class="classic-summary">${escapeHtml(basics.summary)}</div>
+        </div>
+        <hr class="classic-divider">` : ''}
+        
+        ${resumeData.work && resumeData.work.length > 0 ? `
+        <div class="preview-section classic">
+            <h3 class="classic-section-title">PROFESSIONAL EXPERIENCE</h3>
+            ${resumeData.work.map(work => `
+                <div class="classic-work-item">
+                    <div class="classic-work-header">
+                        <div class="classic-work-company">${escapeHtml(work.name || '')}</div>
+                        <div class="classic-work-date">
+                            ${work.startDate ? escapeHtml(formatDate(work.startDate)) : ''} 
+                            ${work.startDate && work.endDate ? ' - ' : ''}
+                            ${work.endDate ? escapeHtml(formatDate(work.endDate)) : ''}
+                        </div>
+                    </div>
+                    <div class="classic-work-position">${escapeHtml(work.position || '')}</div>
+                    ${work.location ? `<div class="classic-work-location">${escapeHtml(work.location)}</div>` : ''}
+                    ${work.summary ? `<div class="classic-work-summary">${escapeHtml(work.summary)}</div>` : ''}
+                    ${work.highlights && work.highlights.length > 0 ? `
+                        <ul class="classic-work-highlights">
+                            ${work.highlights.map(highlight => `<li>${escapeHtml(highlight)}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                </div>
+            `).join('')}
+        </div>
+        <hr class="classic-divider">` : ''}
+        
+        ${resumeData.education && resumeData.education.length > 0 ? `
+        <div class="preview-section classic">
+            <h3 class="classic-section-title">EDUCATION</h3>
+            ${resumeData.education.map(edu => `
+                <div class="classic-education-item">
+                    <div class="classic-education-header">
+                        <div class="classic-education-institution">${escapeHtml(edu.institution || '')}</div>
+                        <div class="classic-education-date">
+                            ${edu.startDate ? escapeHtml(formatDate(edu.startDate)) : ''} 
+                            ${edu.startDate && edu.endDate ? ' - ' : ''}
+                            ${edu.endDate ? escapeHtml(formatDate(edu.endDate)) : ''}
+                        </div>
+                    </div>
+                    <div class="classic-education-degree">${escapeHtml(edu.studyType || '')}${edu.area ? ` in ${escapeHtml(edu.area)}` : ''}</div>
+                    ${edu.score ? `<div class="classic-education-score">Score: ${escapeHtml(edu.score)}</div>` : ''}
+                    ${edu.courses && edu.courses.length > 0 ? `
+                        <div class="classic-education-courses">
+                            <span>Relevant Courses:</span> ${edu.courses.map(course => escapeHtml(course)).join(', ')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('')}
+        </div>
+        <hr class="classic-divider">` : ''}
+        
+        ${resumeData.skills && resumeData.skills.length > 0 ? `
+        <div class="preview-section classic">
+            <h3 class="classic-section-title">SKILLS</h3>
+            <div class="classic-skills">
+                ${resumeData.skills.map(skill => `
+                    <div class="classic-skill-item">
+                        <strong>${escapeHtml(skill.name || '')}</strong>${skill.level ? ` (${escapeHtml(skill.level)})` : ''}:
+                        ${skill.keywords && skill.keywords.length > 0 ? 
+                            skill.keywords.map(kw => escapeHtml(kw)).join(', ') : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        <hr class="classic-divider">` : ''}
+        
+        ${resumeData.projects && resumeData.projects.length > 0 ? `
+        <div class="preview-section classic">
+            <h3 class="classic-section-title">PROJECTS</h3>
+            ${resumeData.projects.map(project => `
+                <div class="classic-project-item">
+                    <div class="classic-project-header">
+                        <div class="classic-project-name">${escapeHtml(project.name || '')}</div>
+                        <div class="classic-project-date">
+                            ${project.startDate ? escapeHtml(formatDate(project.startDate)) : ''} 
+                            ${project.startDate && project.endDate ? ' - ' : ''}
+                            ${project.endDate ? escapeHtml(formatDate(project.endDate)) : ''}
+                        </div>
+                    </div>
+                    ${project.url ? `<div class="classic-project-url">${escapeHtml(project.url)}</div>` : ''}
+                    ${project.description ? `<div class="classic-project-description">${escapeHtml(project.description)}</div>` : ''}
+                    ${project.highlights && project.highlights.length > 0 ? `
+                        <ul class="classic-project-highlights">
+                            ${project.highlights.map(highlight => `<li>${escapeHtml(highlight)}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                </div>
+            `).join('')}
+        </div>` : ''}
+        
+        ${basics.profiles && basics.profiles.length > 0 ? `
+        <div class="preview-section classic">
+            <h3 class="classic-section-title">PROFILES</h3>
+            <div class="classic-profiles">
+                ${basics.profiles.map(profile => `
+                    <div class="classic-profile">
+                        <strong>${escapeHtml(profile.network || '')}:</strong> 
+                        ${profile.url ? 
+                            `<a href="${escapeHtml(profile.url)}" target="_blank">${escapeHtml(profile.username || profile.url)}</a>` : 
+                            escapeHtml(profile.username || '')
+                        }
+                    </div>
+                `).join('')}
+            </div>
+        </div>` : ''}
+    </div>`;
+    
+    return html;
 }
 
 // Generate minimal theme HTML
 function generateMinimalTheme(resumeData) {
-    // Similar structure to modern but with minimal styling
-    // Implementation not shown for brevity
-    return `<div class="preview minimal-theme">Minimal theme preview not implemented yet</div>`;
+    if (!resumeData || !resumeData.basics) {
+        return '<div class="preview-error">Invalid resume data</div>';
+    }
+    
+    const basics = resumeData.basics;
+    
+    let html = `
+    <div class="preview minimal-theme">
+        <div class="minimal-header">
+            <h1>${escapeHtml(basics.name || '')}</h1>
+            <div class="minimal-contact">
+                ${[
+                    basics.email,
+                    basics.phone,
+                    basics.website,
+                    basics.location ? [
+                        basics.location.city,
+                        basics.location.region,
+                        basics.location.countryCode
+                    ].filter(Boolean).join(', ') : null
+                ].filter(Boolean).map(item => escapeHtml(item)).join(' • ')}
+            </div>
+            ${basics.label ? `<div class="minimal-label">${escapeHtml(basics.label)}</div>` : ''}
+        </div>
+        
+        ${basics.summary ? `
+        <section class="minimal-section">
+            <h2>Summary</h2>
+            <p>${escapeHtml(basics.summary)}</p>
+        </section>` : ''}
+        
+        ${resumeData.work && resumeData.work.length > 0 ? `
+        <section class="minimal-section">
+            <h2>Experience</h2>
+            ${resumeData.work.map(work => `
+                <div class="minimal-entry">
+                    <div class="minimal-entry-header">
+                        <h3>${escapeHtml(work.position || '')}</h3>
+                        <div class="minimal-entry-meta">
+                            <span class="minimal-company">${escapeHtml(work.name || '')}</span>
+                            <span class="minimal-date">
+                                ${work.startDate ? escapeHtml(formatDate(work.startDate, 'MMM YYYY')) : ''} 
+                                ${work.startDate && work.endDate ? '–' : ''}
+                                ${work.endDate ? escapeHtml(formatDate(work.endDate, 'MMM YYYY')) : ''}
+                            </span>
+                        </div>
+                    </div>
+                    ${work.summary ? `<p class="minimal-summary">${escapeHtml(work.summary)}</p>` : ''}
+                    ${work.highlights && work.highlights.length > 0 ? `
+                        <ul class="minimal-highlights">
+                            ${work.highlights.map(highlight => `<li>${escapeHtml(highlight)}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                </div>
+            `).join('')}
+        </section>` : ''}
+        
+        ${resumeData.education && resumeData.education.length > 0 ? `
+        <section class="minimal-section">
+            <h2>Education</h2>
+            ${resumeData.education.map(edu => `
+                <div class="minimal-entry">
+                    <h3>${escapeHtml(edu.studyType || '')}${edu.area ? ` in ${escapeHtml(edu.area)}` : ''}</h3>
+                    <div class="minimal-entry-meta">
+                        <span class="minimal-institution">${escapeHtml(edu.institution || '')}</span>
+                        <span class="minimal-date">
+                            ${edu.startDate ? escapeHtml(formatDate(edu.startDate, 'YYYY')) : ''} 
+                            ${edu.startDate && edu.endDate ? '–' : ''}
+                            ${edu.endDate ? escapeHtml(formatDate(edu.endDate, 'YYYY')) : ''}
+                        </span>
+                    </div>
+                </div>
+            `).join('')}
+        </section>` : ''}
+        
+        ${resumeData.skills && resumeData.skills.length > 0 ? `
+        <section class="minimal-section">
+            <h2>Skills</h2>
+            <div class="minimal-skills">
+                ${resumeData.skills.map(skill => `
+                    <div class="minimal-skill">
+                        <h3>${escapeHtml(skill.name || '')}</h3>
+                        ${skill.keywords && skill.keywords.length > 0 ? `
+                            <div class="minimal-keywords">
+                                ${skill.keywords.map(kw => `<span class="minimal-keyword">${escapeHtml(kw)}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </section>` : ''}
+        
+        ${resumeData.projects && resumeData.projects.length > 0 ? `
+        <section class="minimal-section">
+            <h2>Projects</h2>
+            ${resumeData.projects.map(project => `
+                <div class="minimal-entry">
+                    <h3>${escapeHtml(project.name || '')}</h3>
+                    <div class="minimal-entry-meta">
+                        ${project.url ? `<a href="${escapeHtml(project.url)}" class="minimal-url">${escapeHtml(project.url)}</a>` : ''}
+                        <span class="minimal-date">
+                            ${project.startDate ? escapeHtml(formatDate(project.startDate, 'MMM YYYY')) : ''} 
+                            ${project.startDate && project.endDate ? '–' : ''}
+                            ${project.endDate ? escapeHtml(formatDate(project.endDate, 'MMM YYYY')) : ''}
+                        </span>
+                    </div>
+                    ${project.description ? `<p class="minimal-description">${escapeHtml(project.description)}</p>` : ''}
+                    ${project.highlights && project.highlights.length > 0 ? `
+                        <ul class="minimal-highlights">
+                            ${project.highlights.map(highlight => `<li>${escapeHtml(highlight)}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                </div>
+            `).join('')}
+        </section>` : ''}
+        
+        ${basics.profiles && basics.profiles.length > 0 ? `
+        <section class="minimal-section">
+            <h2>Profiles</h2>
+            <div class="minimal-profiles">
+                ${basics.profiles.map(profile => `
+                    <div class="minimal-profile">
+                        <span class="minimal-network">${escapeHtml(profile.network || '')}</span>
+                        ${profile.url ? 
+                            `<a href="${escapeHtml(profile.url)}" target="_blank">${escapeHtml(profile.username || profile.url)}</a>` : 
+                            `<span>${escapeHtml(profile.username || '')}</span>`
+                        }
+                    </div>
+                `).join('')}
+            </div>
+        </section>` : ''}
+    </div>`;
+    
+    return html;
 }

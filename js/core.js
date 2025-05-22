@@ -1,17 +1,17 @@
 // core.js - Core application functionality
-import { $, $$, escapeHtml, showToast } from './utils.js';
-import { defaultResumeData } from './config.js';
-import { setupUIEventListeners, switchTab, switchView } from './ui.js';
-import { initLocalStorage, saveResumeToStorage, loadResumeFromStorage, loadSavedResumesList, saveNamedResume, loadNamedResume, deleteNamedResume } from './storage.js';
+import * as utils from './utils.js';
+import * as config from './config.js';
+import * as ui from './ui.js';
+import * as storage from './storage.js';
 import * as modals from './modals.js';
-import { setupPreviewEventListeners, renderPreview } from './preview.js';
-import { setupImportFunctionality, setupExportFunctionality } from './import-export.js';
-import { renderJobs, setupJobEventListeners, loadJobs, saveJob, createDefaultJob, associateResumeWithJob, logApiCall as logJobApiCall } from './jobs.js';
-import { addLog, LOG_TYPES, logApiCall, logJobAction, logResumeAction, renderLogs, setupLogFilters } from './logs.js';
+import * as preview from './preview.js';
+import * as importExport from './import-export.js';
+import * as jobs from './jobs.js';
+import * as logs from './logs.js';
 
 // Main application object
 export const app = {
-    data: { ...defaultResumeData },
+    data: { ...config.defaultResumeData },
     state: {
         loaded: false,
         currentEditIndex: -1,
@@ -24,7 +24,7 @@ export const app = {
     
     // Initialize the application
     init() {
-        initLocalStorage();
+        storage.initLocalStorage();
         this.setupEventListeners();
         this.setupSaveLoadEventListeners();
         this.setupJobEventListeners();
@@ -32,22 +32,38 @@ export const app = {
         this.state.loaded = true;
         
         // Set current date in lastModified field
-        $('#lastModified').value = new Date().toISOString().split('T')[0];
+        utils.$('#lastModified').value = new Date().toISOString().split('T')[0];
+        
+        // If no resume was loaded, initialize empty data structures for sections
+        if (!this.data.education) {
+            this.data.education = [];
+        }
+        if (!this.data.skills) {
+            this.data.skills = [];
+        }
+        if (!this.data.projects) {
+            this.data.projects = [];
+        }
+        
+        // Render all sections to ensure they display properly
+        modals.renderEducation(this);
+        modals.renderSkills(this);
+        modals.renderProjects(this);
         
         // Initialize view handlers after DOM is loaded
-        const sidebarItems = $$('.sidebar-nav-item');
+        const sidebarItems = utils.$$('.sidebar-nav-item');
         if (sidebarItems.length > 0) {
             sidebarItems.forEach(item => {
                 item.addEventListener('click', () => {
                     const viewId = item.dataset.view;
                     if (viewId) {
-                        switchView(viewId);
+                        ui.switchView(viewId);
                         
                         // Additional actions when switching views
                         if (viewId === 'jobs') {
-                            renderJobs(this);
+                            jobs.renderJobs(this);
                         } else if (viewId === 'history') {
-                            renderLogs($('#logs-container'));
+                            logs.renderLogs(utils.$('#logs-container'));
                         }
                     }
                 });
@@ -57,53 +73,53 @@ export const app = {
     
     // Initialize job management event listeners
     setupJobEventListeners() {
-        setupJobEventListeners(this);
+        jobs.setupJobEventListeners(this);
         
         // Add job button
-        $('#add-job-button')?.addEventListener('click', () => {
+        utils.$('#add-job-button')?.addEventListener('click', () => {
             // Create a new job
-            const newJob = createDefaultJob();
+            const newJob = jobs.createDefaultJob();
             this.state.currentEditJob = newJob.id;
             
             // Clear form fields
-            const form = $('#job-edit-form');
+            const form = utils.$('#job-edit-form');
             if (form) form.reset();
             
             // Show edit modal
-            showModal('job-edit-modal');
+            modals.showModal('job-edit-modal');
         });
         
         // Save job button in edit modal
-        $('#save-job-edit')?.addEventListener('click', () => {
+        utils.$('#save-job-edit')?.addEventListener('click', () => {
             this.saveJobFromForm();
         });
         
         // Update job status button
-        $('#update-job-status')?.addEventListener('click', () => {
+        utils.$('#update-job-status')?.addEventListener('click', () => {
             this.updateJobStatus();
         });
         
         // Log filters
-        setupLogFilters($('#logs-container'), $('#log-filters-form'));
+        logs.setupLogFilters(utils.$('#logs-container'), utils.$('#log-filters-form'));
     },
     
     // Setup event listeners
     setupEventListeners() {
-        setupUIEventListeners(this);
-        setupPreviewEventListeners(this);
+        ui.setupUIEventListeners(this);
+        preview.setupPreviewEventListeners(this);
         modals.setupModals(this);
-        setupImportFunctionality(this);
-        setupExportFunctionality(this);
+        importExport.setupImportFunctionality(this);
+        importExport.setupExportFunctionality(this);
         
         // Add event listeners for preview panel
-        if ($('.tab[data-tab="preview"]')) {
-            $('.tab[data-tab="preview"]').addEventListener('click', () => {
-                renderPreview(this.data);
+        if (utils.$('.tab[data-tab="preview"]')) {
+            utils.$('.tab[data-tab="preview"]').addEventListener('click', () => {
+                preview.renderPreview(this.data);
             });
         }
         
         // Copy button functionality
-        $('#copy-button')?.addEventListener('click', () => {
+        utils.$('#copy-button')?.addEventListener('click', () => {
             this.copyResume();
         });
     },
@@ -111,13 +127,13 @@ export const app = {
     // Setup save and load event listeners
     setupSaveLoadEventListeners() {
         // Save button functionality
-        $('#save-button')?.addEventListener('click', () => {
+        utils.$('#save-button')?.addEventListener('click', () => {
             // Show save modal
             this.showSaveModal();
         });
         
         // Load button functionality
-        $('#load-button')?.addEventListener('click', () => {
+        utils.$('#load-button')?.addEventListener('click', () => {
             // Show load modal
             this.showLoadModal();
         });
@@ -125,10 +141,10 @@ export const app = {
     
     // Show save modal
     showSaveModal() {
-        const modal = $('#save-modal');
-        const saveName = $('#save-name');
-        const saveExistingSection = $('#save-existing-section');
-        const saveResumeBtn = $('#save-resume');
+        const modal = utils.$('#save-modal');
+        const saveName = utils.$('#save-name');
+        const saveExistingSection = utils.$('#save-existing-section');
+        const saveResumeBtn = utils.$('#save-resume');
         
         if (!modal || !saveName || !saveExistingSection || !saveResumeBtn) return;
         
@@ -136,7 +152,7 @@ export const app = {
         saveName.value = this.data.basics.name ? `${this.data.basics.name}'s Resume` : 'My Resume';
         
         // Check if resume with this name already exists
-        const savedResumes = loadSavedResumesList();
+        const savedResumes = storage.loadSavedResumesList();
         if (savedResumes && savedResumes[saveName.value]) {
             saveExistingSection.classList.remove('hidden');
         } else {
@@ -156,11 +172,11 @@ export const app = {
         saveResumeBtn.onclick = () => {
             const name = saveName.value.trim();
             if (!name) {
-                showToast('Please enter a name for your resume', 'error');
+                utils.showToast('Please enter a name for your resume', 'error');
                 return;
             }
             
-            saveNamedResume(this.data, name);
+            storage.saveNamedResume(this.data, name);
             this.hideModal('save-modal');
         };
         
@@ -169,8 +185,8 @@ export const app = {
     
     // Show load modal
     showLoadModal() {
-        const modal = $('#load-modal');
-        const savedResumesList = $('#saved-resumes-list');
+        const modal = utils.$('#load-modal');
+        const savedResumesList = utils.$('#saved-resumes-list');
         
         if (!modal || !savedResumesList) return;
         
@@ -178,7 +194,7 @@ export const app = {
         savedResumesList.innerHTML = '';
         
         // Get saved resumes
-        const savedResumes = loadSavedResumesList();
+        const savedResumes = storage.loadSavedResumesList();
         
         if (!savedResumes || Object.keys(savedResumes).length === 0) {
             savedResumesList.innerHTML = `
@@ -201,14 +217,14 @@ export const app = {
             
             item.innerHTML = `
                 <div class="resume-list-info">
-                    <div class="resume-list-name">${escapeHtml(name)}</div>
+                    <div class="resume-list-name">${utils.escapeHtml(name)}</div>
                     <div class="resume-list-date">Last modified: ${formattedDate}</div>
                 </div>
                 <div class="resume-list-actions">
-                    <button class="small-button load-resume" data-name="${escapeHtml(name)}">
+                    <button class="small-button load-resume" data-name="${utils.escapeHtml(name)}">
                         <i class="fa-solid fa-folder-open"></i> Load
                     </button>
-                    <button class="small-button delete-resume" data-name="${escapeHtml(name)}">
+                    <button class="small-button delete-resume" data-name="${utils.escapeHtml(name)}">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
@@ -221,7 +237,7 @@ export const app = {
         savedResumesList.querySelectorAll('.load-resume').forEach(btn => {
             btn.addEventListener('click', () => {
                 const name = btn.dataset.name;
-                const resumeData = loadNamedResume(name);
+                const resumeData = storage.loadNamedResume(name);
                 if (resumeData) {
                     this.data = resumeData;
                     this.updateAllFields();
@@ -234,7 +250,7 @@ export const app = {
             btn.addEventListener('click', () => {
                 const name = btn.dataset.name;
                 if (confirm(`Are you sure you want to delete the resume "${name}"?`)) {
-                    deleteNamedResume(name);
+                    storage.deleteNamedResume(name);
                     btn.closest('.resume-list-item').remove();
                     
                     // If no resumes left, show empty state
@@ -271,10 +287,10 @@ export const app = {
         
         try {
             success = document.execCommand('copy');
-            showToast(success ? 'Resume copied to clipboard' : 'Failed to copy resume', success ? 'success' : 'error');
+            utils.showToast(success ? 'Resume copied to clipboard' : 'Failed to copy resume', success ? 'success' : 'error');
         } catch (err) {
             console.error('Error copying to clipboard:', err);
-            showToast('Failed to copy resume', 'error');
+            utils.showToast('Failed to copy resume', 'error');
         } finally {
             document.body.removeChild(textarea);
         }
@@ -283,8 +299,8 @@ export const app = {
     // Save named resume to localStorage
     saveNamedResume(name) {
         this.updateMetaLastModified();
-        saveResumeToStorage(this.data);
-        const resumeId = saveNamedResume(this.data, name);
+        storage.saveResumeToStorage(this.data);
+        const resumeId = storage.saveNamedResume(this.data, name);
         return resumeId;
     },
     
@@ -298,12 +314,12 @@ export const app = {
     updateMetaLastModified() {
         if (!this.state.loaded) return;
         this.data.meta.lastModified = new Date().toISOString();
-        $('#lastModified').value = this.data.meta.lastModified.split('T')[0];
+        utils.$('#lastModified').value = this.data.meta.lastModified.split('T')[0];
     },
     
     // Load saved resume from localStorage
     loadSavedResume() {
-        const savedResume = loadResumeFromStorage();
+        const savedResume = storage.loadResumeFromStorage();
         if (savedResume) {
             this.data = savedResume;
             this.updateAllFields();
@@ -319,15 +335,15 @@ export const app = {
         // Update basic fields
         const basicFields = ['name', 'label', 'email', 'phone', 'website', 'summary'];
         basicFields.forEach(field => {
-            const element = $(`#${field}`);
+            const element = utils.$(`#${field}`);
             if (element) {
                 element.value = this.data.basics[field] || '';
             }
         });
         
         // Update picture
-        const pictureInput = $('#picture');
-        const pictureImg = $('#pictureImg');
+        const pictureInput = utils.$('#picture');
+        const pictureImg = utils.$('#pictureImg');
         
         if (pictureInput && pictureImg) {
             pictureInput.value = this.data.basics.picture || '';
@@ -343,7 +359,7 @@ export const app = {
         // Update location fields
         const locationFields = ['address', 'postalCode', 'city', 'countryCode', 'region'];
         locationFields.forEach(field => {
-            const element = $(`#${field}`);
+            const element = utils.$(`#${field}`);
             if (element) {
                 element.value = this.data.basics.location[field] || '';
             }
@@ -352,49 +368,51 @@ export const app = {
         // Update meta fields
         const metaFields = ['theme', 'language'];
         metaFields.forEach(field => {
-            const element = $(`#${field}`);
+            const element = utils.$(`#${field}`);
             if (element) {
                 element.value = this.data.meta[field] || '';
             }
         });
         
         // Update lastModified
-        $('#lastModified').value = new Date(this.data.meta.lastModified).toISOString().split('T')[0];
+        utils.$('#lastModified').value = new Date(this.data.meta.lastModified).toISOString().split('T')[0];
         
         // Render all section lists
         modals.renderProfiles(this);
         modals.renderWork(this);
-        // Also add other render functions for education, skills, projects
+        modals.renderEducation(this);
+        modals.renderSkills(this);
+        modals.renderProjects(this);
     },
     
     // Save job from edit form
     saveJobFromForm() {
         // Get form fields
-        const title = $('#edit-job-title').value.trim();
-        const company = $('#edit-job-company').value.trim();
-        const location = $('#edit-job-location').value.trim();
-        const url = $('#edit-job-url').value.trim();
-        const contactName = $('#edit-job-contact-name').value.trim();
-        const contactEmail = $('#edit-job-contact-email').value.trim();
-        const contactPhone = $('#edit-job-contact-phone').value.trim();
-        const description = $('#edit-job-description').value.trim();
-        const notes = $('#edit-job-notes').value.trim();
-        const status = $('#edit-job-status').value;
+        const title = utils.$('#edit-job-title').value.trim();
+        const company = utils.$('#edit-job-company').value.trim();
+        const location = utils.$('#edit-job-location').value.trim();
+        const url = utils.$('#edit-job-url').value.trim();
+        const contactName = utils.$('#edit-job-contact-name').value.trim();
+        const contactEmail = utils.$('#edit-job-contact-email').value.trim();
+        const contactPhone = utils.$('#edit-job-contact-phone').value.trim();
+        const description = utils.$('#edit-job-description').value.trim();
+        const notes = utils.$('#edit-job-notes').value.trim();
+        const status = utils.$('#edit-job-status').value;
         
         // Validation
         if (!title || !company) {
-            showToast('Job title and company are required', 'error');
+            utils.showToast('Job title and company are required', 'error');
             return;
         }
         
         // Get all jobs
-        const jobs = loadJobs();
+        const allJobs = jobs.loadJobs();
         let job;
         
         // Check if we're editing or creating
-        if (this.state.currentEditJob && jobs[this.state.currentEditJob]) {
+        if (this.state.currentEditJob && allJobs[this.state.currentEditJob]) {
             // Editing existing job
-            job = jobs[this.state.currentEditJob];
+            job = allJobs[this.state.currentEditJob];
             const oldStatus = job.status;
             
             // Update fields
@@ -426,13 +444,13 @@ export const app = {
             }
             
             // Log action
-            logJobAction('update_job', job.id, {
+            logs.logJobAction('update_job', job.id, {
                 title: job.title,
                 company: job.company
             });
         } else {
             // Creating new job
-            job = createDefaultJob();
+            job = jobs.createDefaultJob();
             job.title = title;
             job.company = company;
             job.location = location;
@@ -460,14 +478,14 @@ export const app = {
             }
             
             // Log action
-            logJobAction('create_job', job.id, {
+            logs.logJobAction('create_job', job.id, {
                 title: job.title,
                 company: job.company
             });
         }
         
         // Save the job
-        saveJob(job);
+        jobs.saveJob(job);
         
         // Reset state
         this.state.currentEditJob = null;
@@ -476,33 +494,33 @@ export const app = {
         modals.hideModal('job-edit-modal');
         
         // Refresh jobs list
-        renderJobs(this);
+        jobs.renderJobs(this);
         
         // Show success message
-        showToast('Job saved successfully', 'success');
+        utils.showToast('Job saved successfully', 'success');
     },
     
     // Update job status
     updateJobStatus() {
         if (!this.state.currentStatusJob) {
-            showToast('No job selected', 'error');
+            utils.showToast('No job selected', 'error');
             return;
         }
         
-        const status = $('#job-status-update').value;
-        const statusNotes = $('#job-status-notes').value.trim();
+        const status = utils.$('#job-status-update').value;
+        const statusNotes = utils.$('#job-status-notes').value.trim();
         
         // Get all jobs
-        const jobs = loadJobs();
+        const allJobs = jobs.loadJobs();
         
         // Check if job exists
-        if (!jobs[this.state.currentStatusJob]) {
-            showToast('Job not found', 'error');
+        if (!allJobs[this.state.currentStatusJob]) {
+            utils.showToast('Job not found', 'error');
             return;
         }
         
         // Get the job
-        const job = jobs[this.state.currentStatusJob];
+        const job = allJobs[this.state.currentStatusJob];
         const oldStatus = job.status;
         
         // Update status
@@ -523,10 +541,10 @@ export const app = {
         }
         
         // Save the job
-        saveJob(job);
+        jobs.saveJob(job);
         
         // Log action
-        logJobAction('update_job_status', job.id, {
+        logs.logJobAction('update_job_status', job.id, {
             title: job.title,
             company: job.company,
             oldStatus,
@@ -540,10 +558,10 @@ export const app = {
         modals.hideModal('job-status-modal');
         
         // Refresh jobs list
-        renderJobs(this);
+        jobs.renderJobs(this);
         
         // Show success message
-        showToast(`Job status updated to: ${status}`, 'success');
+        utils.showToast(`Job status updated to: ${status}`, 'success');
     }
 };
 
