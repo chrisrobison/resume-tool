@@ -2353,7 +2353,7 @@ IMPORTANT:
                     'anthropic-dangerous-direct-browser-access': 'true'
                 },
                 body: JSON.stringify({
-                    model: 'claude-3-haiku-20240307',
+                    model: 'claude-opus-4-20250514',
                     max_tokens: 4000,
                     temperature: 0.2, // Lower temperature for more consistent output
                     messages: [
