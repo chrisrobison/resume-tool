@@ -1,0 +1,13 @@
+{
+  "name": "resume-tool-tests",
+  "version": "1.0.0",
+  "description": "Tests for resume tool demo.html",
+  "main": "test-demo.js",
+  "scripts": {
+    "test": "node test-demo.js",
+    "test-verify": "echo 'Open verify-demo.html in browser to run tests'"
+  },
+  "devDependencies": {
+    "puppeteer": "^21.0.0"
+  }
+}

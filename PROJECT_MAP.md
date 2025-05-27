@@ -17,7 +17,7 @@ This file contains a comprehensive map of the JavaScript project structure, incl
 - **JavaScript Files:** 15
 - **HTML Files:** 2
 - **CSS Files:** 2
-- **Generated:** Wed May 21 10:05:43 PM PDT 2025
+- **Generated:** Mon May 26 05:17:53 PM PDT 2025
 
 ## File Structure
 
@@ -39,6 +39,7 @@ js/
   ui.js
   utils.js
 main.js
+PROJECT_MAP.md
 README.md
 reference.html
 server/
@@ -153,7 +154,6 @@ const { tailorResumeWithChatGPT } = require('./chatgptService');
 
 **index.html (Script Tags):**
 ```html
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" integrity="sha512-fD9DI5bZwQxOi7MhYWnnNPlvXdp/2Pj3XSTRrFs5FQa4mizyGLnJcN6tuvUS6LbmgN1ut+XGSABKvjN0H6Aoow==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="module" src="js/main.js"></script>
 ```
