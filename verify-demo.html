@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Verification Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border-left: 4px solid #ccc; }
+        .test.pass { border-color: #4CAF50; background: #f1f8e9; }
+        .test.fail { border-color: #f44336; background: #ffebee; }
+        .test.pending { border-color: #ff9800; background: #fff3e0; }
+        button { margin: 5px; padding: 8px 16px; cursor: pointer; }
+        #results { margin-top: 20px; }
+        iframe { width: 100%; height: 600px; border: 1px solid #ccc; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Demo.html Verification Tests</h1>
+    <p>This page loads demo.html in an iframe and runs automated tests to verify functionality.</p>
+    
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <iframe id="demo-frame" src="demo.html"></iframe>
+    
+    <div id="results"></div>
+
+    <script>
+        let testResults = [];
+        
+        function addTestResult(name, passed, details = '') {
+            testResults.push({ name, passed, details });
+            updateResultsDisplay();
+        }
+        
+        function updateResultsDisplay() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Test Results:</h2>' + 
+                testResults.map(test => `
+                    <div class="test ${test.passed ? 'pass' : 'fail'}">
+                        <strong>${test.passed ? '✓' : '✗'} ${test.name}</strong>
+                        ${test.details ? `<br><small>${test.details}</small>` : ''}
+                    </div>
+                `).join('');
+        }
+        
+        function clearResults() {
+            testResults = [];
+            updateResultsDisplay();
+        }
+        
+        async function runAllTests() {
+            clearResults();
+            
+            const iframe = document.getElementById('demo-frame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const iframeWindow = iframe.contentWindow;
+            
+            // Wait for iframe to load
+            if (iframeDoc.readyState !== 'complete') {
+                await new Promise(resolve => {
+                    iframe.onload = resolve;
+                });
+            }
+            
+            // Wait a bit more for app initialization
+            await sleep(2000);
+            
+            try {
+                // Test 1: App object exists
+                const appExists = !!iframeWindow.app;
+                addTestResult('App object exists', appExists);
+                
+                if (!appExists) {
+                    addTestResult('Cannot continue tests', false, 'App object not found');
+                    return;
+                }
+                
+                // Test 2: Required containers exist
+                const containers = ['#work-list', '#education-list', '#skills-list', '#projects-list'];
+                let containersExist = true;
+                const missingContainers = [];
+                
+                containers.forEach(selector => {
+                    const element = iframeDoc.querySelector(selector);
+                    if (!element) {
+                        containersExist = false;
+                        missingContainers.push(selector);
+                    }
+                });
+                
+                addTestResult('Required containers exist', containersExist, 
+                    missingContainers.length ? `Missing: ${missingContainers.join(', ')}` : 'All containers found');
+                
+                // Test 3: Event delegation setup
+                const hasEventDelegation = typeof iframeWindow.app.setupSectionEventDelegation === 'function';
+                addTestResult('Event delegation method exists', hasEventDelegation);
+                
+                // Test 4: Update methods exist
+                const updateMethods = ['updateWorkSection', 'updateEducationSection', 'updateSkillsSection', 'updateProjectsSection'];
+                let allMethodsExist = true;
+                const missingMethods = [];
+                
+                updateMethods.forEach(method => {
+                    if (typeof iframeWindow.app[method] !== 'function') {
+                        allMethodsExist = false;
+                        missingMethods.push(method);
+                    }
+                });
+                
+                addTestResult('Update methods exist', allMethodsExist,
+                    missingMethods.length ? `Missing: ${missingMethods.join(', ')}` : 'All methods found');
+                
+                // Test 5: Navigation works
+                try {
+                    const resumesTab = iframeDoc.querySelector('[data-category="resumes"]');
+                    if (resumesTab) {
+                        resumesTab.click();
+                        await sleep(500);
+                        addTestResult('Navigation to resumes works', true);
+                    } else {
+                        addTestResult('Navigation to resumes works', false, 'Resumes tab not found');
+                    }
+                } catch (e) {
+                    addTestResult('Navigation to resumes works', false, e.message);
+                }
+                
+                // Test 6: New Resume button works
+                try {
+                    const newResumeBtn = iframeDoc.querySelector('button:contains("New Resume")') || 
+                                       Array.from(iframeDoc.querySelectorAll('button')).find(btn => btn.textContent.includes('New Resume'));
+                    
+                    if (newResumeBtn) {
+                        newResumeBtn.click();
+                        await sleep(1000);
+                        
+                        const resumeEditor = iframeDoc.querySelector('#resume-editor');
+                        addTestResult('New Resume button works', !!resumeEditor, 
+                            resumeEditor ? 'Resume editor opened' : 'Resume editor not found');
+                    } else {
+                        addTestResult('New Resume button works', false, 'New Resume button not found');
+                    }
+                } catch (e) {
+                    addTestResult('New Resume button works', false, e.message);
+                }
+                
+                // Test 7: Tab switching in resume editor
+                try {
+                    const tabs = ['work', 'education', 'skills', 'projects'];
+                    let tabSwitchingWorks = true;
+                    
+                    for (const tab of tabs) {
+                        const tabElement = iframeDoc.querySelector(`[data-tab="${tab}"]`);
+                        if (tabElement) {
+                            tabElement.click();
+                            await sleep(300);
+                            
+                            const panel = iframeDoc.querySelector(`#${tab}-panel`);
+                            if (!panel || !panel.classList.contains('active')) {
+                                tabSwitchingWorks = false;
+                                break;
+                            }
+                        } else {
+                            tabSwitchingWorks = false;
+                            break;
+                        }
+                    }
+                    
+                    addTestResult('Tab switching works', tabSwitchingWorks);
+                } catch (e) {
+                    addTestResult('Tab switching works', false, e.message);
+                }
+                
+                // Test 8: Console error check
+                let consoleErrors = [];
+                const originalConsoleError = iframeWindow.console.error;
+                iframeWindow.console.error = function(...args) {
+                    consoleErrors.push(args.join(' '));
+                    originalConsoleError.apply(this, args);
+                };
+                
+                // Trigger some actions to check for errors
+                try {
+                    iframeWindow.app.setupSectionEventDelegation();
+                    await sleep(500);
+                } catch (e) {
+                    consoleErrors.push(e.message);
+                }
+                
+                addTestResult('No console errors', consoleErrors.length === 0,
+                    consoleErrors.length ? `Errors: ${consoleErrors.join(', ')}` : 'No errors detected');
+                
+            } catch (error) {
+                addTestResult('Test execution failed', false, error.message);
+            }
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // Auto-run tests when iframe loads
+        window.onload = function() {
+            const iframe = document.getElementById('demo-frame');
+            iframe.onload = function() {
+                setTimeout(runAllTests, 1000);
+            };
+        };
+    </script>
+</body>
+</html>

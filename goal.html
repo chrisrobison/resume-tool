@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+    <meta charset="utf-8">
+    <title>Resizable Layout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --background-color: #fff;
+            --text-color: #000;
+            --header-background: #666;
+            --header-color: #fff;
+            --border-color: #ccc;
+            --resize-handle-color: #888;
+            box-sizing: border-box;
+            font-family: "Lexend", "Helvetica Neue", "Helvetica", sans-serif;
+            font-size: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Mobile and tablet responsive styles */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100% !important;
+                min-width: unset;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .nav-content {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                overflow-y: visible;
+                padding: 0.5rem;
+            }
+
+            .nav-item {
+                flex-shrink: 0;
+                margin: 0 0.25rem;
+                padding: 0.5rem 1rem;
+                white-space: nowrap;
+            }
+
+            .main-content {
+                flex: 1;
+                min-height: 0;
+            }
+
+            .content-area {
+                height: 100%;
+            }
+
+            .item-list {
+                min-height: 150px;
+            }
+
+            .sidebar-resize,
+            .list-resize {
+                display: none;
+            }
+
+            .resize-handle {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                font-size: 16px;
+            }
+
+            .header {
+                padding: 0.75rem;
+                font-size: 1.1rem;
+            }
+
+            .nav-content {
+                padding: 0.25rem;
+            }
+
+            .nav-item {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .list-header,
+            .detail-header {
+                padding: 0.75rem;
+                font-size: 1rem;
+            }
+
+            .list-content,
+            .detail-content {
+                padding: 0.75rem;
+            }
+
+            .list-item {
+                padding: 0.6rem;
+                font-size: 0.9rem;
+            }
+
+            .item-list {
+                min-height: 120px;
+            }
+
+            th, td {
+                padding: 0.4rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        .header {
+            background-color: var(--header-background);
+            color: var(--header-color);
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 1.2rem;
+            border-bottom: 3px solid #333;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+            width: 300px;
+            background-color: #f5f5f5;
+            border-right: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .nav-content {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: #e0e0e0;
+        }
+
+        .nav-item.active {
+            background-color: var(--header-background);
+            color: var(--header-color);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            min-height: 200px;
+            height: 50%;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .list-header {
+            background-color: #f8f8f8;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .list-content {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            padding: 0.75rem;
+            margin: 0.25rem 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .list-item:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+        }
+
+        .list-item.selected {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .item-detail {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-header {
+            background-color: #f8f8f8;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .detail-content {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .resize-handle {
+            position: absolute;
+            background-color: var(--resize-handle-color);
+            user-select: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .resize-handle:hover,
+        .resize-handle.resizing {
+            opacity: 1;
+        }
+
+        .sidebar-resize {
+            top: 0;
+            right: -2px;
+            width: 4px;
+            height: 100%;
+            cursor: col-resize;
+        }
+
+        .list-resize {
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            cursor: row-resize;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar" id="sidebar">
+            <div class="header">CV Tool</div>
+            <div class="nav-content">
+                <div class="nav-item active" data-category="products">Products</div>
+                <div class="nav-item" data-category="orders">Orders</div>
+                <div class="nav-item" data-category="customers">Customers</div>
+                <div class="nav-item" data-category="analytics">Analytics</div>
+                <div class="nav-item" data-category="settings">Settings</div>
+            </div>
+            <div class="resize-handle sidebar-resize" id="sidebarResize"></div>
+        </div>
+
+        <div class="main-content">
+            <div class="content-area">
+                <div class="item-list" id="itemList">
+                    <div class="list-header">List of Items</div>
+                    <div class="list-content" id="listContent">
+                        <div class="empty-state">Select a category from the navigation</div>
+                    </div>
+                    <div class="resize-handle list-resize" id="listResize"></div>
+                </div>
+
+                <div class="item-detail">
+                    <div class="detail-header">Item Detail</div>
+                    <div class="detail-content" id="detailContent">
+                        <div class="empty-state">Select an item to view details</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const $ = str => document.querySelector(str);
+            const $$ = str => document.querySelectorAll(str);
+
+            // Sample data for different categories
+            const sampleData = {
+                products: [
+                    { id: 1, name: 'Laptop Pro', category: 'Electronics', price: '$1299', stock: 45 },
+                    { id: 2, name: 'Wireless Mouse', category: 'Electronics', price: '$29', stock: 120 },
+                    { id: 3, name: 'Standing Desk', category: 'Furniture', price: '$399', stock: 15 },
+                    { id: 4, name: 'Coffee Mug', category: 'Kitchen', price: '$12', stock: 200 },
+                    { id: 5, name: 'Notebook Set', category: 'Office', price: '$24', stock: 80 }
+                ],
+                orders: [
+                    { id: 101, customer: 'John Doe', total: '$156', status: 'Shipped', date: '2025-05-20' },
+                    { id: 102, customer: 'Jane Smith', total: '$89', status: 'Processing', date: '2025-05-21' },
+                    { id: 103, customer: 'Bob Johnson', total: '$234', status: 'Delivered', date: '2025-05-19' }
+                ],
+                customers: [
+                    { id: 201, name: 'John Doe', email: 'john@example.com', orders: 5, status: 'Active' },
+                    { id: 202, name: 'Jane Smith', email: 'jane@example.com', orders: 12, status: 'Active' },
+                    { id: 203, name: 'Bob Johnson', email: 'bob@example.com', orders: 3, status: 'Inactive' }
+                ],
+                analytics: [
+                    { metric: 'Total Revenue', value: '$45,280', change: '+12%' },
+                    { metric: 'Orders Today', value: '23', change: '+5%' },
+                    { metric: 'Active Users', value: '1,247', change: '-2%' }
+                ],
+                settings: [
+                    { setting: 'Email Notifications', value: 'Enabled', type: 'Boolean' },
+                    { setting: 'Theme', value: 'Light', type: 'String' },
+                    { setting: 'Auto-save', value: 'Every 5 minutes', type: 'Interval' }
+                ]
+            };
+
+            const app = {
+                data: sampleData,
+                state: {
+                    loaded: true,
+                    selectedCategory: 'products',
+                    selectedItem: null
+                },
+                
+                init() {
+                    this.setupNavigation();
+                    this.setupResizing();
+                    this.loadCategory('products');
+                },
+
+                setupNavigation() {
+                    $$('.nav-item').forEach(item => {
+                        item.addEventListener('click', (e) => {
+                            const category = e.target.dataset.category;
+                            this.selectCategory(category);
+                        });
+                    });
+                },
+
+                selectCategory(category) {
+                    // Update nav selection
+                    $$('.nav-item').forEach(item => item.classList.remove('active'));
+                    $(`[data-category="${category}"]`).classList.add('active');
+                    
+                    this.state.selectedCategory = category;
+                    this.state.selectedItem = null;
+                    this.loadCategory(category);
+                },
+
+                loadCategory(category) {
+                    const data = this.data[category] || [];
+                    this.displayList(data);
+                    $('#detailContent').innerHTML = '<div class="empty-state">Select an item to view details</div>';
+                },
+
+                displayList(data) {
+                    const listContent = $('#listContent');
+                    
+                    if (!data || data.length === 0) {
+                        listContent.innerHTML = '<div class="empty-state">No items found</div>';
+                        return;
+                    }
+
+                    let html = '';
+                    data.forEach((item, index) => {
+                        const displayText = item.name || item.customer || item.metric || item.setting || `Item ${item.id}`;
+                        html += `<div class="list-item" data-index="${index}">${displayText}</div>`;
+                    });
+
+                    listContent.innerHTML = html;
+
+                    // Add click handlers to list items
+                    $$('.list-item').forEach(item => {
+                        item.addEventListener('click', (e) => {
+                            const index = parseInt(e.target.dataset.index);
+                            this.selectItem(index);
+                        });
+                    });
+                },
+
+                selectItem(index) {
+                    // Update list selection
+                    $$('.list-item').forEach(item => item.classList.remove('selected'));
+                    $(`.list-item[data-index="${index}"]`).classList.add('selected');
+                    
+                    const data = this.data[this.state.selectedCategory];
+                    const item = data[index];
+                    this.state.selectedItem = item;
+                    this.displayDetail(item);
+                },
+
+                displayDetail(item) {
+                    const detailContent = $('#detailContent');
+                    const tableHtml = this.display([item]);
+                    detailContent.innerHTML = tableHtml;
+                },
+
+                display(data, tgt) {
+                    if (!data || data.length === 0) return '';
+                    
+                    let out = "<table><thead><tr>";
+                    const keys = Object.keys(data[0]);
+                    if (keys) {
+                        keys.forEach(key => {
+                            out += `<th>${key}</th>`;
+                        });
+                    }
+                    out += "</tr></thead><tbody>";
+                    data.forEach(item => {
+                        out += `<tr>`;
+                        keys.forEach(key => {
+                            out += `<td>${item[key]}</td>`;
+                        });
+                        out += `</tr>`;
+                    });
+                    out += "</tbody></table>";
+
+                    if (tgt) {
+                        tgt.innerHTML = out;
+                    }
+                    return out;
+                },
+
+                setupResizing() {
+                    // Skip resize setup on mobile devices
+                    if (window.innerWidth <= 768) {
+                        return;
+                    }
+
+                    let isResizing = false;
+                    let currentHandle = null;
+
+                    const startResize = (e, handle, targetElement) => {
+                        isResizing = true;
+                        currentHandle = handle;
+                        handle.classList.add('resizing');
+                        if (handle.id === 'sidebarResize') {
+                            document.body.style.cursor = 'col-resize';
+                        } else if (handle.id === 'listResize') {
+                            document.body.style.cursor = 'row-resize';
+                        }
+                        e.preventDefault();
+                    };
+
+                    const doResize = (e) => {
+                        if (!isResizing || !currentHandle) return;
+
+                        if (currentHandle.id === 'sidebarResize') {
+                            const rect = currentHandle.parentElement.getBoundingClientRect();
+                            const newWidth = e.clientX - rect.left;
+                            if (newWidth >= 200 && newWidth <= 500) {
+                                $('#sidebar').style.width = `${newWidth}px`;
+                            }
+                        } else if (currentHandle.id === 'listResize') {
+                            const containerRect = $('.content-area').getBoundingClientRect();
+                            const newHeight = e.clientY - containerRect.top;
+                            const containerHeight = containerRect.height;
+                            const newHeightPercent = (newHeight / containerHeight) * 100;
+                            if (newHeightPercent >= 20 && newHeightPercent <= 80) {
+                                $('#itemList').style.height = `${newHeightPercent}%`;
+                            }
+                        }
+                    };
+
+                    const stopResize = () => {
+                        if (!isResizing) return;
+                        isResizing = false;
+                        if (currentHandle) {
+                            currentHandle.classList.remove('resizing');
+                            currentHandle = null;
+                        }
+                        document.body.style.cursor = '';
+                    };
+
+                    // Setup resize handles
+                    $('#sidebarResize').addEventListener('mousedown', (e) => {
+                        startResize(e, e.target, $('#sidebar'));
+                    });
+
+                    $('#listResize').addEventListener('mousedown', (e) => {
+                        startResize(e, e.target, $('#itemList'));
+                    });
+
+                    document.addEventListener('mousemove', doResize);
+                    document.addEventListener('mouseup', stopResize);
+
+                    // Show handles on hover
+                    $('.sidebar').addEventListener('mouseenter', () => {
+                        if (!isResizing) $('#sidebarResize').style.opacity = '0.5';
+                    });
+                    $('.sidebar').addEventListener('mouseleave', () => {
+                        if (!isResizing) $('#sidebarResize').style.opacity = '0';
+                    });
+
+                    $('#itemList').addEventListener('mouseenter', () => {
+                        if (!isResizing) $('#listResize').style.opacity = '0.5';
+                    });
+                    $('#itemList').addEventListener('mouseleave', () => {
+                        if (!isResizing) $('#listResize').style.opacity = '0';
+                    });
+
+                    // Re-setup resizing on window resize if switching from mobile to desktop
+                    window.addEventListener('resize', () => {
+                        if (window.innerWidth > 768 && !isResizing) {
+                            // Reset any inline styles that might conflict
+                            if (window.innerWidth > 768) {
+                                $('#sidebar').style.width = '';
+                                $('#itemList').style.height = '';
+                            }
+                        }
+                    });
+                }
+            };
+
+            window.app = app;
+            app.init();
+        })();
+    </script>
+</body>
+</html>
