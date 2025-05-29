@@ -53,32 +53,26 @@ app.use((req, res, next) => {
 // API endpoints
 app.post('/api/tailor-resume', async (req, res) => {
   try {
-    const { resume, jobDescription, apiType, apiKey } = req.body;
+    const { prompt, apiType, apiKey, resume } = req.body;
     
-    if (!resume || !jobDescription || !apiType || !apiKey) {
-      return res.status(400).json({ 
-        error: 'Missing required parameters' 
-      });
+    if (!prompt || !apiType || !apiKey) {
+      return res.status(400).json({ error: 'Missing required parameters' });
     }
     
     let result;
     
     if (apiType === 'claude') {
-      result = await tailorResumeWithClaude(resume, jobDescription, apiKey);
+      result = await tailorResumeWithClaude(resume, prompt, apiKey);
     } else if (apiType === 'chatgpt') {
-      result = await tailorResumeWithChatGPT(resume, jobDescription, apiKey);
+      result = await tailorResumeWithChatGPT(resume, prompt, apiKey);
     } else {
-      return res.status(400).json({ 
-        error: 'Invalid API type. Supported types: claude, chatgpt' 
-      });
+      return res.status(400).json({ error: 'Invalid API type' });
     }
     
     res.json(result);
   } catch (error) {
     console.error('Error tailoring resume:', error);
-    res.status(500).json({ 
-      error: error.message || 'An error occurred while tailoring your resume' 
-    });
+    res.status(500).json({ error: error.message });
   }
 });
 

@@ -9,6 +9,10 @@ import * as importExport from './import-export.js';
 import * as jobs from './jobs.js';
 import * as logs from './logs.js';
 
+// Import web components
+import '../components/job-manager.js';
+import '../components/resume-viewer.js';
+
 // Main application object
 export const app = {
     data: { ...config.defaultResumeData },

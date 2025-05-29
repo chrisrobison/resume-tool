@@ -355,7 +355,13 @@ function viewJobDetails(job, app) {
     showModal('job-detail-modal');
 }
 
-function editJob(job, app) {
+// Export the editJob function
+export function editJob(job, app) {
+    if (!app) {
+        console.error('App instance is required for editJob');
+        return;
+    }
+    
     // Set current edit job ID
     app.state.currentEditJob = job.id;
     
