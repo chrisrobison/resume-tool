@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Resume Components Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .demo-controls {
+            background: white;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .demo-controls h2 {
+            margin-bottom: 1rem;
+            color: #444;
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-outline {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        select {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            min-width: 200px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .editor-panel, .preview-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .panel-header h2 {
+            color: #444;
+            font-weight: 500;
+        }
+
+        .panel-content {
+            padding: 1.5rem;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+
+        .preview-panel .panel-content {
+            padding: 0;
+        }
+
+        .features {
+            background: white;
+            padding: 3rem 2rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .features h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #444;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            text-align: center;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 0.5rem;
+            color: #444;
+        }
+
+        .feature-card p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .footer {
+            background: #2d3748;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer a {
+            color: #a0aec0;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Loading animation */
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>JSON Resume Components Demo</h1>
+            <p>Create and preview your professional resume with our web components</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="demo-controls">
+            <h2>Demo Controls</h2>
+            <div class="control-group">
+                <label>Quick Actions:</label>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="loadSampleData()">Load Sample Resume</button>
+                    <button class="btn btn-secondary" onclick="clearData()">Clear All Data</button>
+                    <button class="btn btn-outline" onclick="downloadJSON()">Download JSON</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="template-select">Preview Template:</label>
+                <select id="template-select" onchange="changeTemplate(this.value)">
+                    <option value="modern">Modern</option>
+                    <option value="basic">Basic</option>
+                    <option value="compact">Compact</option>
+                    <option value="elegant">Elegant</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <h2>📝 Resume Editor</h2>
+                </div>
+                <div class="panel-content">
+                    <div id="editor-container" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading editor...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-panel">
+                <div class="panel-header">
+                    <h2>👁️ Live Preview</h2>
+                </div>
+                <div class="panel-content">
+                    <div id="preview-container" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading preview...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <h2>Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3>JSON Resume Standard</h3>
+                    <p>Fully compatible with the open-source JSON Resume schema</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Multiple Templates</h3>
+                    <p>Choose from 4 professional templates to match your style</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>Import/Export</h3>
+                    <p>Easy import and export of your resume data in JSON format</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-time Preview</h3>
+                    <p>See changes instantly as you edit your resume</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Built with Web Components | <a href="https://jsonresume.org" target="_blank">JSON Resume Schema</a></p>
+        </div>
+    </footer>
+
+    <!-- Load the external component scripts -->
+    <script src="resume-viewer.js"></script>
+    <script src="resume-editor.js"></script>
+
+    <script>
+        // Sample resume data
+        const sampleResumeData = {
+            basics: {
+                name: "Jane Smith",
+                label: "Full Stack Developer",
+                email: "jane.smith@example.com",
+                phone: "(555) 123-4567",
+                url: "https://janesmith.dev",
+                summary: "Passionate full stack developer with 5+ years of experience building scalable web applications. Expertise in React, Node.js, and cloud technologies. Strong advocate for clean code and agile methodologies.",
+                location: {
+                    city: "San Francisco",
+                    region: "California",
+                    postalCode: "94103",
+                    countryCode: "US"
+                },
+                profiles: [
+                    {
+                        network: "LinkedIn",
+                        username: "janesmith",
+                        url: "https://linkedin.com/in/janesmith"
+                    },
+                    {
+                        network: "GitHub",
+                        username: "janesmith",
+                        url: "https://github.com/janesmith"
+                    }
+                ]
+            },
+            work: [
+                {
+                    name: "TechCorp Solutions",
+                    position: "Senior Full Stack Developer",
+                    url: "https://techcorp.com",
+                    startDate: "2020-03-01",
+                    endDate: "",
+                    summary: "Lead developer for cloud-based SaaS platform serving 10k+ users",
+                    highlights: [
+                        "Architected microservices reducing system latency by 40%",
+                        "Mentored team of 5 junior developers",
+                        "Implemented CI/CD pipeline improving deployment frequency by 300%"
+                    ]
+                },
+                {
+                    name: "StartupXYZ",
+                    position: "Full Stack Developer",
+                    url: "https://startupxyz.com",
+                    startDate: "2018-06-01",
+                    endDate: "2020-02-28",
+                    summary: "Built and maintained e-commerce platform from ground up",
+                    highlights: [
+                        "Developed React-based frontend handling 1M+ monthly visitors",
+                        "Optimized database queries reducing load time by 60%",
+                        "Integrated payment processing supporting 15+ currencies"
+                    ]
+                }
+            ],
+            education: [
+                {
+                    institution: "University of California, Berkeley",
+                    url: "https://berkeley.edu",
+                    area: "Computer Science",
+                    studyType: "Bachelor of Science",
+                    startDate: "2014-09-01",
+                    endDate: "2018-05-31",
+                    score: "3.8 GPA"
+                }
+            ],
+            skills: [
+                {
+                    name: "Frontend Development",
+                    level: "Expert",
+                    keywords: ["JavaScript", "React", "Vue.js", "HTML5", "CSS3", "TypeScript"]
+                },
+                {
+                    name: "Backend Development",
+                    level: "Advanced",
+                    keywords: ["Node.js", "Python", "Express", "Django", "PostgreSQL", "MongoDB"]
+                },
+                {
+                    name: "DevOps & Cloud",
+                    level: "Intermediate",
+                    keywords: ["AWS", "Docker", "Kubernetes", "CI/CD", "Jenkins", "Terraform"]
+                }
+            ],
+            languages: [
+                {
+                    language: "English",
+                    fluency: "Native speaker"
+                },
+                {
+                    language: "Spanish",
+                    fluency: "Professional"
+                },
+                {
+                    language: "Mandarin",
+                    fluency: "Basic"
+                }
+            ],
+            projects: [
+                {
+                    name: "Open Source Task Manager",
+                    description: "A lightweight, privacy-focused task management application",
+                    highlights: [
+                        "Built with React and Node.js",
+                        "2000+ GitHub stars",
+                        "Used by 5000+ developers worldwide"
+                    ],
+                    keywords: ["JavaScript", "React", "Node.js", "MongoDB"],
+                    startDate: "2021-01-01",
+                    url: "https://github.com/janesmith/task-manager"
+                },
+                {
+                    name: "AI Resume Parser",
+                    description: "Machine learning tool to parse and analyze resumes",
+                    highlights: [
+                        "95% accuracy in information extraction",
+                        "Processes 1000+ resumes per minute"
+                    ],
+                    keywords: ["Python", "TensorFlow", "NLP"],
+                    startDate: "2022-06-01",
+                    endDate: "2023-01-01",
+                    url: "https://github.com/janesmith/resume-parser"
+                }
+            ]
+        };
+
+        let editor, preview;
+
+        // Initialize components when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initializeComponents, 100);
+        });
+
+        function initializeComponents() {
+            try {
+                // Create editor component
+                const editorContainer = document.getElementById('editor-container');
+                editorContainer.innerHTML = '<resume-editor id="resume-editor"></resume-editor>';
+                editor = document.getElementById('resume-editor');
+
+                // Create preview component
+                const previewContainer = document.getElementById('preview-container');
+                previewContainer.innerHTML = '<resume-json id="resume-preview" template="modern"></resume-json>';
+                preview = document.getElementById('resume-preview');
+
+                // Set up event listener for real-time updates
+                editor.addEventListener('resume-change', function(e) {
+                    preview.resumeData = e.detail.resumeData;
+                });
+
+                // Load initial empty data
+                const emptyData = {
+                    basics: {
+                        name: "",
+                        label: "",
+                        email: "",
+                        phone: "",
+                        url: "",
+                        summary: "",
+                        location: {
+                            city: "",
+                            region: "",
+                            postalCode: "",
+                            countryCode: ""
+                        },
+                        profiles: []
+                    },
+                    work: [],
+                    education: [],
+                    skills: [],
+                    languages: [],
+                    projects: []
+                };
+
+                editor.resumeData = emptyData;
+                preview.resumeData = emptyData;
+
+            } catch (error) {
+                console.error('Error initializing components:', error);
+                document.getElementById('editor-container').innerHTML = 
+                    '<div class="error">Error loading editor component. Please ensure resume-editor.js is loaded correctly.</div>';
+                document.getElementById('preview-container').innerHTML = 
+                    '<div class="error">Error loading preview component. Please ensure resume-json.js is loaded correctly.</div>';
+            }
+        }
+
+        // Load sample data
+        function loadSampleData() {
+            if (editor && preview) {
+                editor.resumeData = sampleResumeData;
+                preview.resumeData = sampleResumeData;
+            }
+        }
+
+        // Clear all data
+        function clearData() {
+            if (editor && preview) {
+                const emptyData = {
+                    basics: {
+                        name: "",
+                        label: "",
+                        email: "",
+                        phone: "",
+                        url: "",
+                        summary: "",
+                        location: {
+                            city: "",
+                            region: "",
+                            postalCode: "",
+                            countryCode: ""
+                        },
+                        profiles: []
+                    },
+                    work: [],
+                    education: [],
+                    skills: [],
+                    languages: [],
+                    projects: []
+                };
+                editor.resumeData = emptyData;
+                preview.resumeData = emptyData;
+            }
+        }
+
+        // Change preview template
+        function changeTemplate(templateName) {
+            if (preview) {
+                preview.setAttribute('template', templateName);
+            }
+        }
+
+        // Download resume data as JSON
+        function downloadJSON() {
+            if (editor) {
+                const data = editor.resumeData;
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'resume.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+    </script>
+</body>
+</html>
