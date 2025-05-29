@@ -35,12 +35,25 @@ export const config = {
     storage: {
         resumeKey: "resumeJson",
         savedResumesKey: "savedResumes", 
-        settingsKey: "resumeEditorSettings"
+        settingsKey: "resumeEditorSettings",
+        apiKeysKey: "resumeApiKeys"
     },
     preview: {
         themes: ["modern", "classic", "minimal"]
     },
     api: {
-        defaultServiceType: "claude"
+        defaultServiceType: "claude",
+        services: {
+            claude: {
+                name: "Claude",
+                model: "claude-3-opus-20240229",
+                maxTokens: 4000
+            },
+            chatgpt: {
+                name: "ChatGPT",
+                model: "gpt-4-turbo-preview",
+                maxTokens: 4000
+            }
+        }
     }
 };

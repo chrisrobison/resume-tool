@@ -67,10 +67,11 @@ IMPORTANT REQUIREMENTS:
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       {
-        model: 'gpt-4-turbo',
+        model: 'gpt-4-turbo-preview',
         messages: messages,
         max_tokens: 4000,
-        temperature: 0.7
+        temperature: 0.7,
+        response_format: { type: "json_object" }
       },
       {
         headers: {
