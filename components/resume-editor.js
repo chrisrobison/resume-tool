@@ -1,1311 +1,1535 @@
-// Resume Editor Web Component
 class ResumeEditor extends HTMLElement {
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
-        this._resumeData = {
+        this.data = this.getDefaultResumeData();
+        this.state = {
+            currentTab: 'basics',
+            currentEditIndex: -1,
+            loaded: false,
+            touchStartX: 0,
+            touchEndX: 0
+        };
+    }
+
+    connectedCallback() {
+        this.render();
+        this.setupEventListeners();
+        this.loadResumeData();
+        this.state.loaded = true;
+    }
+
+    getDefaultResumeData() {
+        return {
             basics: {
-                name: '',
-                label: '',
-                email: '',
-                phone: '',
-                url: '',
-                summary: '',
+                name: "",
+                label: "",
+                email: "",
+                phone: "",
+                website: "",
+                picture: "",
+                summary: "",
                 location: {
-                    address: '',
-                    postalCode: '',
-                    city: '',
-                    countryCode: '',
-                    region: ''
+                    address: "",
+                    postalCode: "",
+                    city: "",
+                    countryCode: "",
+                    region: ""
                 },
                 profiles: []
             },
             work: [],
             education: [],
             skills: [],
-            languages: [],
-            projects: []
+            projects: [],
+            meta: {
+                theme: "",
+                version: "1.0.0",
+                language: "en",
+                lastModified: new Date().toISOString()
+            }
         };
-        this._activeSection = 'basics';
-    }
-
-    connectedCallback() {
-        this.render();
-        this.setupEventListeners();
-    }
-
-    set resumeData(data) {
-        this._resumeData = data;
-        this.render();
-    }
-
-    get resumeData() {
-        return this._resumeData;
     }
 
     render() {
-        const styles = `
-            :host {
-                display: block;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                color: #333;
-            }
-            
-            * {
-                box-sizing: border-box;
-            }
-            
-            .editor-container {
-                display: grid;
-                grid-template-columns: 250px 1fr;
-                gap: 20px;
-                height: 100%;
-            }
-            
-            .sidebar {
-                background: #f8f9fa;
-                padding: 20px;
-                border-right: 1px solid #dee2e6;
-            }
-            
-            .main-content {
-                display: grid;
-                grid-template-columns: 1fr 300px;
-                gap: 20px;
-                padding: 20px;
-                height: 100%;
-                overflow: auto;
-            }
-            
-            .editor-section {
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            
-            .analytics-panel {
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                height: fit-content;
-            }
-            
-            .toggle-analytics {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: #007bff;
-                color: white;
-                border: none;
-                border-radius: 50%;
-                width: 50px;
-                height: 50px;
-                font-size: 1.5rem;
-                cursor: pointer;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 1000;
-            }
-            
-            .toggle-analytics:hover {
-                background: #0056b3;
-            }
-            
-            @media (max-width: 1200px) {
-                .main-content {
-                    grid-template-columns: 1fr;
-                }
-                
-                .analytics-panel {
-                    display: none;
-                }
-                
-                .analytics-panel.visible {
-                    display: block;
-                    position: fixed;
-                    top: 0;
-                    right: 0;
-                    bottom: 0;
-                    width: 100%;
-                    max-width: 400px;
-                    z-index: 1000;
-                    overflow-y: auto;
-                }
-            }
-            
-            .sidebar-item {
-                padding: 12px 20px;
-                cursor: pointer;
-                border-bottom: 1px solid #e0e0e0;
-                transition: background-color 0.2s;
-            }
-            
-            .sidebar-item:hover {
-                background: #e9ecef;
-            }
-            
-            .sidebar-item.active {
-                background: #007bff;
-                color: white;
-            }
-            
-            .content {
-                flex: 1;
-                padding: 20px;
-                overflow-y: auto;
-            }
-            
-            .section {
-                display: none;
-            }
-            
-            .section.active {
-                display: block;
-            }
-            
-            .form-group {
-                margin-bottom: 20px;
-            }
-            
-            label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: 500;
-                color: #495057;
-            }
-            
-            input, textarea, select {
-                width: 100%;
-                padding: 8px 12px;
-                border: 1px solid #ced4da;
-                border-radius: 4px;
-                font-size: 14px;
-                transition: border-color 0.15s;
-            }
-            
-            input:focus, textarea:focus, select:focus {
-                outline: none;
-                border-color: #80bdff;
-                box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-            }
-            
-            textarea {
-                min-height: 100px;
-                resize: vertical;
-            }
-            
-            .form-row {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-            }
-            
-            .btn {
-                padding: 8px 16px;
-                border: none;
-                border-radius: 4px;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.2s;
-            }
-            
-            .btn-primary {
-                background: #007bff;
-                color: white;
-            }
-            
-            .btn-primary:hover {
-                background: #0056b3;
-            }
-            
-            .btn-secondary {
-                background: #6c757d;
-                color: white;
-            }
-            
-            .btn-secondary:hover {
-                background: #545b62;
-            }
-            
-            .btn-danger {
-                background: #dc3545;
-                color: white;
-            }
-            
-            .btn-danger:hover {
-                background: #c82333;
-            }
-            
-            .btn-sm {
-                padding: 4px 8px;
-                font-size: 12px;
-            }
-            
-            .item-card {
-                background: #f8f9fa;
-                border: 1px solid #dee2e6;
-                border-radius: 4px;
-                padding: 15px;
-                margin-bottom: 15px;
-            }
-            
-            .item-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 10px;
-            }
-            
-            .item-title {
-                font-weight: 600;
-                color: #212529;
-            }
-            
-            .item-subtitle {
-                color: #6c757d;
-                font-size: 14px;
-            }
-            
-            .btn-group {
-                display: flex;
-                gap: 5px;
-            }
-            
-            .add-button {
-                margin-bottom: 20px;
-            }
-            
-            .highlight-item {
-                background: #e9ecef;
-                padding: 8px 12px;
-                border-radius: 4px;
-                margin-bottom: 8px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            
-            .skill-keywords {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 5px;
-                margin-top: 10px;
-            }
-            
-            .keyword-tag {
-                background: #007bff;
-                color: white;
-                padding: 4px 8px;
-                border-radius: 3px;
-                font-size: 12px;
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-            }
-            
-            .keyword-tag button {
-                background: none;
-                border: none;
-                color: white;
-                cursor: pointer;
-                padding: 0;
-                font-size: 16px;
-                line-height: 1;
-            }
-            
-            .section-title {
-                font-size: 24px;
-                font-weight: 600;
-                margin-bottom: 20px;
-                color: #212529;
-            }
-            
-            .actions-bar {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                padding-bottom: 20px;
-                border-bottom: 1px solid #dee2e6;
-            }
-            
-            .json-actions {
-                display: flex;
-                gap: 10px;
-            }
-            
-            .modal {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                z-index: 1000;
-            }
-            
-            .modal.active {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .modal-content {
-                background: white;
-                padding: 30px;
-                border-radius: 8px;
-                width: 90%;
-                max-width: 600px;
-                max-height: 80vh;
-                overflow-y: auto;
-            }
-            
-            .modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-            }
-            
-            .modal-title {
-                font-size: 20px;
-                font-weight: 600;
-            }
-            
-            .close-button {
-                background: none;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-                color: #6c757d;
-            }
-            
-            .json-textarea {
-                font-family: 'Courier New', monospace;
-                font-size: 12px;
-                min-height: 400px;
-            }
-        `;
+        this.innerHTML = `
+            <div class="resume-editor">
+                <div class="tabs" role="tablist">
+                    <div class="tab active" data-tab="basics" role="tab" aria-selected="true">Basics</div>
+                    <div class="tab" data-tab="work" role="tab">Work</div>
+                    <div class="tab" data-tab="education" role="tab">Education</div>
+                    <div class="tab" data-tab="skills" role="tab">Skills</div>
+                    <div class="tab" data-tab="projects" role="tab">Projects</div>
+                    <div class="tab" data-tab="meta" role="tab">Meta</div>
+                    <div class="tab" data-tab="preview" role="tab">Preview</div>
+                </div>
 
-        const html = `
-            <div class="editor-container">
-                <div class="sidebar">
-                    <h2>Resume Editor</h2>
-                    <nav>
-                        <ul>
-                            <li><a href="#basics" class="active">Basic Information</a></li>
-                            <li><a href="#work">Work Experience</a></li>
-                            <li><a href="#education">Education</a></li>
-                            <li><a href="#skills">Skills</a></li>
-                            <li><a href="#projects">Projects</a></li>
-                            <li><a href="#languages">Languages</a></li>
-                        </ul>
-                    </nav>
-                    <div class="actions">
-                        <button id="saveJson">Save as JSON</button>
-                        <button id="loadJson">Load JSON</button>
-                        <button id="clearData">Clear Data</button>
-                    </div>
-                </div>
-                <div class="main-content">
-                    <div class="editor-section">
-                        <div id="basics-section"></div>
-                        <div id="work-section"></div>
-                        <div id="education-section"></div>
-                        <div id="skills-section"></div>
-                        <div id="projects-section"></div>
-                        <div id="languages-section"></div>
-                    </div>
-                    <div class="analytics-panel">
-                        <resume-analytics></resume-analytics>
-                    </div>
-                </div>
-            </div>
-            <button class="toggle-analytics" title="Toggle Analytics">
-                <i class="fa-solid fa-chart-line"></i>
-            </button>
-        `;
-
-        this.shadowRoot.innerHTML = `<style>${styles}</style>${html}`;
-        this.setupEventListeners();
-    }
-
-    getSectionTitle() {
-        const titles = {
-            basics: 'Basic Information',
-            work: 'Work Experience',
-            education: 'Education',
-            skills: 'Skills',
-            projects: 'Projects',
-            languages: 'Languages'
-        };
-        return titles[this._activeSection] || this._activeSection;
-    }
-
-    renderSection() {
-        switch (this._activeSection) {
-            case 'basics':
-                return this.renderBasicsSection();
-            case 'work':
-                return this.renderWorkSection();
-            case 'education':
-                return this.renderEducationSection();
-            case 'skills':
-                return this.renderSkillsSection();
-            case 'projects':
-                return this.renderProjectsSection();
-            case 'languages':
-                return this.renderLanguagesSection();
-            default:
-                return '<p>Select a section to edit</p>';
-        }
-    }
-
-    renderBasicsSection() {
-        const basics = this._resumeData.basics || {};
-        const location = basics.location || {};
-        const profiles = basics.profiles || [];
-
-        return `
-            <div class="section active" id="basics-section">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" id="basics-name" value="${basics.name || ''}" placeholder="John Doe">
-                    </div>
-                    <div class="form-group">
-                        <label>Title/Label</label>
-                        <input type="text" id="basics-label" value="${basics.label || ''}" placeholder="Full Stack Developer">
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="basics-email" value="${basics.email || ''}" placeholder="john@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label>Phone</label>
-                        <input type="tel" id="basics-phone" value="${basics.phone || ''}" placeholder="(555) 123-4567">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Website</label>
-                    <input type="url" id="basics-url" value="${basics.url || ''}" placeholder="https://johndoe.com">
-                </div>
-                
-                <div class="form-group">
-                    <label>Summary</label>
-                    <textarea id="basics-summary" placeholder="A brief description about yourself...">${basics.summary || ''}</textarea>
-                </div>
-                
-                <h3 style="margin-top: 30px; margin-bottom: 15px;">Location</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>City</label>
-                        <input type="text" id="location-city" value="${location.city || ''}" placeholder="San Francisco">
-                    </div>
-                    <div class="form-group">
-                        <label>Region/State</label>
-                        <input type="text" id="location-region" value="${location.region || ''}" placeholder="California">
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Postal Code</label>
-                        <input type="text" id="location-postalCode" value="${location.postalCode || ''}" placeholder="94105">
-                    </div>
-                    <div class="form-group">
-                        <label>Country Code</label>
-                        <input type="text" id="location-countryCode" value="${location.countryCode || ''}" placeholder="US">
-                    </div>
-                </div>
-                
-                <h3 style="margin-top: 30px; margin-bottom: 15px;">Social Profiles</h3>
-                <button class="btn btn-primary add-button" data-click="handleAddProfile">Add Profile</button>
-                <div id="profiles-list">
-                    ${profiles.map((profile, index) => `
-                        <div class="item-card">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Network</label>
-                                    <input type="text" id="profile-network-${index}" value="${profile.network || ''}" placeholder="LinkedIn">
-                                </div>
-                                <div class="form-group">
-                                    <label>Username</label>
-                                    <input type="text" id="profile-username-${index}" value="${profile.username || ''}" placeholder="johndoe">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>URL</label>
-                                <input type="url" id="profile-url-${index}" value="${profile.url || ''}" placeholder="https://linkedin.com/in/johndoe">
-                            </div>
-                            <button class="btn btn-danger btn-sm" data-click="handleRemoveProfile" data-index="${index}">Remove</button>
+                <div id="basics-panel" class="panel active" role="tabpanel" aria-labelledby="basics-tab">
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Basic Information</div>
                         </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    renderWorkSection() {
-        const work = this._resumeData.work || [];
-        
-        return `
-            <div class="section active" id="work-section">
-                <button class="btn btn-primary add-button" data-click="handleAddWork">Add Work Experience</button>
-                <div id="work-list">
-                    ${work.map((job, index) => `
-                        <div class="item-card">
-                            <div class="item-header">
-                                <div>
-                                    <div class="item-title">${job.position || 'Position'} at ${job.name || 'Company'}</div>
-                                    <div class="item-subtitle">${this.formatDateRange(job.startDate, job.endDate)}</div>
-                                </div>
-                                <button class="btn btn-danger btn-sm" data-click="handleRemoveWork" data-index="${index}">Remove</button>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="name">Name</label>
+                                <input type="text" id="name" name="name">
                             </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Company Name</label>
-                                    <input type="text" id="work-name-${index}" value="${job.name || ''}" placeholder="Tech Corp">
-                                </div>
-                                <div class="form-group">
-                                    <label>Position</label>
-                                    <input type="text" id="work-position-${index}" value="${job.position || ''}" placeholder="Senior Developer">
-                                </div>
+                            <div class="input-group">
+                                <label for="label">Job Title</label>
+                                <input type="text" id="label" name="label">
                             </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Start Date</label>
-                                    <input type="date" id="work-startDate-${index}" value="${job.startDate || ''}">
-                                </div>
-                                <div class="form-group">
-                                    <label>End Date (leave empty for current)</label>
-                                    <input type="date" id="work-endDate-${index}" value="${job.endDate || ''}">
-                                </div>
+                            <div class="input-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email">
                             </div>
-                            
-                            <div class="form-group">
-                                <label>Website</label>
-                                <input type="url" id="work-url-${index}" value="${job.url || ''}" placeholder="https://company.com">
+                            <div class="input-group">
+                                <label for="phone">Phone</label>
+                                <input type="tel" id="phone" name="phone">
                             </div>
-                            
-                            <div class="form-group">
-                                <label>Summary</label>
-                                <textarea id="work-summary-${index}" placeholder="Describe your role and responsibilities...">${job.summary || ''}</textarea>
+                            <div class="input-group">
+                                <label for="website">Website</label>
+                                <input type="url" id="website" name="website">
                             </div>
-                            
-                            <div class="form-group">
-                                <label>Highlights</label>
-                                <button class="btn btn-secondary btn-sm" data-click="handleAddWorkHighlight" data-index="${index}" style="margin-bottom: 10px;">Add Highlight</button>
-                                <div id="work-highlights-${index}">
-                                    ${(job.highlights || []).map((highlight, hIndex) => `
-                                        <div class="highlight-item">
-                                            <input type="text" value="${highlight}" id="work-highlight-${index}-${hIndex}" style="flex: 1; margin-right: 10px;">
-                                            <button class="btn btn-danger btn-sm" data-click="handleRemoveWorkHighlight" data-index="${index}" data-highlight-index="${hIndex}">Remove</button>
-                                        </div>
-                                    `).join('')}
-                                </div>
+                            <div class="input-group">
+                                <label for="picture">Image URL</label>
+                                <input type="url" id="picture" name="picture">
+                                <img id="pictureImg" width="100" style="display: none;">
                             </div>
                         </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    renderEducationSection() {
-        const education = this._resumeData.education || [];
-        
-        return `
-            <div class="section active" id="education-section">
-                <button class="btn btn-primary add-button" data-click="handleAddEducation">Add Education</button>
-                <div id="education-list">
-                    ${education.map((edu, index) => `
-                        <div class="item-card">
-                            <div class="item-header">
-                                <div>
-                                    <div class="item-title">${edu.studyType || 'Degree'} in ${edu.area || 'Field'}</div>
-                                    <div class="item-subtitle">${edu.institution || 'Institution'}</div>
-                                </div>
-                                <button class="btn btn-danger btn-sm" data-click="handleRemoveEducation" data-index="${index}">Remove</button>
+                        <div class="input-group">
+                            <label for="summary">Summary</label>
+                            <textarea id="summary" name="summary"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Location</div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="address">Address</label>
+                                <input type="text" id="address" name="address">
                             </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Institution</label>
-                                    <input type="text" id="education-institution-${index}" value="${edu.institution || ''}" placeholder="University of Technology">
-                                </div>
-                                <div class="form-group">
-                                    <label>Degree Type</label>
-                                    <input type="text" id="education-studyType-${index}" value="${edu.studyType || ''}" placeholder="Bachelor">
-                                </div>
+                            <div class="input-group">
+                                <label for="postalCode">Postal Code</label>
+                                <input type="text" id="postalCode" name="postalCode">
                             </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Area/Major</label>
-                                    <input type="text" id="education-area-${index}" value="${edu.area || ''}" placeholder="Computer Science">
-                                </div>
-                                <div class="form-group">
-                                    <label>GPA/Score</label>
-                                    <input type="text" id="education-score-${index}" value="${edu.score || ''}" placeholder="3.8">
-                                </div>
+                            <div class="input-group">
+                                <label for="city">City</label>
+                                <input type="text" id="city" name="city">
                             </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Start Date</label>
-                                    <input type="date" id="education-startDate-${index}" value="${edu.startDate || ''}">
-                                </div>
-                                <div class="form-group">
-                                    <label>End Date</label>
-                                    <input type="date" id="education-endDate-${index}" value="${edu.endDate || ''}">
-                                </div>
+                            <div class="input-group">
+                                <label for="region">Region/State</label>
+                                <input type="text" id="region" name="region">
                             </div>
-                            
-                            <div class="form-group">
-                                <label>Website</label>
-                                <input type="url" id="education-url-${index}" value="${edu.url || ''}" placeholder="https://university.edu">
+                            <div class="input-group">
+                                <label for="countryCode">Country Code</label>
+                                <input type="text" id="countryCode" name="countryCode">
                             </div>
                         </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    renderSkillsSection() {
-        const skills = this._resumeData.skills || [];
-        
-        return `
-            <div class="section active" id="skills-section">
-                <button class="btn btn-primary add-button" data-click="handleAddSkill">Add Skill Category</button>
-                <div id="skills-list">
-                    ${skills.map((skill, index) => `
-                        <div class="item-card">
-                            <div class="item-header">
-                                <div>
-                                    <div class="item-title">${skill.name || 'Skill Category'}</div>
-                                    <div class="item-subtitle">Level: ${skill.level || 'Not specified'}</div>
-                                </div>
-                                <button class="btn btn-danger btn-sm" data-click="handleRemoveSkill" data-index="${index}">Remove</button>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Category Name</label>
-                                    <input type="text" id="skill-name-${index}" value="${skill.name || ''}" placeholder="Frontend Development">
-                                </div>
-                                <div class="form-group">
-                                    <label>Level</label>
-                                    <select id="skill-level-${index}">
-                                        <option value="" ${skill.level === '' ? 'selected' : ''}>Select Level</option>
-                                        <option value="Beginner" ${skill.level === 'Beginner' ? 'selected' : ''}>Beginner</option>
-                                        <option value="Intermediate" ${skill.level === 'Intermediate' ? 'selected' : ''}>Intermediate</option>
-                                        <option value="Advanced" ${skill.level === 'Advanced' ? 'selected' : ''}>Advanced</option>
-                                        <option value="Expert" ${skill.level === 'Expert' ? 'selected' : ''}>Expert</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Keywords/Technologies</label>
-                                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                                    <input type="text" id="skill-keyword-input-${index}" placeholder="Add a skill...">
-                                    <button class="btn btn-secondary" data-click="handleAddSkillKeyword" data-index="${index}">Add</button>
-                                </div>
-                                <div class="skill-keywords" id="skill-keywords-${index}">
-                                    ${(skill.keywords || []).map((keyword, kIndex) => `
-                                        <span class="keyword-tag">
-                                            ${keyword}
-                                            <button data-click="handleRemoveSkillKeyword" data-index="${index}" data-keyword-index="${kIndex}">&times;</button>
-                                        </span>
-                                    `).join('')}
-                                </div>
+                    </div>
+                    
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Profiles</div>
+                            <button id="add-profile" class="small-button"><i class="fa-solid fa-plus"></i> Add Profile</button>
+                        </div>
+                        <div id="profiles-container">
+                            <div class="empty-state" id="profiles-empty">
+                                <i class="fa-solid fa-user-plus fa-2x"></i>
+                                <p>No profiles added yet. Click the "Add Profile" button to add social media profiles.</p>
                             </div>
                         </div>
-                    `).join('')}
+                    </div>
                 </div>
-            </div>
-        `;
-    }
-
-    renderProjectsSection() {
-        const projects = this._resumeData.projects || [];
-        
-        return `
-            <div class="section active" id="projects-section">
-                <button class="btn btn-primary add-button" data-click="handleAddProject">Add Project</button>
-                <div id="projects-list">
-                    ${projects.map((project, index) => `
-                        <div class="item-card">
-                            <div class="item-header">
-                                <div>
-                                    <div class="item-title">${project.name || 'Project Name'}</div>
-                                    <div class="item-subtitle">${project.type || 'Project'}</div>
-                                </div>
-                                <button class="btn btn-danger btn-sm" data-click="handleRemoveProject" data-index="${index}">Remove</button>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Project Name</label>
-                                <input type="text" id="project-name-${index}" value="${project.name || ''}" placeholder="Awesome Project">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Description</label>
-                                <textarea id="project-description-${index}" placeholder="Describe your project...">${project.description || ''}</textarea>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Start Date</label>
-                                    <input type="date" id="project-startDate-${index}" value="${project.startDate || ''}">
-                                </div>
-                                <div class="form-group">
-                                    <label>End Date</label>
-                                    <input type="date" id="project-endDate-${index}" value="${project.endDate || ''}">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Project URL</label>
-                                <input type="url" id="project-url-${index}" value="${project.url || ''}" placeholder="https://github.com/username/project">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>Highlights</label>
-                                <button class="btn btn-secondary btn-sm" data-click="handleAddProjectHighlight" data-index="${index}" style="margin-bottom: 10px;">Add Highlight</button>
-                                <div id="project-highlights-${index}">
-                                    ${(project.highlights || []).map((highlight, hIndex) => `
-                                        <div class="highlight-item">
-                                            <input type="text" value="${highlight}" id="project-highlight-${index}-${hIndex}" style="flex: 1; margin-right: 10px;">
-                                            <button class="btn btn-danger btn-sm" data-click="handleRemoveProjectHighlight" data-index="${index}" data-highlight-index="${hIndex}">Remove</button>
-                                        </div>
-                                    `).join('')}
-                                </div>
+                
+                <div id="work-panel" class="panel" role="tabpanel" aria-labelledby="work-tab">
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Work Experience</div>
+                            <button id="add-work" class="small-button"><i class="fa-solid fa-plus"></i> Add Work Experience</button>
+                        </div>
+                        <div id="work-container">
+                            <div class="empty-state" id="work-empty">
+                                <i class="fa-solid fa-briefcase fa-2x"></i>
+                                <p>No work experience added yet. Click the "Add Work Experience" button to add your professional history.</p>
                             </div>
                         </div>
-                    `).join('')}
+                    </div>
                 </div>
-            </div>
-        `;
-    }
-
-    renderLanguagesSection() {
-        const languages = this._resumeData.languages || [];
-        
-        return `
-            <div class="section active" id="languages-section">
-                <button class="btn btn-primary add-button" data-click="handleAddLanguage">Add Language</button>
-                <div id="languages-list">
-                    ${languages.map((lang, index) => `
-                        <div class="item-card">
-                            <div class="item-header">
-                                <div>
-                                    <div class="item-title">${lang.language || 'Language'}</div>
-                                    <div class="item-subtitle">${lang.fluency || 'Fluency'}</div>
-                                </div>
-                                <button class="btn btn-danger btn-sm" data-click="handleRemoveLanguage" data-index="${index}">Remove</button>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Language</label>
-                                    <input type="text" id="language-language-${index}" value="${lang.language || ''}" placeholder="English">
-                                </div>
-                                <div class="form-group">
-                                    <label>Fluency</label>
-                                    <select id="language-fluency-${index}">
-                                        <option value="" ${lang.fluency === '' ? 'selected' : ''}>Select Fluency</option>
-                                        <option value="Native speaker" ${lang.fluency === 'Native speaker' ? 'selected' : ''}>Native speaker</option>
-                                        <option value="Fluent" ${lang.fluency === 'Fluent' ? 'selected' : ''}>Fluent</option>
-                                        <option value="Professional" ${lang.fluency === 'Professional' ? 'selected' : ''}>Professional</option>
-                                        <option value="Intermediate" ${lang.fluency === 'Intermediate' ? 'selected' : ''}>Intermediate</option>
-                                        <option value="Basic" ${lang.fluency === 'Basic' ? 'selected' : ''}>Basic</option>
-                                    </select>
-                                </div>
+                
+                <div id="education-panel" class="panel" role="tabpanel" aria-labelledby="education-tab">
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Education</div>
+                            <button id="add-education" class="small-button"><i class="fa-solid fa-plus"></i> Add Education</button>
+                        </div>
+                        <div id="education-container">
+                            <div class="empty-state" id="education-empty">
+                                <i class="fa-solid fa-graduation-cap fa-2x"></i>
+                                <p>No education added yet. Click the "Add Education" button to add your educational background.</p>
                             </div>
                         </div>
-                    `).join('')}
+                    </div>
+                </div>
+                
+                <div id="skills-panel" class="panel" role="tabpanel" aria-labelledby="skills-tab">
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Skills</div>
+                            <button id="add-skill" class="small-button"><i class="fa-solid fa-plus"></i> Add Skill</button>
+                        </div>
+                        <div id="skills-container">
+                            <div class="empty-state" id="skills-empty">
+                                <i class="fa-solid fa-code fa-2x"></i>
+                                <p>No skills added yet. Click the "Add Skill" button to add your professional skills.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="projects-panel" class="panel" role="tabpanel" aria-labelledby="projects-tab">
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Projects</div>
+                            <button id="add-project" class="small-button"><i class="fa-solid fa-plus"></i> Add Project</button>
+                        </div>
+                        <div id="projects-container">
+                            <div class="empty-state" id="projects-empty">
+                                <i class="fa-solid fa-diagram-project fa-2x"></i>
+                                <p>No projects added yet. Click the "Add Project" button to add your notable projects.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="meta-panel" class="panel" role="tabpanel" aria-labelledby="meta-tab">
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Meta Information</div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="theme">Theme</label>
+                                <input type="text" id="theme" name="theme">
+                            </div>
+                            <div class="input-group">
+                                <label for="version">Schema Version</label>
+                                <input type="text" id="version" name="version" value="1.0.0" disabled>
+                                <span class="help-text">Based on JSON Resume schema</span>
+                            </div>
+                            <div class="input-group">
+                                <label for="language">Language</label>
+                                <input type="text" id="language" name="language" placeholder="en">
+                            </div>
+                            <div class="input-group">
+                                <label for="lastModified">Last Modified</label>
+                                <input type="text" id="lastModified" name="lastModified" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="preview-panel" class="panel" role="tabpanel" aria-labelledby="preview-tab">
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Resume Preview</div>
+                            <div class="button-group">
+                                <button id="preview-refresh" class="small-button"><i class="fa-solid fa-sync"></i> Refresh</button>
+                                <button id="preview-pdf" class="small-button"><i class="fa-solid fa-file-pdf"></i> Make PDF</button>
+                                <button id="preview-print" class="small-button success"><i class="fa-solid fa-print"></i> Print</button>
+                            </div>
+                        </div>
+                        <div id="preview-theme-selector" class="input-group" style="max-width: 200px; margin-bottom: 1rem;">
+                            <label for="preview-theme">Theme</label>
+                            <select id="preview-theme">
+                                <option value="modern">Modern</option>
+                                <option value="classic">Classic</option>
+                                <option value="minimal">Minimal</option>
+                            </select>
+                        </div>
+                        <div id="preview-container" class="card">
+                            <div class="preview-loading">Loading preview...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Modal -->
+            <div id="profile-modal" class="modal-backdrop hidden">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Add Profile</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="profile-network">Network</label>
+                            <input type="text" id="profile-network" placeholder="LinkedIn, Twitter, GitHub, etc.">
+                        </div>
+                        <div class="input-group">
+                            <label for="profile-username">Username</label>
+                            <input type="text" id="profile-username">
+                        </div>
+                        <div class="input-group">
+                            <label for="profile-url">URL</label>
+                            <input type="url" id="profile-url">
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button id="save-profile" class="success"><i class="fa-solid fa-check"></i> Save</button>
+                        <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Modal -->
+            <div id="work-modal" class="modal-backdrop hidden">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Add Work Experience</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="work-name">Company</label>
+                            <input type="text" id="work-name">
+                        </div>
+                        <div class="input-group">
+                            <label for="work-position">Position</label>
+                            <input type="text" id="work-position">
+                        </div>
+                        <div class="input-group">
+                            <label for="work-startDate">Start Date</label>
+                            <input type="text" id="work-startDate" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="input-group">
+                            <label for="work-endDate">End Date</label>
+                            <input type="text" id="work-endDate" placeholder="YYYY-MM-DD or 'Present'">
+                        </div>
+                        <div class="input-group">
+                            <label for="work-url">Company Website</label>
+                            <input type="url" id="work-url">
+                        </div>
+                        <div class="input-group">
+                            <label for="work-location">Location</label>
+                            <input type="text" id="work-location">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="work-summary">Summary</label>
+                        <textarea id="work-summary"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="work-highlights">Highlights (one per line)</label>
+                        <textarea id="work-highlights" placeholder="• Accomplished X by implementing Y which led to Z"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="save-work" class="success"><i class="fa-solid fa-check"></i> Save</button>
+                        <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education Modal -->
+            <div id="education-modal" class="modal-backdrop hidden">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Add Education</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="education-institution">Institution</label>
+                            <input type="text" id="education-institution">
+                        </div>
+                        <div class="input-group">
+                            <label for="education-area">Area of Study</label>
+                            <input type="text" id="education-area">
+                        </div>
+                        <div class="input-group">
+                            <label for="education-studyType">Degree Type</label>
+                            <input type="text" id="education-studyType" placeholder="Bachelor's, Master's, Ph.D.">
+                        </div>
+                        <div class="input-group">
+                            <label for="education-startDate">Start Date</label>
+                            <input type="text" id="education-startDate" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="input-group">
+                            <label for="education-endDate">End Date</label>
+                            <input type="text" id="education-endDate" placeholder="YYYY-MM-DD or 'Present'">
+                        </div>
+                        <div class="input-group">
+                            <label for="education-gpa">GPA</label>
+                            <input type="text" id="education-gpa">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="education-courses">Courses (one per line)</label>
+                        <textarea id="education-courses"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="save-education" class="success"><i class="fa-solid fa-check"></i> Save</button>
+                        <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skill Modal -->
+            <div id="skills-modal" class="modal-backdrop hidden">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Add Skill</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="skill-name">Skill Name</label>
+                            <input type="text" id="skill-name" placeholder="JavaScript, Project Management, etc.">
+                        </div>
+                        <div class="input-group">
+                            <label for="skill-level">Level</label>
+                            <input type="text" id="skill-level" placeholder="Beginner, Intermediate, Advanced, Master">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="skill-keywords">Keywords (one per line)</label>
+                        <textarea id="skill-keywords" placeholder="React, Redux, Node.js"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="save-skill" class="success"><i class="fa-solid fa-check"></i> Save</button>
+                        <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Modal -->
+            <div id="projects-modal" class="modal-backdrop hidden">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Add Project</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="project-name">Project Name</label>
+                            <input type="text" id="project-name">
+                        </div>
+                        <div class="input-group">
+                            <label for="project-startDate">Start Date</label>
+                            <input type="text" id="project-startDate" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="input-group">
+                            <label for="project-endDate">End Date</label>
+                            <input type="text" id="project-endDate" placeholder="YYYY-MM-DD or 'Present'">
+                        </div>
+                        <div class="input-group">
+                            <label for="project-url">URL</label>
+                            <input type="url" id="project-url">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="project-description">Description</label>
+                        <textarea id="project-description"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="project-highlights">Highlights (one per line)</label>
+                        <textarea id="project-highlights"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="project-keywords">Keywords (one per line)</label>
+                        <textarea id="project-keywords"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="save-project" class="success"><i class="fa-solid fa-check"></i> Save</button>
+                        <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    </div>
                 </div>
             </div>
         `;
-    }
-
-    formatDateRange(start, end) {
-        if (!start) return 'Date not specified';
-        const startDate = new Date(start).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-        const endDate = end ? new Date(end).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Present';
-        return `${startDate} - ${endDate}`;
     }
 
     setupEventListeners() {
-        // Single click handler for all interactions
-        this.shadowRoot.addEventListener('click', (e) => {
-            const tgt = e.target;
-            if (tgt.dataset.click) {
-                const result = this[tgt.dataset.click](e);
-                if (result !== false) { // Only re-render if the handler doesn't return false
-                    this.render();
-                    this.setupEventListeners();
+        // Tab navigation
+        this.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.dataset.tab;
+                if (tabId) {
+                    this.switchTab(tabId);
+                }
+            });
+        });
+
+        // Basic form inputs
+        this.setupBasicFormListeners();
+        
+        // Modals
+        this.setupModals();
+        
+        // Section management
+        this.setupSectionManagement();
+        
+        // Touch swipe navigation
+        this.setupSwipeNavigation();
+    }
+
+    switchTab(tabId) {
+        // Hide all panels
+        this.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+        
+        // Show selected panel
+        const targetPanel = this.querySelector(`#${tabId}-panel`);
+        if (targetPanel) {
+            targetPanel.classList.add('active');
+        }
+        
+        // Update tab active state
+        this.querySelectorAll('.tab').forEach(tab => {
+            if (tab.dataset.tab === tabId) {
+                tab.classList.add('active');
+                tab.setAttribute('aria-selected', 'true');
+            } else {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            }
+        });
+        
+        this.state.currentTab = tabId;
+        
+        // Special handling for preview tab
+        if (tabId === 'preview') {
+            this.renderPreview();
+        }
+    }
+
+    setupBasicFormListeners() {
+        // Basic information fields
+        const basicFields = ['name', 'label', 'email', 'phone', 'website', 'summary'];
+        
+        basicFields.forEach(field => {
+            const element = this.querySelector(`#${field}`);
+            if (element) {
+                element.addEventListener('input', e => {
+                    this.data.basics[field] = e.target.value;
+                    this.updateMetaLastModified();
+                    this.saveToLocalStorage();
+                });
+            }
+        });
+        
+        // Location fields
+        const locationFields = ['address', 'postalCode', 'city', 'countryCode', 'region'];
+        
+        locationFields.forEach(field => {
+            const element = this.querySelector(`#${field}`);
+            if (element) {
+                element.addEventListener('input', e => {
+                    this.data.basics.location[field] = e.target.value;
+                    this.updateMetaLastModified();
+                    this.saveToLocalStorage();
+                });
+            }
+        });
+        
+        // Meta fields
+        const metaFields = ['theme', 'language'];
+        
+        metaFields.forEach(field => {
+            const element = this.querySelector(`#${field}`);
+            if (element) {
+                element.addEventListener('input', e => {
+                    this.data.meta[field] = e.target.value;
+                    this.updateMetaLastModified();
+                    this.saveToLocalStorage();
+                });
+            }
+        });
+        
+        // Picture preview
+        const pictureInput = this.querySelector('#picture');
+        const pictureImg = this.querySelector('#pictureImg');
+        
+        if (pictureInput && pictureImg) {
+            pictureInput.addEventListener('input', e => {
+                this.data.basics.picture = e.target.value;
+                
+                if (e.target.value) {
+                    pictureImg.src = e.target.value;
+                    pictureImg.style.display = 'block';
+                    
+                    pictureImg.onerror = () => {
+                        pictureImg.style.display = 'none';
+                    };
+                } else {
+                    pictureImg.style.display = 'none';
+                }
+                
+                this.updateMetaLastModified();
+                this.saveToLocalStorage();
+            });
+        }
+    }
+
+    setupModals() {
+        // Modal close handlers
+        this.querySelectorAll('.modal-close, .modal-cancel').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.closest('.modal-backdrop').classList.add('hidden');
+            });
+        });
+        
+        // Close modal when clicking outside
+        this.querySelectorAll('.modal-backdrop').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+        
+        // Profile modal
+        this.setupProfileModal();
+        this.setupWorkModal();
+        this.setupEducationModal();
+        this.setupSkillsModal();
+        this.setupProjectsModal();
+    }
+
+    setupProfileModal() {
+        const addBtn = this.querySelector('#add-profile');
+        const saveBtn = this.querySelector('#save-profile');
+        
+        addBtn?.addEventListener('click', () => {
+            this.state.currentEditIndex = -1;
+            this.clearModalFields('profile-modal');
+            this.showModal('profile-modal');
+        });
+        
+        saveBtn?.addEventListener('click', () => {
+            const network = this.querySelector('#profile-network').value.trim();
+            const username = this.querySelector('#profile-username').value.trim();
+            const url = this.querySelector('#profile-url').value.trim();
+            
+            if (!network) {
+                this.showToast('Network name is required', 'error');
+                return;
+            }
+            
+            const profileData = { network, username, url };
+            
+            if (this.state.currentEditIndex >= 0) {
+                this.data.basics.profiles[this.state.currentEditIndex] = profileData;
+            } else {
+                this.data.basics.profiles.push(profileData);
+            }
+            
+            this.renderProfiles();
+            this.hideModal('profile-modal');
+            this.updateMetaLastModified();
+            this.saveToLocalStorage();
+        });
+        
+        // Edit/delete profile events
+        this.querySelector('#profiles-container').addEventListener('click', (e) => {
+            if (e.target.closest('.edit-item')) {
+                const button = e.target.closest('.edit-item');
+                const index = parseInt(button.dataset.index);
+                const profile = this.data.basics.profiles[index];
+                
+                this.querySelector('#profile-network').value = profile.network || '';
+                this.querySelector('#profile-username').value = profile.username || '';
+                this.querySelector('#profile-url').value = profile.url || '';
+                
+                this.state.currentEditIndex = index;
+                this.showModal('profile-modal');
+            } else if (e.target.closest('.delete-item')) {
+                const button = e.target.closest('.delete-item');
+                const index = parseInt(button.dataset.index);
+                
+                if (confirm('Are you sure you want to delete this profile?')) {
+                    this.data.basics.profiles.splice(index, 1);
+                    this.renderProfiles();
+                    this.updateMetaLastModified();
+                    this.saveToLocalStorage();
                 }
             }
         });
+    }
 
-        // Auto-save on input changes
-        this.shadowRoot.addEventListener('input', (e) => {
-            this.saveCurrentSection();
-        });
-
-        // Add analytics toggle
-        const toggleButton = this.shadowRoot.querySelector('.toggle-analytics');
-        const analyticsPanel = this.shadowRoot.querySelector('.analytics-panel');
+    setupWorkModal() {
+        const addBtn = this.querySelector('#add-work');
+        const saveBtn = this.querySelector('#save-work');
         
-        toggleButton.addEventListener('click', () => {
-            analyticsPanel.classList.toggle('visible');
+        addBtn?.addEventListener('click', () => {
+            this.state.currentEditIndex = -1;
+            this.clearModalFields('work-modal');
+            this.showModal('work-modal');
         });
-
-        // Update analytics when resume data changes
-        const analytics = this.shadowRoot.querySelector('resume-analytics');
-        analytics.resumeData = this._resumeData;
-    }
-
-    // Navigation handler
-    handleNavigation(e) {
-        const section = e.target.dataset.section;
-        if (section) {
-            this._activeSection = section;
-            return true;
-        }
-        return false;
-    }
-
-    // Export handler
-    handleExport() {
-        this.saveCurrentSection();
-        const modal = this.shadowRoot.getElementById('json-modal');
-        const textarea = this.shadowRoot.getElementById('json-textarea');
-        textarea.value = JSON.stringify(this._resumeData, null, 2);
-        modal.classList.add('active');
-        textarea.select();
-        return false; // Don't re-render
-    }
-
-    // Import handler
-    handleImport() {
-        const modal = this.shadowRoot.getElementById('json-modal');
-        const textarea = this.shadowRoot.getElementById('json-textarea');
-        textarea.value = '';
-        textarea.placeholder = 'Paste your JSON Resume data here...';
-        modal.classList.add('active');
-        return false; // Don't re-render
-    }
-
-    // Modal handlers
-    handleCloseModal() {
-        const modal = this.shadowRoot.getElementById('json-modal');
-        modal.classList.remove('active');
-        return false; // Don't re-render
-    }
-
-    handleSaveJson() {
-        const textarea = this.shadowRoot.getElementById('json-textarea');
-        try {
-            const data = JSON.parse(textarea.value);
-            this._resumeData = data;
-            this.closeModal();
+        
+        saveBtn?.addEventListener('click', () => {
+            const name = this.querySelector('#work-name').value.trim();
+            const position = this.querySelector('#work-position').value.trim();
+            const startDate = this.querySelector('#work-startDate').value.trim();
+            const endDate = this.querySelector('#work-endDate').value.trim();
+            const url = this.querySelector('#work-url').value.trim();
+            const location = this.querySelector('#work-location').value.trim();
+            const summary = this.querySelector('#work-summary').value.trim();
+            const highlightsText = this.querySelector('#work-highlights').value.trim();
             
-            // Emit change event
-            this.dispatchEvent(new CustomEvent('resume-change', {
-                detail: { resumeData: this._resumeData },
-                bubbles: true
-            }));
-
-            // Update analytics
-            const analytics = this.shadowRoot.querySelector('resume-analytics');
-            if (analytics) {
-                analytics.resumeData = this._resumeData;
+            if (!name || !position) {
+                this.showToast('Company name and position are required', 'error');
+                return;
             }
-            return true;
-        } catch (error) {
-            alert('Invalid JSON format. Please check your data and try again.');
-            return false;
-        }
-    }
-
-    // Add/Remove handlers
-    handleAddProfile() {
-        if (!this._resumeData.basics.profiles) {
-            this._resumeData.basics.profiles = [];
-        }
-        this._resumeData.basics.profiles.push({
-            network: '',
-            username: '',
-            url: ''
-        });
-        return true;
-    }
-
-    handleRemoveProfile(e) {
-        const index = parseInt(e.target.dataset.index);
-        this._resumeData.basics.profiles.splice(index, 1);
-        return true;
-    }
-
-    handleAddWork() {
-        if (!this._resumeData.work) {
-            this._resumeData.work = [];
-        }
-        this._resumeData.work.push({
-            name: '',
-            position: '',
-            url: '',
-            startDate: '',
-            endDate: '',
-            summary: '',
-            highlights: []
-        });
-        return true;
-    }
-
-    handleRemoveWork(e) {
-        const index = parseInt(e.target.dataset.index);
-        this._resumeData.work.splice(index, 1);
-        return true;
-    }
-
-    handleAddWorkHighlight(e) {
-        const index = parseInt(e.target.dataset.index);
-        if (!this._resumeData.work[index].highlights) {
-            this._resumeData.work[index].highlights = [];
-        }
-        this._resumeData.work[index].highlights.push('');
-        return true;
-    }
-
-    handleRemoveWorkHighlight(e) {
-        const index = parseInt(e.target.dataset.index);
-        const highlightIndex = parseInt(e.target.dataset.highlightIndex);
-        this._resumeData.work[index].highlights.splice(highlightIndex, 1);
-        return true;
-    }
-
-    handleAddEducation() {
-        if (!this._resumeData.education) {
-            this._resumeData.education = [];
-        }
-        this._resumeData.education.push({
-            institution: '',
-            studyType: '',
-            area: '',
-            score: '',
-            startDate: '',
-            endDate: '',
-            url: ''
-        });
-        return true;
-    }
-
-    handleRemoveEducation(e) {
-        const index = parseInt(e.target.dataset.index);
-        this._resumeData.education.splice(index, 1);
-        return true;
-    }
-
-    handleAddSkill() {
-        if (!this._resumeData.skills) {
-            this._resumeData.skills = [];
-        }
-        this._resumeData.skills.push({
-            name: '',
-            level: '',
-            keywords: []
-        });
-        return true;
-    }
-
-    handleRemoveSkill(e) {
-        const index = parseInt(e.target.dataset.index);
-        this._resumeData.skills.splice(index, 1);
-        return true;
-    }
-
-    handleAddSkillKeyword(e) {
-        const index = parseInt(e.target.dataset.index);
-        const input = this.shadowRoot.getElementById(`skill-keyword-input-${index}`);
-        if (input.value.trim()) {
-            if (!this._resumeData.skills[index].keywords) {
-                this._resumeData.skills[index].keywords = [];
+            
+            const highlights = highlightsText 
+                ? highlightsText.split('\n')
+                    .map(h => h.trim())
+                    .filter(h => h.length > 0)
+                    .map(h => h.startsWith('• ') ? h.substring(2) : h)
+                : [];
+            
+            const workData = {
+                name, position, startDate, endDate, url, location, summary, highlights
+            };
+            
+            if (this.state.currentEditIndex >= 0) {
+                this.data.work[this.state.currentEditIndex] = workData;
+            } else {
+                this.data.work.push(workData);
             }
-            this._resumeData.skills[index].keywords.push(input.value.trim());
+            
+            this.renderWork();
+            this.hideModal('work-modal');
+            this.updateMetaLastModified();
+            this.saveToLocalStorage();
+        });
+        
+        // Edit/delete work events
+        this.querySelector('#work-container').addEventListener('click', (e) => {
+            if (e.target.closest('.edit-item')) {
+                const button = e.target.closest('.edit-item');
+                const index = parseInt(button.dataset.index);
+                const work = this.data.work[index];
+                
+                this.querySelector('#work-name').value = work.name || '';
+                this.querySelector('#work-position').value = work.position || '';
+                this.querySelector('#work-startDate').value = work.startDate || '';
+                this.querySelector('#work-endDate').value = work.endDate || '';
+                this.querySelector('#work-url').value = work.url || '';
+                this.querySelector('#work-location').value = work.location || '';
+                this.querySelector('#work-summary').value = work.summary || '';
+                this.querySelector('#work-highlights').value = work.highlights ? work.highlights.map(h => `• ${h}`).join('\n') : '';
+                
+                this.state.currentEditIndex = index;
+                this.showModal('work-modal');
+            } else if (e.target.closest('.delete-item')) {
+                const button = e.target.closest('.delete-item');
+                const index = parseInt(button.dataset.index);
+                
+                if (confirm('Are you sure you want to delete this work experience?')) {
+                    this.data.work.splice(index, 1);
+                    this.renderWork();
+                    this.updateMetaLastModified();
+                    this.saveToLocalStorage();
+                }
+            }
+        });
+    }
+
+    setupEducationModal() {
+        const addBtn = this.querySelector('#add-education');
+        const saveBtn = this.querySelector('#save-education');
+        
+        addBtn?.addEventListener('click', () => {
+            this.state.currentEditIndex = -1;
+            this.clearModalFields('education-modal');
+            this.showModal('education-modal');
+        });
+        
+        saveBtn?.addEventListener('click', () => {
+            const institution = this.querySelector('#education-institution').value.trim();
+            const studyType = this.querySelector('#education-studyType').value.trim();
+            const area = this.querySelector('#education-area').value.trim();
+            const startDate = this.querySelector('#education-startDate').value.trim();
+            const endDate = this.querySelector('#education-endDate').value.trim();
+            const gpa = this.querySelector('#education-gpa').value.trim();
+            const coursesText = this.querySelector('#education-courses').value.trim();
+            
+            if (!institution || !studyType) {
+                this.showToast('Institution and Study Type are required', 'error');
+                return;
+            }
+            
+            const courses = coursesText 
+                ? coursesText.split('\n')
+                    .map(c => c.trim())
+                    .filter(c => c.length > 0)
+                : [];
+            
+            const educationData = {
+                institution, studyType, area, startDate, endDate, gpa, courses
+            };
+            
+            if (this.state.currentEditIndex >= 0) {
+                this.data.education[this.state.currentEditIndex] = educationData;
+            } else {
+                this.data.education.push(educationData);
+            }
+            
+            this.renderEducation();
+            this.hideModal('education-modal');
+            this.updateMetaLastModified();
+            this.saveToLocalStorage();
+        });
+        
+        // Edit/delete education events
+        this.querySelector('#education-container').addEventListener('click', (e) => {
+            if (e.target.closest('.edit-item')) {
+                const button = e.target.closest('.edit-item');
+                const index = parseInt(button.dataset.index);
+                const education = this.data.education[index];
+                
+                this.querySelector('#education-institution').value = education.institution || '';
+                this.querySelector('#education-studyType').value = education.studyType || '';
+                this.querySelector('#education-area').value = education.area || '';
+                this.querySelector('#education-startDate').value = education.startDate || '';
+                this.querySelector('#education-endDate').value = education.endDate || '';
+                this.querySelector('#education-gpa').value = education.gpa || '';
+                this.querySelector('#education-courses').value = education.courses ? education.courses.join('\n') : '';
+                
+                this.state.currentEditIndex = index;
+                this.showModal('education-modal');
+            } else if (e.target.closest('.delete-item')) {
+                const button = e.target.closest('.delete-item');
+                const index = parseInt(button.dataset.index);
+                
+                if (confirm('Are you sure you want to delete this education?')) {
+                    this.data.education.splice(index, 1);
+                    this.renderEducation();
+                    this.updateMetaLastModified();
+                    this.saveToLocalStorage();
+                }
+            }
+        });
+    }
+
+    setupSkillsModal() {
+        const addBtn = this.querySelector('#add-skill');
+        const saveBtn = this.querySelector('#save-skill');
+        
+        addBtn?.addEventListener('click', () => {
+            this.state.currentEditIndex = -1;
+            this.clearModalFields('skills-modal');
+            this.showModal('skills-modal');
+        });
+        
+        saveBtn?.addEventListener('click', () => {
+            const name = this.querySelector('#skill-name').value.trim();
+            const level = this.querySelector('#skill-level').value.trim();
+            const keywordsText = this.querySelector('#skill-keywords').value.trim();
+            
+            if (!name) {
+                this.showToast('Skill name is required', 'error');
+                return;
+            }
+            
+            const keywords = keywordsText 
+                ? keywordsText.split('\n')
+                    .map(k => k.trim())
+                    .filter(k => k.length > 0)
+                : [];
+            
+            const skillData = { name, level, keywords };
+            
+            if (this.state.currentEditIndex >= 0) {
+                this.data.skills[this.state.currentEditIndex] = skillData;
+            } else {
+                this.data.skills.push(skillData);
+            }
+            
+            this.renderSkills();
+            this.hideModal('skills-modal');
+            this.updateMetaLastModified();
+            this.saveToLocalStorage();
+        });
+        
+        // Edit/delete skills events
+        this.querySelector('#skills-container').addEventListener('click', (e) => {
+            if (e.target.closest('.edit-item')) {
+                const button = e.target.closest('.edit-item');
+                const index = parseInt(button.dataset.index);
+                const skill = this.data.skills[index];
+                
+                this.querySelector('#skill-name').value = skill.name || '';
+                this.querySelector('#skill-level').value = skill.level || '';
+                this.querySelector('#skill-keywords').value = skill.keywords ? skill.keywords.join('\n') : '';
+                
+                this.state.currentEditIndex = index;
+                this.showModal('skills-modal');
+            } else if (e.target.closest('.delete-item')) {
+                const button = e.target.closest('.delete-item');
+                const index = parseInt(button.dataset.index);
+                
+                if (confirm('Are you sure you want to delete this skill?')) {
+                    this.data.skills.splice(index, 1);
+                    this.renderSkills();
+                    this.updateMetaLastModified();
+                    this.saveToLocalStorage();
+                }
+            }
+        });
+    }
+
+    setupProjectsModal() {
+        const addBtn = this.querySelector('#add-project');
+        const saveBtn = this.querySelector('#save-project');
+        
+        addBtn?.addEventListener('click', () => {
+            this.state.currentEditIndex = -1;
+            this.clearModalFields('projects-modal');
+            this.showModal('projects-modal');
+        });
+        
+        saveBtn?.addEventListener('click', () => {
+            const name = this.querySelector('#project-name').value.trim();
+            const description = this.querySelector('#project-description').value.trim();
+            const startDate = this.querySelector('#project-startDate').value.trim();
+            const endDate = this.querySelector('#project-endDate').value.trim();
+            const url = this.querySelector('#project-url').value.trim();
+            const highlightsText = this.querySelector('#project-highlights').value.trim();
+            const keywordsText = this.querySelector('#project-keywords').value.trim();
+            
+            if (!name) {
+                this.showToast('Project name is required', 'error');
+                return;
+            }
+            
+            const highlights = highlightsText 
+                ? highlightsText.split('\n')
+                    .map(h => h.trim())
+                    .filter(h => h.length > 0)
+                : [];
+                
+            const keywords = keywordsText 
+                ? keywordsText.split('\n')
+                    .map(k => k.trim())
+                    .filter(k => k.length > 0)
+                : [];
+            
+            const projectData = {
+                name, description, startDate, endDate, url, highlights, keywords
+            };
+            
+            if (this.state.currentEditIndex >= 0) {
+                this.data.projects[this.state.currentEditIndex] = projectData;
+            } else {
+                this.data.projects.push(projectData);
+            }
+            
+            this.renderProjects();
+            this.hideModal('projects-modal');
+            this.updateMetaLastModified();
+            this.saveToLocalStorage();
+        });
+        
+        // Edit/delete projects events
+        this.querySelector('#projects-container').addEventListener('click', (e) => {
+            if (e.target.closest('.edit-item')) {
+                const button = e.target.closest('.edit-item');
+                const index = parseInt(button.dataset.index);
+                const project = this.data.projects[index];
+                
+                this.querySelector('#project-name').value = project.name || '';
+                this.querySelector('#project-description').value = project.description || '';
+                this.querySelector('#project-startDate').value = project.startDate || '';
+                this.querySelector('#project-endDate').value = project.endDate || '';
+                this.querySelector('#project-url').value = project.url || '';
+                this.querySelector('#project-highlights').value = project.highlights ? project.highlights.join('\n') : '';
+                this.querySelector('#project-keywords').value = project.keywords ? project.keywords.join('\n') : '';
+                
+                this.state.currentEditIndex = index;
+                this.showModal('projects-modal');
+            } else if (e.target.closest('.delete-item')) {
+                const button = e.target.closest('.delete-item');
+                const index = parseInt(button.dataset.index);
+                
+                if (confirm('Are you sure you want to delete this project?')) {
+                    this.data.projects.splice(index, 1);
+                    this.renderProjects();
+                    this.updateMetaLastModified();
+                    this.saveToLocalStorage();
+                }
+            }
+        });
+    }
+
+    setupSectionManagement() {
+        // Preview buttons
+        this.querySelector('#preview-refresh')?.addEventListener('click', () => {
+            this.renderPreview();
+        });
+        
+        this.querySelector('#preview-pdf')?.addEventListener('click', () => {
+            this.generatePDF();
+        });
+        
+        this.querySelector('#preview-print')?.addEventListener('click', () => {
+            this.printPreview();
+        });
+    }
+
+    setupSwipeNavigation() {
+        const container = this.querySelector('.tabs');
+        if (!container) return;
+        
+        container.addEventListener('touchstart', e => {
+            this.state.touchStartX = e.touches[0].clientX;
+        }, { passive: true });
+        
+        container.addEventListener('touchend', e => {
+            if (!this.state.touchStartX) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const difference = this.state.touchStartX - touchEndX;
+            const minSwipeDistance = 50;
+            
+            if (Math.abs(difference) < minSwipeDistance) return;
+            
+            const activeTab = this.querySelector('.tab.active');
+            const tabs = Array.from(this.querySelectorAll('.tab'));
+            const currentIndex = tabs.indexOf(activeTab);
+            
+            if (difference > 0) {
+                // Swipe left, go to next tab
+                const nextTab = tabs[currentIndex + 1];
+                if (nextTab) {
+                    this.switchTab(nextTab.dataset.tab);
+                }
+            } else {
+                // Swipe right, go to previous tab
+                const prevTab = tabs[currentIndex - 1];
+                if (prevTab) {
+                    this.switchTab(prevTab.dataset.tab);
+                }
+            }
+            
+            this.state.touchStartX = 0;
+        }, { passive: true });
+    }
+
+    showModal(modalId) {
+        const modal = this.querySelector(`#${modalId}`);
+        if (modal) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                const firstInput = modal.querySelector('input, textarea, select');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 100);
+        }
+    }
+
+    hideModal(modalId) {
+        const modal = this.querySelector(`#${modalId}`);
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    clearModalFields(modalId) {
+        const modal = this.querySelector(`#${modalId}`);
+        if (!modal) return;
+        
+        modal.querySelectorAll('input, textarea').forEach(input => {
             input.value = '';
-            return true;
-        }
-        return false;
-    }
-
-    handleRemoveSkillKeyword(e) {
-        const index = parseInt(e.target.dataset.index);
-        const keywordIndex = parseInt(e.target.dataset.keywordIndex);
-        this._resumeData.skills[index].keywords.splice(keywordIndex, 1);
-        return true;
-    }
-
-    handleAddProject() {
-        if (!this._resumeData.projects) {
-            this._resumeData.projects = [];
-        }
-        this._resumeData.projects.push({
-            name: '',
-            description: '',
-            startDate: '',
-            endDate: '',
-            url: '',
-            highlights: []
         });
-        return true;
     }
 
-    handleRemoveProject(e) {
-        const index = parseInt(e.target.dataset.index);
-        this._resumeData.projects.splice(index, 1);
-        return true;
-    }
-
-    handleAddProjectHighlight(e) {
-        const index = parseInt(e.target.dataset.index);
-        if (!this._resumeData.projects[index].highlights) {
-            this._resumeData.projects[index].highlights = [];
-        }
-        this._resumeData.projects[index].highlights.push('');
-        return true;
-    }
-
-    handleRemoveProjectHighlight(e) {
-        const index = parseInt(e.target.dataset.index);
-        const highlightIndex = parseInt(e.target.dataset.highlightIndex);
-        this._resumeData.projects[index].highlights.splice(highlightIndex, 1);
-        return true;
-    }
-
-    handleAddLanguage() {
-        if (!this._resumeData.languages) {
-            this._resumeData.languages = [];
-        }
-        this._resumeData.languages.push({
-            language: '',
-            fluency: ''
-        });
-        return true;
-    }
-
-    handleRemoveLanguage(e) {
-        const index = parseInt(e.target.dataset.index);
-        this._resumeData.languages.splice(index, 1);
-        return true;
-    }
-
-    saveCurrentSection() {
-        switch (this._activeSection) {
-            case 'basics':
-                this.saveBasics();
-                break;
+    createSectionItem(data, index, type) {
+        const item = document.createElement('div');
+        item.className = 'resume-item';
+        
+        let title, subtitle;
+        
+        switch (type) {
             case 'work':
-                this.saveWork();
+                title = data.position || 'Untitled Position';
+                subtitle = data.name || 'Unnamed Company';
                 break;
             case 'education':
-                this.saveEducation();
+                title = data.studyType || 'Untitled Degree';
+                subtitle = data.institution || 'Unnamed Institution';
                 break;
             case 'skills':
-                this.saveSkills();
+                title = data.name || 'Unnamed Skill';
+                subtitle = data.level || '';
                 break;
             case 'projects':
-                this.saveProjects();
+                title = data.name || 'Untitled Project';
+                subtitle = data.description ? data.description.substring(0, 40) + '...' : '';
                 break;
-            case 'languages':
-                this.saveLanguages();
+            case 'profiles':
+                title = data.network || 'Unnamed Network';
+                subtitle = data.username || '';
                 break;
         }
         
-        // Emit change event
-        this.dispatchEvent(new CustomEvent('resume-change', {
-            detail: { resumeData: this._resumeData },
-            bubbles: true
-        }));
-
-        // Update analytics
-        const analytics = this.shadowRoot.querySelector('resume-analytics');
-        if (analytics) {
-            analytics.resumeData = this._resumeData;
-        }
+        item.innerHTML = `
+            <div class="resume-item-header">
+                <div class="resume-item-title">${this.escapeHtml(title)}</div>
+                <div class="resume-item-subtitle">${this.escapeHtml(subtitle)}</div>
+                <div class="resume-item-buttons">
+                    <button class="icon-button edit-item" title="Edit" data-index="${index}" data-type="${type}">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button class="icon-button delete-item" title="Delete" data-index="${index}" data-type="${type}">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        return item;
     }
 
-    saveBasics() {
-        const basics = this._resumeData.basics || {};
+    renderProfiles() {
+        const container = this.querySelector('#profiles-container');
+        const emptyState = this.querySelector('#profiles-empty');
         
-        basics.name = this.shadowRoot.getElementById('basics-name').value;
-        basics.label = this.shadowRoot.getElementById('basics-label').value;
-        basics.email = this.shadowRoot.getElementById('basics-email').value;
-        basics.phone = this.shadowRoot.getElementById('basics-phone').value;
-        basics.url = this.shadowRoot.getElementById('basics-url').value;
-        basics.summary = this.shadowRoot.getElementById('basics-summary').value;
+        if (!container) return;
         
-        basics.location = {
-            city: this.shadowRoot.getElementById('location-city').value,
-            region: this.shadowRoot.getElementById('location-region').value,
-            postalCode: this.shadowRoot.getElementById('location-postalCode').value,
-            countryCode: this.shadowRoot.getElementById('location-countryCode').value
+        // Clear existing items except empty state
+        Array.from(container.children).forEach(child => {
+            if (child !== emptyState) {
+                container.removeChild(child);
+            }
+        });
+        
+        if (this.data.basics.profiles.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+        } else {
+            emptyState.classList.add('hidden');
+        }
+        
+        this.data.basics.profiles.forEach((profile, index) => {
+            const item = this.createSectionItem(profile, index, 'profiles');
+            container.appendChild(item);
+        });
+    }
+
+    renderWork() {
+        const container = this.querySelector('#work-container');
+        const emptyState = this.querySelector('#work-empty');
+        
+        if (!container) return;
+        
+        Array.from(container.children).forEach(child => {
+            if (child !== emptyState) {
+                container.removeChild(child);
+            }
+        });
+        
+        if (this.data.work.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+        } else {
+            emptyState.classList.add('hidden');
+        }
+        
+        this.data.work.forEach((work, index) => {
+            const item = this.createSectionItem(work, index, 'work');
+            container.appendChild(item);
+        });
+    }
+
+    renderEducation() {
+        const container = this.querySelector('#education-container');
+        const emptyState = this.querySelector('#education-empty');
+        
+        if (!container) return;
+        
+        Array.from(container.children).forEach(child => {
+            if (child !== emptyState) {
+                container.removeChild(child);
+            }
+        });
+        
+        if (this.data.education.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+        } else {
+            emptyState.classList.add('hidden');
+        }
+        
+        this.data.education.forEach((education, index) => {
+            const item = this.createSectionItem(education, index, 'education');
+            container.appendChild(item);
+        });
+    }
+
+    renderSkills() {
+        const container = this.querySelector('#skills-container');
+        const emptyState = this.querySelector('#skills-empty');
+        
+        if (!container) return;
+        
+        Array.from(container.children).forEach(child => {
+            if (child !== emptyState) {
+                container.removeChild(child);
+            }
+        });
+        
+        if (this.data.skills.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+        } else {
+            emptyState.classList.add('hidden');
+        }
+        
+        this.data.skills.forEach((skill, index) => {
+            const item = this.createSectionItem(skill, index, 'skills');
+            container.appendChild(item);
+        });
+    }
+
+    renderProjects() {
+        const container = this.querySelector('#projects-container');
+        const emptyState = this.querySelector('#projects-empty');
+        
+        if (!container) return;
+        
+        Array.from(container.children).forEach(child => {
+            if (child !== emptyState) {
+                container.removeChild(child);
+            }
+        });
+        
+        if (this.data.projects.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+        } else {
+            emptyState.classList.add('hidden');
+        }
+        
+        this.data.projects.forEach((project, index) => {
+            const item = this.createSectionItem(project, index, 'projects');
+            container.appendChild(item);
+        });
+    }
+
+    renderPreview() {
+        const container = this.querySelector('#preview-container');
+        const theme = this.querySelector('#preview-theme').value;
+        
+        if (!container) return;
+        
+        container.innerHTML = this.generateResumeHTML(theme);
+    }
+
+    generateResumeHTML(theme = 'modern') {
+        const { basics, work, education, skills, projects } = this.data;
+        
+        let html = `
+            <div class="resume-preview ${theme}">
+                <div class="resume-header">
+                    <h1>${this.escapeHtml(basics.name || 'Your Name')}</h1>
+                    <h2>${this.escapeHtml(basics.label || 'Job Title')}</h2>
+                    <div class="contact-info">
+                        ${basics.email ? `<span>${this.escapeHtml(basics.email)}</span>` : ''}
+                        ${basics.phone ? `<span>${this.escapeHtml(basics.phone)}</span>` : ''}
+                        ${basics.website ? `<span><a href="${basics.website}" target="_blank">${this.escapeHtml(basics.website)}</a></span>` : ''}
+                    </div>
+                </div>
+        `;
+        
+        if (basics.summary) {
+            html += `
+                <div class="resume-section">
+                    <h3>Summary</h3>
+                    <p>${this.escapeHtml(basics.summary)}</p>
+                </div>
+            `;
+        }
+        
+        if (work.length > 0) {
+            html += `
+                <div class="resume-section">
+                    <h3>Work Experience</h3>
+                    ${work.map(job => `
+                        <div class="work-item">
+                            <h4>${this.escapeHtml(job.position || 'Position')}</h4>
+                            <h5>${this.escapeHtml(job.name || 'Company')} ${job.startDate || job.endDate ? `(${job.startDate || ''} - ${job.endDate || 'Present'})` : ''}</h5>
+                            ${job.summary ? `<p>${this.escapeHtml(job.summary)}</p>` : ''}
+                            ${job.highlights && job.highlights.length > 0 ? `
+                                <ul>
+                                    ${job.highlights.map(highlight => `<li>${this.escapeHtml(highlight)}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        if (education.length > 0) {
+            html += `
+                <div class="resume-section">
+                    <h3>Education</h3>
+                    ${education.map(edu => `
+                        <div class="education-item">
+                            <h4>${this.escapeHtml(edu.studyType || 'Degree')} ${edu.area ? `in ${this.escapeHtml(edu.area)}` : ''}</h4>
+                            <h5>${this.escapeHtml(edu.institution || 'Institution')} ${edu.startDate || edu.endDate ? `(${edu.startDate || ''} - ${edu.endDate || 'Present'})` : ''}</h5>
+                            ${edu.gpa ? `<p>GPA: ${this.escapeHtml(edu.gpa)}</p>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        if (skills.length > 0) {
+            html += `
+                <div class="resume-section">
+                    <h3>Skills</h3>
+                    <div class="skills-list">
+                        ${skills.map(skill => `
+                            <div class="skill-item">
+                                <strong>${this.escapeHtml(skill.name || 'Skill')}</strong>
+                                ${skill.level ? ` - ${this.escapeHtml(skill.level)}` : ''}
+                                ${skill.keywords && skill.keywords.length > 0 ? `<br><span class="keywords">${skill.keywords.map(k => this.escapeHtml(k)).join(', ')}</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (projects.length > 0) {
+            html += `
+                <div class="resume-section">
+                    <h3>Projects</h3>
+                    ${projects.map(project => `
+                        <div class="project-item">
+                            <h4>${this.escapeHtml(project.name || 'Project Name')}</h4>
+                            ${project.description ? `<p>${this.escapeHtml(project.description)}</p>` : ''}
+                            ${project.highlights && project.highlights.length > 0 ? `
+                                <ul>
+                                    ${project.highlights.map(highlight => `<li>${this.escapeHtml(highlight)}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        return html;
+    }
+
+    generatePDF() {
+        const element = this.querySelector('#preview-container');
+        if (!element) return;
+        
+        const opt = {
+            margin: 1,
+            filename: `${this.data.basics.name || 'resume'}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
         
-        // Save profiles
-        const profiles = [];
-        const profileCount = basics.profiles ? basics.profiles.length : 0;
-        for (let i = 0; i < profileCount; i++) {
-            const network = this.shadowRoot.getElementById(`profile-network-${i}`);
-            if (network) {
-                profiles.push({
-                    network: network.value,
-                    username: this.shadowRoot.getElementById(`profile-username-${i}`).value,
-                    url: this.shadowRoot.getElementById(`profile-url-${i}`).value
-                });
-            }
+        if (typeof html2pdf !== 'undefined') {
+            html2pdf().set(opt).from(element).save();
+        } else {
+            this.showToast('PDF generation library not loaded', 'error');
         }
-        basics.profiles = profiles;
-        
-        this._resumeData.basics = basics;
     }
 
-    saveWork() {
-        const work = [];
-        const workCount = this._resumeData.work ? this._resumeData.work.length : 0;
+    printPreview() {
+        const printWindow = window.open('', '_blank');
+        const previewContent = this.querySelector('#preview-container').innerHTML;
         
-        for (let i = 0; i < workCount; i++) {
-            const name = this.shadowRoot.getElementById(`work-name-${i}`);
-            if (name) {
-                const highlights = [];
-                const highlightCount = this._resumeData.work[i].highlights ? this._resumeData.work[i].highlights.length : 0;
-                
-                for (let h = 0; h < highlightCount; h++) {
-                    const highlight = this.shadowRoot.getElementById(`work-highlight-${i}-${h}`);
-                    if (highlight && highlight.value) {
-                        highlights.push(highlight.value);
-                    }
-                }
-                
-                work.push({
-                    name: name.value,
-                    position: this.shadowRoot.getElementById(`work-position-${i}`).value,
-                    url: this.shadowRoot.getElementById(`work-url-${i}`).value,
-                    startDate: this.shadowRoot.getElementById(`work-startDate-${i}`).value,
-                    endDate: this.shadowRoot.getElementById(`work-endDate-${i}`).value,
-                    summary: this.shadowRoot.getElementById(`work-summary-${i}`).value,
-                    highlights: highlights
-                });
-            }
-        }
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Resume - ${this.data.basics.name || 'Print'}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+                    .resume-preview { max-width: 800px; margin: 0 auto; }
+                    .resume-header h1 { margin: 0; font-size: 2em; }
+                    .resume-header h2 { margin: 0; color: #666; font-size: 1.2em; }
+                    .contact-info { margin: 10px 0; }
+                    .contact-info span { margin-right: 15px; }
+                    .resume-section { margin: 20px 0; }
+                    .resume-section h3 { border-bottom: 2px solid #333; padding-bottom: 5px; }
+                    .work-item, .education-item, .project-item { margin: 15px 0; }
+                    .work-item h4, .education-item h4, .project-item h4 { margin: 0; }
+                    .work-item h5, .education-item h5 { margin: 5px 0; color: #666; }
+                    ul { margin: 10px 0; padding-left: 20px; }
+                    .skills-list { display: flex; flex-wrap: wrap; gap: 10px; }
+                    .skill-item { background: #f0f0f0; padding: 5px 10px; border-radius: 3px; }
+                    .keywords { font-size: 0.9em; color: #666; }
+                </style>
+            </head>
+            <body>
+                ${previewContent}
+            </body>
+            </html>
+        `);
         
-        this._resumeData.work = work;
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
     }
 
-    saveEducation() {
-        const education = [];
-        const eduCount = this._resumeData.education ? this._resumeData.education.length : 0;
+    updateAllFields() {
+        if (!this.state.loaded) return;
         
-        for (let i = 0; i < eduCount; i++) {
-            const institution = this.shadowRoot.getElementById(`education-institution-${i}`);
-            if (institution) {
-                education.push({
-                    institution: institution.value,
-                    studyType: this.shadowRoot.getElementById(`education-studyType-${i}`).value,
-                    area: this.shadowRoot.getElementById(`education-area-${i}`).value,
-                    score: this.shadowRoot.getElementById(`education-score-${i}`).value,
-                    startDate: this.shadowRoot.getElementById(`education-startDate-${i}`).value,
-                    endDate: this.shadowRoot.getElementById(`education-endDate-${i}`).value,
-                    url: this.shadowRoot.getElementById(`education-url-${i}`).value
-                });
+        // Update basic fields
+        const basicFields = ['name', 'label', 'email', 'phone', 'website', 'summary'];
+        basicFields.forEach(field => {
+            const element = this.querySelector(`#${field}`);
+            if (element) {
+                element.value = this.data.basics[field] || '';
+            }
+        });
+        
+        // Update picture
+        const pictureInput = this.querySelector('#picture');
+        const pictureImg = this.querySelector('#pictureImg');
+        
+        if (pictureInput && pictureImg) {
+            pictureInput.value = this.data.basics.picture || '';
+            
+            if (this.data.basics.picture) {
+                pictureImg.src = this.data.basics.picture;
+                pictureImg.style.display = 'block';
+            } else {
+                pictureImg.style.display = 'none';
             }
         }
         
-        this._resumeData.education = education;
+        // Update location fields
+        const locationFields = ['address', 'postalCode', 'city', 'countryCode', 'region'];
+        locationFields.forEach(field => {
+            const element = this.querySelector(`#${field}`);
+            if (element) {
+                element.value = this.data.basics.location[field] || '';
+            }
+        });
+        
+        // Update meta fields
+        const metaFields = ['theme', 'language'];
+        metaFields.forEach(field => {
+            const element = this.querySelector(`#${field}`);
+            if (element) {
+                element.value = this.data.meta[field] || '';
+            }
+        });
+        
+        // Update lastModified
+        const lastModifiedEl = this.querySelector('#lastModified');
+        if (lastModifiedEl) {
+            lastModifiedEl.value = new Date(this.data.meta.lastModified).toISOString().split('T')[0];
+        }
+        
+        // Render all section lists
+        this.renderProfiles();
+        this.renderWork();
+        this.renderEducation();
+        this.renderSkills();
+        this.renderProjects();
     }
 
-    saveSkills() {
-        const skills = [];
-        const skillCount = this._resumeData.skills ? this._resumeData.skills.length : 0;
-        
-        for (let i = 0; i < skillCount; i++) {
-            const name = this.shadowRoot.getElementById(`skill-name-${i}`);
-            if (name) {
-                skills.push({
-                    name: name.value,
-                    level: this.shadowRoot.getElementById(`skill-level-${i}`).value,
-                    keywords: this._resumeData.skills[i].keywords || []
-                });
-            }
+    updateMetaLastModified() {
+        if (!this.state.loaded) return;
+        this.data.meta.lastModified = new Date().toISOString();
+        const lastModifiedEl = this.querySelector('#lastModified');
+        if (lastModifiedEl) {
+            lastModifiedEl.value = this.data.meta.lastModified.split('T')[0];
         }
-        
-        this._resumeData.skills = skills;
     }
 
-    saveProjects() {
-        const projects = [];
-        const projectCount = this._resumeData.projects ? this._resumeData.projects.length : 0;
-        
-        for (let i = 0; i < projectCount; i++) {
-            const name = this.shadowRoot.getElementById(`project-name-${i}`);
-            if (name) {
-                const highlights = [];
-                const highlightCount = this._resumeData.projects[i].highlights ? this._resumeData.projects[i].highlights.length : 0;
-                
-                for (let h = 0; h < highlightCount; h++) {
-                    const highlight = this.shadowRoot.getElementById(`project-highlight-${i}-${h}`);
-                    if (highlight && highlight.value) {
-                        highlights.push(highlight.value);
-                    }
-                }
-                
-                projects.push({
-                    name: name.value,
-                    description: this.shadowRoot.getElementById(`project-description-${i}`).value,
-                    startDate: this.shadowRoot.getElementById(`project-startDate-${i}`).value,
-                    endDate: this.shadowRoot.getElementById(`project-endDate-${i}`).value,
-                    url: this.shadowRoot.getElementById(`project-url-${i}`).value,
-                    highlights: highlights
-                });
+    loadResumeData() {
+        const saved = localStorage.getItem('resumeJson');
+        if (saved) {
+            try {
+                this.data = JSON.parse(saved);
+                this.updateAllFields();
+            } catch (e) {
+                console.error('Error loading resume data:', e);
             }
         }
-        
-        this._resumeData.projects = projects;
     }
 
-    saveLanguages() {
-        const languages = [];
-        const langCount = this._resumeData.languages ? this._resumeData.languages.length : 0;
-        
-        for (let i = 0; i < langCount; i++) {
-            const language = this.shadowRoot.getElementById(`language-language-${i}`);
-            if (language) {
-                languages.push({
-                    language: language.value,
-                    fluency: this.shadowRoot.getElementById(`language-fluency-${i}`).value
-                });
-            }
+    saveToLocalStorage() {
+        try {
+            localStorage.setItem('resumeJson', JSON.stringify(this.data));
+        } catch (e) {
+            console.error('Error saving resume data:', e);
+        }
+    }
+
+    // Public API methods
+    getResumeData() {
+        return this.data;
+    }
+
+    setResumeData(data) {
+        this.data = { ...this.getDefaultResumeData(), ...data };
+        this.updateAllFields();
+        this.saveToLocalStorage();
+    }
+
+    exportJSON() {
+        return JSON.stringify(this.data, null, 2);
+    }
+
+    importJSON(jsonString) {
+        try {
+            const data = JSON.parse(jsonString);
+            this.setResumeData(data);
+            this.showToast('Resume imported successfully', 'success');
+        } catch (e) {
+            this.showToast('Invalid JSON format', 'error');
+        }
+    }
+
+    escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text ? text.replace(/[&<>"']/g, m => map[m]) : '';
+    }
+
+    showToast(message, type = 'info') {
+        // Create toast if it doesn't exist
+        let toast = document.querySelector('#toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast';
+            toast.className = 'toast';
+            document.body.appendChild(toast);
         }
         
-        this._resumeData.languages = languages;
+        toast.textContent = message;
+        toast.className = `toast show ${type}`;
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
     }
 }
 
-// Register the web component
+// Register the custom element
 customElements.define('resume-editor', ResumeEditor);
+
+export default ResumeEditor;
