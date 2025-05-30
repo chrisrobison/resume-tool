@@ -44,11 +44,11 @@ IMPORTANT REQUIREMENTS:
     // Call Claude API
     console.log('Calling Claude API with prompt length:', prompt.length);
     
-    // Try with Claude 3 Haiku instead of Opus for faster response
+    // Using Claude 4 Opus for best performance
     const response = await axios.post(
       'https://api.anthropic.com/v1/messages',
       {
-        model: 'claude-3-opus-20240229',
+        model: 'claude-opus-4-20250514',
         max_tokens: 4000,
         messages: [
           {

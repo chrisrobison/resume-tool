@@ -213,7 +213,7 @@ class ApiSettings extends HTMLElement {
                     'anthropic-version': '2023-06-01'
                 },
                 body: JSON.stringify({
-                    model: 'claude-3-opus-20240229',
+                    model: 'claude-opus-4-20250514',
                     max_tokens: 1,
                     messages: [{ role: 'user', content: 'test' }]
                 })
@@ -230,7 +230,7 @@ class ApiSettings extends HTMLElement {
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-4-turbo-preview',
+                    model: 'gpt-4o',
                     max_tokens: 1,
                     messages: [{ role: 'user', content: 'test' }]
                 })
