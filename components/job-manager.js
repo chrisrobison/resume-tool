@@ -1113,7 +1113,7 @@ class JobManager extends HTMLElement {
         // Handle form submissions
         this.shadowRoot.addEventListener('submit', (e) => {
             e.preventDefault();
-            if (e.target.id === 'job-edit-form') {
+            if (e.target.id === 'job-edit-modal-form') {
                 this.handleSaveJob(e);
             } else if (e.target.id === 'job-detail-form') {
                 this.handleSaveJobDetail(e);
@@ -1361,30 +1361,30 @@ class JobManager extends HTMLElement {
                 <div class="modal-header">
                     <h3 class="modal-title">Add Job</h3>
                 </div>
-                <form id="job-edit-form">
+                <form id="job-edit-modal-form">
                     <div class="form-group">
-                        <label for="job-title">Job Title</label>
-                        <input type="text" id="job-title" name="title" value="${job.title || ''}" required>
+                        <label for="edit-job-title">Job Title</label>
+                        <input type="text" id="edit-job-title" name="title" value="${job.title || ''}" required>
                     </div>
                     <div class="form-group">
-                        <label for="job-company">Company</label>
-                        <input type="text" id="job-company" name="company" value="${job.company || ''}">
+                        <label for="edit-job-company">Company</label>
+                        <input type="text" id="edit-job-company" name="company" value="${job.company || ''}">
                     </div>
                     <div class="form-group">
-                        <label for="job-location">Location</label>
-                        <input type="text" id="job-location" name="location" value="${job.location || ''}">
+                        <label for="edit-job-location">Location</label>
+                        <input type="text" id="edit-job-location" name="location" value="${job.location || ''}">
                     </div>
                     <div class="form-group">
-                        <label for="job-url">URL</label>
-                        <input type="url" id="job-url" name="url" value="${job.url || ''}">
+                        <label for="edit-job-url">URL</label>
+                        <input type="url" id="edit-job-url" name="url" value="${job.url || ''}">
                     </div>
                     <div class="form-group">
-                        <label for="job-description">Description</label>
-                        <textarea id="job-description" name="description">${job.description || ''}</textarea>
+                        <label for="edit-job-description">Description</label>
+                        <textarea id="edit-job-description" name="description">${job.description || ''}</textarea>
                     </div>
                     <div class="form-group">
-                        <label for="job-notes">Notes</label>
-                        <textarea id="job-notes" name="notes">${job.notes || ''}</textarea>
+                        <label for="edit-job-notes">Notes</label>
+                        <textarea id="edit-job-notes" name="notes">${job.notes || ''}</textarea>
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-secondary modal-cancel">Cancel</button>
@@ -1398,7 +1398,7 @@ class JobManager extends HTMLElement {
         // Remove modal on outside click
         modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
         // Save job on submit
-        modal.querySelector('#job-edit-form').addEventListener('submit', (e) => {
+        modal.querySelector('#job-edit-modal-form').addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleSaveJob(e, false);
             modal.remove();
