@@ -568,6 +568,22 @@ export const app = {
         utils.showToast(`Job status updated to: ${status}`, 'success');
     },
     
+    // Get saved resumes as array for job manager
+    getSavedResumes() {
+        const savedResumes = storage.loadSavedResumesList();
+        if (!savedResumes || Object.keys(savedResumes).length === 0) {
+            return [];
+        }
+        
+        // Convert object to array format expected by job manager
+        return Object.entries(savedResumes).map(([name, resumeData]) => ({
+            id: resumeData.id,
+            name: name,
+            basics: resumeData.data.basics || {},
+            savedDate: resumeData.timestamp
+        }));
+    },
+    
     // Load named resume by ID
     loadNamedResume(resumeId) {
         const savedResumes = storage.loadSavedResumesList();
@@ -611,4 +627,6 @@ export const app = {
 // Initialize the app when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     app.init();
+    // Make app available globally for web components
+    window.app = app;
 });

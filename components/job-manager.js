@@ -1301,9 +1301,9 @@ class JobManager extends HTMLElement {
         
         // Create a modal with the resume preview
         const modal = document.createElement('div');
-        modal.className = 'modal';
+        modal.className = 'modal-backdrop';
         modal.innerHTML = `
-            <div class="modal-content" style="max-width: 90vw; max-height: 90vh; overflow: auto;">
+            <div class="modal" style="max-width: 90vw; max-height: 90vh; overflow: auto;">
                 <div class="modal-header">
                     <h3 class="modal-title">Resume Preview: ${resumeData.name || 'Unnamed Resume'}</h3>
                     <button type="button" class="btn btn-secondary modal-close">Close</button>
@@ -1355,9 +1355,9 @@ class JobManager extends HTMLElement {
     showJobFormModal() {
         const job = createDefaultJob();
         const modal = document.createElement('div');
-        modal.className = 'modal';
+        modal.className = 'modal-backdrop';
         modal.innerHTML = `
-            <div class="modal-content">
+            <div class="modal">
                 <div class="modal-header">
                     <h3 class="modal-title">Add Job</h3>
                 </div>
@@ -1429,9 +1429,9 @@ class JobManager extends HTMLElement {
         if (!this._selectedJob) return false;
         
         const modal = document.createElement('div');
-        modal.className = 'modal';
+        modal.className = 'modal-backdrop';
         modal.innerHTML = `
-            <div class="modal-content">
+            <div class="modal">
                 <div class="modal-header">
                     <h3 class="modal-title">Update Job Status</h3>
                 </div>
@@ -1493,9 +1493,9 @@ class JobManager extends HTMLElement {
         if (!this._selectedJob) return false;
         
         const modal = document.createElement('div');
-        modal.className = 'modal';
+        modal.className = 'modal-backdrop';
         modal.innerHTML = `
-            <div class="modal-content">
+            <div class="modal">
                 <div class="modal-header">
                     <h3 class="modal-title">Associate Resume</h3>
                 </div>
