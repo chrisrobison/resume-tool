@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JSON Resume Components Demo</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="resume-editor.js"></script>
     <style>
         * {
             margin: 0;
@@ -270,6 +273,140 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .settings-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 2rem auto;
+        }
+
+        .settings-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .settings-group select,
+        .settings-group input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .settings-group select:focus,
+        .settings-group input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+
+        .api-provider-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .api-provider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .api-provider-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .api-provider-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .api-provider-form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .delete-provider {
+            color: #e53e3e;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+        }
+
+        .delete-provider:hover {
+            background: #fff5f5;
+        }
     </style>
 </head>
 <body>
@@ -289,6 +426,7 @@
                     <button class="btn btn-primary" onclick="loadSampleData()">Load Sample Resume</button>
                     <button class="btn btn-secondary" onclick="clearData()">Clear All Data</button>
                     <button class="btn btn-outline" onclick="downloadJSON()">Download JSON</button>
+                    <button class="btn btn-outline" onclick="openSettings()">Settings</button>
                 </div>
             </div>
             <div class="control-group">
@@ -353,7 +491,36 @@
                 </div>
             </div>
         </div>
+
+        <div id="settings" class="view">
+            <div class="settings-container">
+                <h2>API Settings</h2>
+                <div class="settings-group">
+                    <label for="api-type">API Service</label>
+                    <select id="api-type">
+                        <option value="claude">Claude</option>
+                        <option value="chatgpt">ChatGPT</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label for="api-key">API Key</label>
+                    <input type="password" id="api-key" placeholder="Enter your API key">
+                </div>
+                <div class="settings-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="use-direct-api">
+                        Use direct API (bypass proxy)
+                    </label>
+                </div>
+                <div class="button-group">
+                    <button id="save-settings" class="btn btn-primary">Save Settings</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
 
     <footer class="footer">
         <div class="container">
@@ -361,9 +528,30 @@
         </div>
     </footer>
 
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-backdrop hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">AI Provider Settings</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div id="api-providers-list">
+                <!-- API provider cards will be inserted here -->
+            </div>
+            <div class="button-group" style="margin-top: 1rem; justify-content: space-between;">
+                <button id="add-provider" class="btn btn-secondary">
+                    <i class="fas fa-plus"></i> Add Provider
+                </button>
+                <div class="button-group">
+                    <button id="save-settings" class="btn btn-primary">Save Settings</button>
+                    <button class="modal-cancel btn btn-outline">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Load the external component scripts -->
     <script src="resume-viewer.js"></script>
-    <script src="resume-editor.js"></script>
 
     <script>
         // Sample resume data
@@ -510,38 +698,82 @@
                 const previewContainer = document.getElementById('preview-container');
                 previewContainer.innerHTML = '<resume-json id="resume-preview" template="modern"></resume-json>';
                 preview = document.getElementById('resume-preview');
+                
+                // Set the dropdown to match the initial template
+                const templateSelect = document.getElementById('template-select');
+                if (templateSelect) {
+                    templateSelect.value = 'modern';
+                }
 
-                // Set up event listener for real-time updates
-                editor.addEventListener('resume-change', function(e) {
-                    preview.resumeData = e.detail.resumeData;
-                });
+                // Wait for components to be ready
+                setTimeout(() => {
+                    // Set up event listener for real-time updates
+                    if (editor) {
+                        editor.addEventListener('resume-change', function(e) {
+                            console.log('Resume change event:', e.detail);
+                            if (preview && e.detail && e.detail.resumeData) {
+                                preview.resumeData = e.detail.resumeData;
+                            }
+                        });
+                        
+                        // Also listen for input changes to update preview in real-time
+                        editor.addEventListener('input', function() {
+                            if (preview && editor.getResumeData) {
+                                preview.resumeData = editor.getResumeData();
+                            }
+                        });
+                    }
 
-                // Load initial empty data
-                const emptyData = {
-                    basics: {
-                        name: "",
-                        label: "",
-                        email: "",
-                        phone: "",
-                        url: "",
-                        summary: "",
-                        location: {
-                            city: "",
-                            region: "",
-                            postalCode: "",
-                            countryCode: ""
+                    // Load initial empty data
+                    const emptyData = {
+                        basics: {
+                            name: "John Doe",
+                            label: "Software Developer", 
+                            email: "john@example.com",
+                            phone: "(555) 123-4567",
+                            url: "",
+                            summary: "Passionate developer with expertise in modern web technologies.",
+                            location: {
+                                city: "San Francisco",
+                                region: "CA",
+                                postalCode: "",
+                                countryCode: "US"
+                            },
+                            profiles: []
                         },
-                        profiles: []
-                    },
-                    work: [],
-                    education: [],
-                    skills: [],
-                    languages: [],
-                    projects: []
-                };
+                        work: [{
+                            name: "Tech Company",
+                            position: "Software Developer",
+                            startDate: "2020-01-01",
+                            endDate: "",
+                            summary: "Developed web applications using modern frameworks",
+                            highlights: ["Built responsive web applications", "Improved system performance by 40%"]
+                        }],
+                        education: [{
+                            institution: "University of Technology",
+                            studyType: "Bachelor of Science",
+                            area: "Computer Science",
+                            startDate: "2016-09-01",
+                            endDate: "2020-05-31"
+                        }],
+                        skills: [{
+                            name: "Programming Languages",
+                            keywords: ["JavaScript", "Python", "Java"]
+                        }],
+                        languages: [],
+                        projects: []
+                    };
 
-                editor.resumeData = emptyData;
-                preview.resumeData = emptyData;
+                    if (editor && editor.setResumeData) {
+                        editor.setResumeData(emptyData);
+                    } else if (editor) {
+                        editor.resumeData = emptyData;
+                    }
+                    
+                    if (preview) {
+                        preview.resumeData = emptyData;
+                    }
+                }, 500);
 
             } catch (error) {
                 console.error('Error initializing components:', error);
@@ -592,8 +824,17 @@
 
         // Change preview template
         function changeTemplate(templateName) {
+            console.log('Changing template to:', templateName);
             if (preview) {
                 preview.setAttribute('template', templateName);
+                // Force a re-render if needed
+                if (preview.resumeData) {
+                    const currentData = preview.resumeData;
+                    preview.resumeData = null;
+                    setTimeout(() => {
+                        preview.resumeData = currentData;
+                    }, 10);
+                }
             }
         }
 
@@ -613,6 +854,188 @@
                 URL.revokeObjectURL(url);
             }
         }
+
+        // Settings functions
+        function openSettings() {
+            const modal = document.getElementById('settings-modal');
+            loadApiSettings();
+            modal.classList.remove('hidden');
+        }
+
+        // Settings management
+        const defaultApiProviders = [
+            {
+                id: 'claude',
+                name: 'Claude',
+                type: 'claude',
+                apiKey: '',
+                endpoint: 'https://api.anthropic.com/v1/messages',
+                useDirectApi: false
+            },
+            {
+                id: 'chatgpt',
+                name: 'ChatGPT',
+                type: 'chatgpt',
+                apiKey: '',
+                endpoint: 'https://api.openai.com/v1/chat/completions',
+                useDirectApi: false
+            }
+        ];
+
+        function loadApiSettings() {
+            const settings = JSON.parse(localStorage.getItem('resume_settings') || '{}');
+            const providers = settings.apis || defaultApiProviders;
+            renderApiProviders(providers);
+        }
+
+        function saveApiSettings() {
+            const providers = Array.from(document.querySelectorAll('.api-provider-card')).map(card => {
+                return {
+                    id: card.dataset.id,
+                    name: card.querySelector('[name="provider-name"]').value,
+                    type: card.querySelector('[name="provider-type"]').value,
+                    apiKey: card.querySelector('[name="api-key"]').value,
+                    endpoint: card.querySelector('[name="endpoint"]').value,
+                    useDirectApi: card.querySelector('[name="use-direct-api"]').checked
+                };
+            });
+
+            const settings = JSON.parse(localStorage.getItem('resume_settings') || '{}');
+            settings.apis = providers;
+            localStorage.setItem('resume_settings', JSON.stringify(settings));
+            
+            document.getElementById('settings-modal').classList.add('hidden');
+            alert('Settings saved successfully!');
+        }
+
+        function renderApiProviders(providers) {
+            const container = document.getElementById('api-providers-list');
+            container.innerHTML = providers.map(provider => `
+                <div class="api-provider-card" data-id="${provider.id}">
+                    <div class="api-provider-header">
+                        <div class="api-provider-title">${provider.name}</div>
+                        <div class="api-provider-actions">
+                            <button class="delete-provider" onclick="deleteProvider('${provider.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="api-provider-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="provider-name-${provider.id}">Provider Name</label>
+                                <input type="text" name="provider-name" id="provider-name-${provider.id}" 
+                                       value="${provider.name}" placeholder="e.g., Claude, ChatGPT">
+                            </div>
+                            <div class="form-group">
+                                <label for="provider-type-${provider.id}">Provider Type</label>
+                                <select name="provider-type" id="provider-type-${provider.id}">
+                                    <option value="claude" ${provider.type === 'claude' ? 'selected' : ''}>Claude</option>
+                                    <option value="chatgpt" ${provider.type === 'chatgpt' ? 'selected' : ''}>ChatGPT</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="api-key-${provider.id}">API Key</label>
+                                <input type="password" name="api-key" id="api-key-${provider.id}" 
+                                       value="${provider.apiKey}" placeholder="Enter API key">
+                            </div>
+                            <div class="form-group">
+                                <label for="endpoint-${provider.id}">API Endpoint</label>
+                                <input type="text" name="endpoint" id="endpoint-${provider.id}" 
+                                       value="${provider.endpoint}" placeholder="https://api.example.com/v1">
+                            </div>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" name="use-direct-api" id="use-direct-api-${provider.id}" 
+                                   ${provider.useDirectApi ? 'checked' : ''}>
+                            <label for="use-direct-api-${provider.id}">Use direct API (bypass proxy)</label>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addNewProvider() {
+            const settings = JSON.parse(localStorage.getItem('resume_settings') || '{}');
+            const providers = settings.apis || defaultApiProviders;
+            
+            const newProvider = {
+                id: 'custom-' + Date.now(),
+                name: 'New Provider',
+                type: 'custom',
+                apiKey: '',
+                endpoint: '',
+                useDirectApi: false
+            };
+            
+            providers.push(newProvider);
+            renderApiProviders(providers);
+        }
+
+        function deleteProvider(id) {
+            if (confirm('Are you sure you want to delete this provider?')) {
+                const settings = JSON.parse(localStorage.getItem('resume_settings') || '{}');
+                const providers = settings.apis || defaultApiProviders;
+                const updatedProviders = providers.filter(p => p.id !== id);
+                renderApiProviders(updatedProviders);
+            }
+        }
+
+        // Add event listeners for settings
+        document.addEventListener('DOMContentLoaded', function() {
+            const settingsModal = document.getElementById('settings-modal');
+            
+            // Add provider button
+            document.getElementById('add-provider').addEventListener('click', addNewProvider);
+            
+            // Save settings button
+            document.getElementById('save-settings').addEventListener('click', saveApiSettings);
+            
+            // Close button
+            settingsModal.querySelector('.modal-close').addEventListener('click', () => {
+                settingsModal.classList.add('hidden');
+            });
+            
+            // Cancel button
+            settingsModal.querySelector('.modal-cancel').addEventListener('click', () => {
+                settingsModal.classList.add('hidden');
+            });
+            
+            // Close modal when clicking outside
+            settingsModal.addEventListener('click', (e) => {
+                if (e.target === settingsModal) {
+                    settingsModal.classList.add('hidden');
+                }
+            });
+        });
+
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const view = item.dataset.view;
+                
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                item.classList.add('active');
+                
+                // Update active view
+                document.querySelectorAll('.view').forEach(viewEl => {
+                    viewEl.classList.remove('active');
+                });
+                document.getElementById(view).classList.add('active');
+                
+                // Load settings when switching to settings view
+                if (view === 'settings') {
+                    loadApiSettings();
+                }
+            });
+        });
     </script>
 </body>
 </html>

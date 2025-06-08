@@ -12,10 +12,68 @@ class ResumeEditor extends HTMLElement {
     }
 
     connectedCallback() {
+        // Initialize localStorage
+        this.initLocalStorage();
+        
         this.render();
         this.setupEventListeners();
         this.loadResumeData();
         this.state.loaded = true;
+        
+        // Emit initial data event
+        setTimeout(() => {
+            this.dispatchEvent(new CustomEvent('resume-change', {
+                detail: { resumeData: this.data },
+                bubbles: true
+            }));
+        }, 100);
+    }
+
+    initLocalStorage() {
+        // Check if localStorage is available
+        if (!this.isLocalStorageAvailable()) {
+            console.warn('localStorage is not available. Resume saving functionality will be disabled.');
+            const saveButton = document.querySelector('#save-button');
+            const loadButton = document.querySelector('#load-button');
+            if (saveButton) saveButton.disabled = true;
+            if (loadButton) loadButton.disabled = true;
+            return;
+        }
+        
+        // Initialize the saved resumes registry if it doesn't exist
+        try {
+            const resumeRegistry = localStorage.getItem('resumeRegistry');
+            if (!resumeRegistry) {
+                localStorage.setItem('resumeRegistry', JSON.stringify([]));
+            } else {
+                // Try to parse it to make sure it's valid
+                try {
+                    JSON.parse(resumeRegistry);
+                } catch (e) {
+                    console.warn('Resume registry corrupted, resetting');
+                    localStorage.setItem('resumeRegistry', JSON.stringify([]));
+                }
+            }
+        } catch (e) {
+            console.error('Error initializing localStorage:', e);
+            // Attempt to reset the registry
+            try {
+                localStorage.setItem('resumeRegistry', JSON.stringify([]));
+            } catch (resetError) {
+                console.error('Failed to reset localStorage registry:', resetError);
+            }
+        }
+    }
+
+    isLocalStorageAvailable() {
+        try {
+            const test = 'test';
+            localStorage.setItem(test, test);
+            localStorage.removeItem(test);
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     getDefaultResumeData() {
@@ -471,6 +529,284 @@ class ResumeEditor extends HTMLElement {
         
         // Touch swipe navigation
         this.setupSwipeNavigation();
+
+        // Save/Load functionality
+        this.setupSaveLoadEventListeners();
+    }
+
+    setupSaveLoadEventListeners() {
+        // Save button
+        const saveButton = document.querySelector('#save-button');
+        if (saveButton) {
+            saveButton.addEventListener('click', () => this.openSaveModal());
+        }
+
+        // Load button
+        const loadButton = document.querySelector('#load-button');
+        if (loadButton) {
+            loadButton.addEventListener('click', () => this.openLoadModal());
+        }
+
+        // Save modal
+        const saveModal = document.querySelector('#save-modal');
+        if (saveModal) {
+            // Close button
+            saveModal.querySelector('.modal-close')?.addEventListener('click', () => {
+                saveModal.classList.add('hidden');
+            });
+
+            // Cancel button
+            saveModal.querySelector('.modal-cancel')?.addEventListener('click', () => {
+                saveModal.classList.add('hidden');
+            });
+
+            // Save button
+            saveModal.querySelector('#save-resume')?.addEventListener('click', () => {
+                const nameInput = saveModal.querySelector('#save-name');
+                const name = nameInput.value.trim();
+                
+                if (!name) {
+                    this.showToast('Please enter a name for your resume', 'error');
+                    return;
+                }
+                
+                if (this.saveResumeToStorage(name)) {
+                    this.showToast('Resume saved successfully!');
+                    saveModal.classList.add('hidden');
+                }
+            });
+
+            // Name input change
+            saveModal.querySelector('#save-name')?.addEventListener('input', (e) => {
+                const name = e.target.value.trim();
+                const warningSection = saveModal.querySelector('#save-existing-section');
+                const registry = this.getSavedResumes();
+                const existingResume = registry.find(r => r.name === name && r.id !== this.data.meta.id);
+                warningSection.classList.toggle('hidden', !existingResume);
+            });
+        }
+
+        // Load modal
+        const loadModal = document.querySelector('#load-modal');
+        if (loadModal) {
+            // Close button
+            loadModal.querySelector('.modal-close')?.addEventListener('click', () => {
+                loadModal.classList.add('hidden');
+            });
+
+            // Cancel button
+            loadModal.querySelector('.modal-cancel')?.addEventListener('click', () => {
+                loadModal.classList.add('hidden');
+            });
+        }
+    }
+
+    openSaveModal() {
+        const modal = document.querySelector('#save-modal');
+        const nameInput = modal.querySelector('#save-name');
+        const warningSection = modal.querySelector('#save-existing-section');
+        
+        // Set default name from current resume if available, otherwise use basics name
+        nameInput.value = this.data.meta.name || (this.data.basics.name ? `${this.data.basics.name}'s Resume` : 'My Resume');
+        
+        // Check if this name already exists
+        const registry = this.getSavedResumes();
+        const existingResume = registry.find(r => r.name === nameInput.value && r.id !== this.data.meta.id);
+        
+        warningSection.classList.toggle('hidden', !existingResume);
+        
+        modal.classList.remove('hidden');
+    }
+
+    openLoadModal() {
+        const modal = document.querySelector('#load-modal');
+        this.renderSavedResumesList();
+        modal.classList.remove('hidden');
+    }
+
+    renderSavedResumesList() {
+        const container = document.querySelector('#saved-resumes-list');
+        const registry = this.getSavedResumes();
+        
+        if (!container) return;
+        
+        if (registry.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-folder-open fa-2x"></i>
+                    <p>No saved resumes found. Save a resume first to see it here.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        registry.forEach(resume => {
+            const savedDate = new Date(resume.savedDate);
+            const formattedDate = savedDate.toLocaleDateString() + ' ' + savedDate.toLocaleTimeString();
+            
+            html += `
+                <div class="resume-item-card" data-id="${resume.id}">
+                    <div class="resume-info">
+                        <div class="resume-name">${this.escapeHtml(resume.name)}</div>
+                        <div class="resume-date">
+                            <strong>${this.escapeHtml(resume.basics.name || 'Unnamed')}</strong>
+                            ${resume.basics.label ? ` - ${this.escapeHtml(resume.basics.label)}` : ''}
+                            <div>Last saved: ${formattedDate}</div>
+                        </div>
+                    </div>
+                    <div class="resume-item-actions">
+                        <button class="icon-button load-resume" data-id="${resume.id}" title="Load this resume">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </button>
+                        <button class="icon-button delete-resume" data-id="${resume.id}" title="Delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+        
+        // Add event listeners
+        container.querySelectorAll('.load-resume').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const resumeId = btn.dataset.id;
+                if (this.loadResumeFromStorage(resumeId)) {
+                    document.querySelector('#load-modal').classList.add('hidden');
+                }
+            });
+        });
+        
+        container.querySelectorAll('.delete-resume').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const resumeId = btn.dataset.id;
+                if (confirm('Are you sure you want to delete this resume? This action cannot be undone.')) {
+                    if (this.deleteResumeFromStorage(resumeId)) {
+                        this.showToast('Resume deleted successfully!');
+                        this.renderSavedResumesList();
+                    }
+                }
+            });
+        });
+    }
+
+    getSavedResumes() {
+        try {
+            return JSON.parse(localStorage.getItem('resumeRegistry') || '[]');
+        } catch (e) {
+            console.error('Error parsing resume registry:', e);
+            return [];
+        }
+    }
+
+    saveResumeToStorage(name) {
+        try {
+            const registry = this.getSavedResumes();
+            const saveDate = new Date().toISOString();
+            
+            // Update metadata
+            this.data.meta.lastModified = saveDate;
+            this.data.meta.name = name;
+            
+            // Generate a unique ID if it doesn't exist
+            const resumeId = this.data.meta.id || `resume_${Date.now()}`;
+            this.data.meta.id = resumeId;
+            
+            // Check if this resume already exists in registry
+            const existingIndex = registry.findIndex(r => r.id === resumeId);
+            
+            if (existingIndex >= 0) {
+                // Update existing entry
+                registry[existingIndex] = {
+                    id: resumeId,
+                    name: name,
+                    savedDate: saveDate,
+                    basics: {
+                        name: this.data.basics.name || 'Unnamed',
+                        label: this.data.basics.label || ''
+                    }
+                };
+            } else {
+                // Add new entry
+                registry.push({
+                    id: resumeId,
+                    name: name,
+                    savedDate: saveDate,
+                    basics: {
+                        name: this.data.basics.name || 'Unnamed',
+                        label: this.data.basics.label || ''
+                    }
+                });
+            }
+            
+            // Save updated registry
+            localStorage.setItem('resumeRegistry', JSON.stringify(registry));
+            
+            // Save the actual resume data
+            localStorage.setItem(`resume_${resumeId}`, JSON.stringify(this.data));
+            
+            return true;
+        } catch (e) {
+            console.error('Error saving resume:', e);
+            this.showToast('Error saving resume. Please try again.', 'error');
+            return false;
+        }
+    }
+
+    loadResumeFromStorage(resumeId) {
+        try {
+            const resumeData = localStorage.getItem(`resume_${resumeId}`);
+            
+            if (!resumeData) {
+                this.showToast('Resume not found.', 'error');
+                return false;
+            }
+            
+            const parsedData = JSON.parse(resumeData);
+            this.data = parsedData;
+            this.updateAllFields();
+            
+            this.showToast('Resume loaded successfully!');
+            return true;
+        } catch (e) {
+            console.error('Error loading resume:', e);
+            this.showToast('Error loading resume. Please try again.', 'error');
+            return false;
+        }
+    }
+
+    deleteResumeFromStorage(resumeId) {
+        try {
+            const registry = this.getSavedResumes();
+            const index = registry.findIndex(r => r.id === resumeId);
+            
+            if (index >= 0) {
+                registry.splice(index, 1);
+                localStorage.setItem('resumeRegistry', JSON.stringify(registry));
+                localStorage.removeItem(`resume_${resumeId}`);
+                return true;
+            }
+            
+            return false;
+        } catch (e) {
+            console.error('Error deleting resume:', e);
+            this.showToast('Error deleting resume. Please try again.', 'error');
+            return false;
+        }
+    }
+
+    showToast(message, type = 'info') {
+        const toast = document.querySelector('#toast');
+        if (!toast) return;
+        
+        toast.textContent = message;
+        toast.className = `toast show ${type}`;
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
     }
 
     switchTab(tabId) {
@@ -1452,9 +1788,33 @@ class ResumeEditor extends HTMLElement {
         if (lastModifiedEl) {
             lastModifiedEl.value = this.data.meta.lastModified.split('T')[0];
         }
+        
+        // Emit custom event for real-time updates
+        this.dispatchEvent(new CustomEvent('resume-change', {
+            detail: { resumeData: this.data },
+            bubbles: true
+        }));
     }
 
     loadResumeData() {
+        // Try to load from resumeRegistry first
+        const registry = this.getSavedResumes();
+        if (registry.length > 0) {
+            // Load the most recently saved resume
+            const latestResume = registry.sort((a, b) => new Date(b.savedDate) - new Date(a.savedDate))[0];
+            const resumeData = localStorage.getItem(`resume_${latestResume.id}`);
+            if (resumeData) {
+                try {
+                    this.data = JSON.parse(resumeData);
+                    this.updateAllFields();
+                    return;
+                } catch (e) {
+                    console.error('Error loading resume data:', e);
+                }
+            }
+        }
+
+        // Fallback to legacy storage
         const saved = localStorage.getItem('resumeJson');
         if (saved) {
             try {
@@ -1468,7 +1828,13 @@ class ResumeEditor extends HTMLElement {
 
     saveToLocalStorage() {
         try {
+            // Save to both storage systems for compatibility
             localStorage.setItem('resumeJson', JSON.stringify(this.data));
+            
+            // Also save to the new storage system if we have a name
+            if (this.data.meta.name) {
+                this.saveResumeToStorage(this.data.meta.name);
+            }
         } catch (e) {
             console.error('Error saving resume data:', e);
         }
@@ -1477,6 +1843,16 @@ class ResumeEditor extends HTMLElement {
     // Public API methods
     getResumeData() {
         return this.data;
+    }
+    
+    // Getter for resumeData property
+    get resumeData() {
+        return this.data;
+    }
+    
+    // Setter for resumeData property
+    set resumeData(data) {
+        this.setResumeData(data);
     }
 
     setResumeData(data) {
@@ -1508,24 +1884,6 @@ class ResumeEditor extends HTMLElement {
             "'": '&#039;'
         };
         return text ? text.replace(/[&<>"']/g, m => map[m]) : '';
-    }
-
-    showToast(message, type = 'info') {
-        // Create toast if it doesn't exist
-        let toast = document.querySelector('#toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'toast';
-            toast.className = 'toast';
-            document.body.appendChild(toast);
-        }
-        
-        toast.textContent = message;
-        toast.className = `toast show ${type}`;
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
     }
 }
 

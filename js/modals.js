@@ -338,8 +338,7 @@ function setupEducationModal(app) {
             const area = $('#education-area').value.trim();
             const startDate = $('#education-startDate').value.trim();
             const endDate = $('#education-endDate').value.trim();
-            const score = $('#education-score').value.trim();
-            const url = $('#education-url').value.trim();
+            const gpa = $('#education-gpa').value.trim();
             const coursesText = $('#education-courses').value.trim();
             
             if (!institution || !studyType) {
@@ -361,8 +360,7 @@ function setupEducationModal(app) {
                 area,
                 startDate,
                 endDate,
-                score,
-                url,
+                gpa,
                 courses
             };
             
@@ -398,8 +396,7 @@ function setupEducationModal(app) {
             $('#education-area').value = education.area || '';
             $('#education-startDate').value = education.startDate || '';
             $('#education-endDate').value = education.endDate || '';
-            $('#education-score').value = education.score || '';
-            $('#education-url').value = education.url || '';
+            $('#education-gpa').value = education.gpa || '';
             $('#education-courses').value = education.courses ? education.courses.map(h => `• ${h}`).join('\n') : '';
             
             app.state.currentEditIndex = index;
