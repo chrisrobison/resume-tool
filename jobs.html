@@ -1,0 +1,2570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Hunt Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            background: white;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #34495e;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: #34495e;
+            border-bottom: 1px solid #4a5f7a;
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header .subtitle {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid #34495e;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .nav-item:hover {
+            background: #34495e;
+        }
+
+        .nav-item.active {
+            background: #3498db;
+        }
+
+        .nav-item i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #34495e;
+        }
+
+        .settings-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .settings-btn:hover {
+            background: #2ecc71;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .main-header {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-header h2 {
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        /* Content Panels */
+        .content-panels {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .items-panel {
+            width: 300px;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+        }
+
+        .items-header {
+            padding: 15px;
+            background: white;
+            border-bottom: 1px solid #ddd;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .items-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .item-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .item-card:hover {
+            border-color: #3498db;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.15);
+        }
+
+        .item-card.active {
+            border-color: #3498db;
+            background: #f8fbff;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .item-subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .item-meta {
+            font-size: 12px;
+            color: #95a5a6;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-applied { background: #e8f5e8; color: #27ae60; }
+        .status-interviewing { background: #fff3cd; color: #f39c12; }
+        .status-offered { background: #d1ecf1; color: #17a2b8; }
+        .status-rejected { background: #f8d7da; color: #dc3545; }
+        .status-accepted { background: #d4edda; color: #28a745; }
+        .status-saved { background: #e2e3e5; color: #6c757d; }
+
+        /* Details Panel */
+        .details-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .details-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #7f8c8d;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .modal-title {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+            margin-left: auto;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: #27ae60;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            transform: translateY(100%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background-color: #e74c3c;
+        }
+
+        .toast.warning {
+            background-color: #f39c12;
+        }
+
+        .toast.info {
+            background-color: #3498db;
+        }
+
+        /* Resume Editor Integration */
+        .resume-editor-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .resume-editor-modal-container {
+            position: relative;
+        }
+
+        .field-help {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+        }
+
+        .field-help small {
+            display: block;
+            margin-bottom: 10px;
+            color: #6c757d;
+        }
+
+        /* Resume Editor Component Styles */
+        .resume-editor {
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        .resume-editor .tabs {
+            display: flex;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            overflow-x: auto;
+        }
+
+        .resume-editor .tab {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            background: none;
+            border: none;
+            color: #495057;
+        }
+
+        .resume-editor .tab:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .resume-editor .tab.active {
+            border-bottom-color: #3498db;
+            font-weight: 600;
+            color: #3498db;
+            background-color: white;
+        }
+
+        .resume-editor .panel {
+            display: none;
+            padding: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .resume-editor .panel.active {
+            display: block;
+        }
+
+        .resume-editor .resume-section {
+            margin-bottom: 2rem;
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .resume-editor .resume-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .resume-editor .resume-section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .resume-editor .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .resume-editor .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .resume-editor .input-group label {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .resume-editor .input-group input,
+        .resume-editor .input-group textarea,
+        .resume-editor .input-group select {
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        .resume-editor .input-group input:focus,
+        .resume-editor .input-group textarea:focus,
+        .resume-editor .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+
+        .resume-editor .input-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .resume-editor .small-button {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .resume-editor .small-button:hover {
+            background: #2980b9;
+        }
+
+        .resume-editor .button-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .resume-editor .success {
+            background-color: #27ae60 !important;
+        }
+
+        .resume-editor .success:hover {
+            background-color: #229954 !important;
+        }
+
+        .resume-editor .secondary {
+            background-color: #6c757d !important;
+            color: white !important;
+        }
+
+        .resume-editor .secondary:hover {
+            background-color: #545b62 !important;
+        }
+
+        .resume-editor .resume-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .resume-editor .resume-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .resume-editor .resume-item-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .resume-editor .resume-item-subtitle {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .resume-editor .resume-item-buttons {
+            display: flex;
+            gap: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .resume-editor .icon-button {
+            background: transparent;
+            border: none;
+            padding: 0.25rem;
+            cursor: pointer;
+            border-radius: 4px;
+            color: #6c757d;
+            transition: all 0.2s;
+        }
+
+        .resume-editor .icon-button:hover {
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+
+        .resume-editor .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .resume-editor .empty-state i {
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .resume-editor .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .resume-editor .modal {
+            background: white;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .resume-editor .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .resume-editor .modal-title {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+
+        .resume-editor .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .resume-editor .modal-close:hover {
+            color: #2c3e50;
+        }
+
+        .resume-editor .help-text {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .resume-editor .card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 1rem;
+        }
+
+        /* Preview styles for resume editor */
+        .resume-editor .preview-loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .resume-editor .resume-preview {
+            max-width: 800px;
+            margin: 0 auto;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 1rem;
+        }
+
+        .resume-editor .resume-preview .resume-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        .resume-editor .resume-preview .resume-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+            color: #2c3e50;
+        }
+
+        .resume-editor .resume-preview .resume-header h2 {
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+
+        .resume-editor .resume-preview .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .resume-editor .resume-preview .resume-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .resume-editor .resume-preview .resume-section h3 {
+            margin: 0 0 1rem 0;
+            font-size: 1.3rem;
+            color: #2c3e50;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 0.5rem;
+        }
+
+        .resume-editor .resume-preview .work-item,
+        .resume-editor .resume-preview .education-item,
+        .resume-editor .resume-preview .project-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .resume-editor .resume-preview .work-item:last-child,
+        .resume-editor .resume-preview .education-item:last-child,
+        .resume-editor .resume-preview .project-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .resume-editor .resume-preview .skills-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .resume-editor .resume-preview .skill-item {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .sidebar-header h1,
+            .sidebar-header .subtitle,
+            .nav-item span {
+                display: none;
+            }
+
+            .nav-item {
+                text-align: center;
+                padding: 15px 10px;
+            }
+
+            .items-panel {
+                width: 250px;
+            }
+
+            .modal {
+                width: 95%;
+                margin: 10px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .app-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                overflow-x: auto;
+            }
+
+            .sidebar-header {
+                display: none;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                flex: 1;
+            }
+
+            .nav-item {
+                white-space: nowrap;
+                flex: 1;
+                text-align: center;
+                min-width: 80px;
+            }
+
+            .content-panels {
+                flex-direction: column;
+            }
+
+            .items-panel {
+                width: 100%;
+                height: 200px;
+            }
+
+            .details-panel {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>Job Hunt Manager</h1>
+                <div class="subtitle">Organize your job search</div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="jobs">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Jobs</span>
+                </a>
+                <a href="#" class="nav-item" data-section="resumes">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Resumes</span>
+                </a>
+                <a href="#" class="nav-item" data-section="letters">
+                    <i class="fas fa-envelope"></i>
+                    <span>Letters</span>
+                </a>
+                <a href="#" class="nav-item" data-section="ai">
+                    <i class="fas fa-robot"></i>
+                    <span>AI History</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button class="settings-btn" id="settings-btn">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="main-header">
+                <h2 id="section-title">Jobs</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="import-job-btn" style="display: none;">
+                        <i class="fas fa-download"></i>
+                        Import Job
+                    </button>
+                    <button class="btn btn-success" id="add-item-btn">
+                        <i class="fas fa-plus"></i>
+                        <span id="add-item-text">Add Job</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-panels">
+                <!-- Items List Panel -->
+                <div class="items-panel">
+                    <div class="items-header" id="items-header">Jobs</div>
+                    <div class="items-list" id="items-list">
+                        <!-- Items will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Details Panel -->
+                <div class="details-panel">
+                    <div class="details-content" id="details-content">
+                        <div class="empty-state">
+                            <i class="fas fa-briefcase"></i>
+                            <h3>Select a job to view details</h3>
+                            <p>Choose a job from the list to view and edit its information</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Form Modal -->
+    <div class="modal-backdrop hidden" id="form-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="form-modal-title">Add Item</h3>
+                <button class="modal-close" id="form-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="generic-form">
+                    <!-- Form fields will be generated here -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" id="form-cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="form-save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-backdrop hidden" id="settings-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Settings</h3>
+                <button class="modal-close" id="settings-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="api-type">AI Service</label>
+                    <select class="form-input" id="api-type">
+                        <option value="claude">Claude (Anthropic)</option>
+                        <option value="chatgpt">ChatGPT (OpenAI)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="api-key">API Key</label>
+                    <input type="password" class="form-input" id="api-key" placeholder="Enter your API key">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="use-direct-api"> Use direct API calls (browser-based)
+                    </label>
+                    <div style="font-size: 12px; color: #7f8c8d; margin-top: 5px;">
+                        When enabled, API calls are made directly from your browser. Otherwise, they go through the local server.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" id="settings-cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="settings-save">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Job Modal -->
+    <div class="modal-backdrop hidden" id="import-job-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Import Job from URL or Description</h3>
+                <button class="modal-close" id="import-job-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Import Method</label>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="import-method" value="url" id="import-method-url" checked>
+                            <span>Job URL</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="import-method" value="description" id="import-method-description">
+                            <span>Job Description</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="import-url-section">
+                    <label class="form-label" for="import-job-url">Job Posting URL</label>
+                    <input type="url" class="form-input" id="import-job-url" placeholder="https://example.com/job-posting">
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        Paste the URL of the job posting (LinkedIn, Indeed, company website, etc.)
+                    </div>
+                </div>
+
+                <div class="form-group hidden" id="import-description-section">
+                    <label class="form-label" for="import-job-description">Job Description</label>
+                    <textarea class="form-input form-textarea" id="import-job-description" rows="10" placeholder="Paste the complete job description here..."></textarea>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        Copy and paste the entire job description including requirements, responsibilities, and company information
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="import-custom-instructions">Additional Instructions (Optional)</label>
+                    <textarea class="form-input form-textarea" id="import-custom-instructions" rows="2" placeholder="Any specific parsing requirements or additional information..."></textarea>
+                </div>
+
+                <div id="import-api-warning" class="hidden" style="padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; margin: 10px 0;">
+                    <strong>⚠️ API Key Required</strong><br>
+                    Please configure your API key in Settings before using import features.
+                </div>
+
+                <div id="import-progress" class="hidden" style="padding: 15px; text-align: center;">
+                    <div style="margin-bottom: 10px;">
+                        <i class="fas fa-download fa-spin" style="font-size: 24px; color: #3498db;"></i>
+                    </div>
+                    <div id="import-progress-text">Importing job information...</div>
+                    <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                        Analyzing content and extracting job details...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" id="import-job-cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="import-job-submit">
+                    <i class="fas fa-download"></i> Import Job
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Generation Modal -->
+    <div class="modal-backdrop hidden" id="ai-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">AI Resume Tailoring & Cover Letter Generation</h3>
+                <button class="modal-close" id="ai-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Job Details</label>
+                    <div id="ai-job-details" class="card" style="padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
+                        <!-- Job details will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="ai-base-resume">Select Base Resume</label>
+                    <select class="form-input" id="ai-base-resume" required>
+                        <option value="">Choose a resume to tailor...</option>
+                        <!-- Resume options will be populated here -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="ai-custom-instructions">Custom Instructions (Optional)</label>
+                    <textarea class="form-input form-textarea" id="ai-custom-instructions" rows="3" placeholder="Any specific requirements or preferences for the tailoring..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="ai-generate-cover-letter" checked> Generate cover letter
+                    </label>
+                </div>
+
+                <div id="ai-api-warning" class="hidden" style="padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; margin: 10px 0;">
+                    <strong>⚠️ API Key Required</strong><br>
+                    Please configure your API key in Settings before using AI features.
+                </div>
+
+                <div id="ai-progress" class="hidden" style="padding: 15px; text-align: center;">
+                    <div style="margin-bottom: 10px;">
+                        <i class="fas fa-robot fa-spin" style="font-size: 24px; color: #3498db;"></i>
+                    </div>
+                    <div id="ai-progress-text">Processing with AI...</div>
+                    <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                        This may take 30-60 seconds depending on the AI service.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" id="ai-cancel">Cancel</button>
+                <button type="button" class="btn btn-success" id="ai-generate">
+                    <i class="fas fa-robot"></i> Generate
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Resume Editor Component -->
+    <script type="module" src="./components/resume-editor.js"></script>
+
+    <!-- Job Hunt Manager JavaScript -->
+    <script type="module">
+        // Data structure for the job hunt manager
+        const defaultData = {
+            jobs: [],
+            resumes: [],
+            letters: [],
+            ai: []
+        };
+
+        // Current state
+        let currentSection = 'jobs';
+        let currentItem = null;
+        let data = loadData();
+
+        // Utility function to escape HTML content
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.toString().replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Utility function to sanitize JSON for form display
+        function sanitizeJsonForForm(jsonObj) {
+            if (typeof jsonObj === 'string') {
+                try {
+                    jsonObj = JSON.parse(jsonObj);
+                } catch (e) {
+                    return jsonObj; // Return as-is if not valid JSON
+                }
+            }
+            return JSON.stringify(jsonObj, null, 2);
+        }
+
+        // Job schema
+        const jobSchema = {
+            id: { type: 'hidden', required: true },
+            company: { type: 'text', label: 'Company', required: true },
+            position: { type: 'text', label: 'Position', required: true },
+            status: { 
+                type: 'select', 
+                label: 'Status',
+                options: ['saved', 'applied', 'interviewing', 'offered', 'rejected', 'accepted', 'declined'],
+                required: true
+            },
+            datePosted: { type: 'date', label: 'Date Posted' },
+            dateApplied: { type: 'date', label: 'Date Applied' },
+            description: { type: 'textarea', label: 'Short Description', rows: 3 },
+            jobDetails: { type: 'textarea', label: 'Job Details', rows: 8 },
+            location: { type: 'text', label: 'Location' },
+            contactName: { type: 'text', label: 'Contact Name' },
+            contactEmail: { type: 'email', label: 'Contact Email' },
+            contactPhone: { type: 'tel', label: 'Contact Phone' },
+            url: { type: 'url', label: 'Job URL' },
+            resumeId: { 
+                type: 'select', 
+                label: 'Associated Resume',
+                options: () => data.resumes.map(r => ({ value: r.id, label: r.name || 'Untitled Resume' }))
+            },
+            notes: { type: 'textarea', label: 'Notes', rows: 4 }
+        };
+
+        // Resume schema - using resume-editor component for content editing
+        const resumeSchema = {
+            id: { type: 'hidden', required: true },
+            name: { type: 'text', label: 'Resume Name', required: true },
+            content: { type: 'resume-editor', label: 'Resume Content' },
+            dateCreated: { type: 'datetime-local', label: 'Date Created', readonly: true },
+            dateModified: { type: 'datetime-local', label: 'Last Modified', readonly: true }
+        };
+
+        // Cover letter schema
+        const letterSchema = {
+            id: { type: 'hidden', required: true },
+            name: { type: 'text', label: 'Letter Name', required: true },
+            type: { 
+                type: 'select', 
+                label: 'Letter Type',
+                options: ['cover_letter', 'thank_you', 'follow_up', 'networking'],
+                required: true
+            },
+            content: { type: 'textarea', label: 'Letter Content', rows: 15 },
+            jobId: { 
+                type: 'select', 
+                label: 'Associated Job',
+                options: () => data.jobs.map(j => ({ value: j.id, label: `${j.position} at ${j.company}` }))
+            },
+            dateCreated: { type: 'datetime-local', label: 'Date Created', readonly: true }
+        };
+
+        // AI interaction schema
+        const aiSchema = {
+            id: { type: 'hidden', required: true },
+            type: { type: 'text', label: 'Interaction Type', readonly: true },
+            service: { type: 'text', label: 'AI Service', readonly: true },
+            prompt: { type: 'textarea', label: 'Prompt', rows: 5, readonly: true },
+            response: { type: 'textarea', label: 'Response', rows: 10, readonly: true },
+            timestamp: { type: 'datetime-local', label: 'Timestamp', readonly: true },
+            jobId: { type: 'text', label: 'Related Job ID', readonly: true }
+        };
+
+        const schemas = {
+            jobs: jobSchema,
+            resumes: resumeSchema,
+            letters: letterSchema,
+            ai: aiSchema
+        };
+
+        // Initialize the application
+        function init() {
+            setupEventListeners();
+            switchSection('jobs');
+        }
+
+        // Load data from localStorage
+        function loadData() {
+            const stored = localStorage.getItem('jobHuntData');
+            return stored ? JSON.parse(stored) : defaultData;
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('jobHuntData', JSON.stringify(data));
+        }
+
+        // Generate unique ID
+        function generateId() {
+            return `${currentSection}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const section = item.dataset.section;
+                    switchSection(section);
+                });
+            });
+
+            // Add item button
+            document.getElementById('add-item-btn').addEventListener('click', () => {
+                addNewItem();
+            });
+
+            // Import job button
+            document.getElementById('import-job-btn').addEventListener('click', () => {
+                openImportJobModal();
+            });
+
+            // Modal events
+            document.getElementById('form-modal-close').addEventListener('click', closeModal);
+            document.getElementById('form-cancel').addEventListener('click', closeModal);
+            document.getElementById('form-save').addEventListener('click', saveItem);
+
+            // Settings
+            document.getElementById('settings-btn').addEventListener('click', openSettings);
+            document.getElementById('settings-modal-close').addEventListener('click', closeSettings);
+            document.getElementById('settings-cancel').addEventListener('click', closeSettings);
+            document.getElementById('settings-save').addEventListener('click', saveSettings);
+
+            // AI Modal
+            document.getElementById('ai-modal-close').addEventListener('click', closeAIModal);
+            document.getElementById('ai-cancel').addEventListener('click', closeAIModal);
+            document.getElementById('ai-generate').addEventListener('click', processAIGeneration);
+
+            // Import Job Modal
+            document.getElementById('import-job-modal-close').addEventListener('click', closeImportJobModal);
+            document.getElementById('import-job-cancel').addEventListener('click', closeImportJobModal);
+            document.getElementById('import-job-submit').addEventListener('click', processJobImport);
+            document.getElementById('import-method-url').addEventListener('change', toggleImportMethod);
+            document.getElementById('import-method-description').addEventListener('change', toggleImportMethod);
+
+            // Close modals on backdrop click
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                backdrop.addEventListener('click', (e) => {
+                    if (e.target === backdrop) {
+                        backdrop.classList.add('hidden');
+                    }
+                });
+            });
+        }
+
+        // Switch between sections
+        function switchSection(section) {
+            currentSection = section;
+            currentItem = null;
+
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+
+            // Update header
+            const titles = {
+                jobs: 'Jobs',
+                resumes: 'Resumes', 
+                letters: 'Cover Letters',
+                ai: 'AI Interactions'
+            };
+            document.getElementById('section-title').textContent = titles[section];
+            document.getElementById('items-header').textContent = titles[section];
+            document.getElementById('add-item-text').textContent = `Add ${section.slice(0, -1)}`;
+
+            // Show/hide buttons based on section
+            const addBtn = document.getElementById('add-item-btn');
+            const importBtn = document.getElementById('import-job-btn');
+            
+            if (section === 'ai') {
+                addBtn.style.display = 'none';
+                importBtn.style.display = 'none';
+            } else if (section === 'jobs') {
+                addBtn.style.display = 'flex';
+                importBtn.style.display = 'flex';
+            } else {
+                addBtn.style.display = 'flex';
+                importBtn.style.display = 'none';
+            }
+
+            renderItemsList();
+            showEmptyState();
+        }
+
+        // Render items list
+        function renderItemsList() {
+            const container = document.getElementById('items-list');
+            const items = data[currentSection] || [];
+
+            container.innerHTML = '';
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #7f8c8d;">
+                        <i class="fas fa-inbox" style="font-size: 24px; margin-bottom: 10px; opacity: 0.5;"></i>
+                        <div>No ${currentSection} yet</div>
+                    </div>
+                `;
+                return;
+            }
+
+            items.forEach(item => {
+                const card = createItemCard(item);
+                container.appendChild(card);
+            });
+        }
+
+        // Create item card for list
+        function createItemCard(item) {
+            const card = document.createElement('div');
+            card.className = 'item-card';
+            card.dataset.itemId = item.id;
+
+            let title, subtitle, meta, status = '';
+
+            switch (currentSection) {
+                case 'jobs':
+                    title = item.position || 'Untitled Position';
+                    subtitle = item.company || 'Unknown Company';
+                    meta = item.location || 'No location';
+                    if (item.status) {
+                        status = `<span class="status-badge status-${item.status}">${item.status}</span>`;
+                    }
+                    break;
+                case 'resumes':
+                    title = item.name || 'Untitled Resume';
+                    subtitle = item.dateModified ? `Modified: ${new Date(item.dateModified).toLocaleDateString()}` : '';
+                    meta = item.dateCreated ? `Created: ${new Date(item.dateCreated).toLocaleDateString()}` : '';
+                    break;
+                case 'letters':
+                    title = item.name || 'Untitled Letter';
+                    subtitle = item.type ? item.type.replace('_', ' ').toUpperCase() : 'Letter';
+                    meta = item.dateCreated ? new Date(item.dateCreated).toLocaleDateString() : '';
+                    break;
+                case 'ai':
+                    title = item.type || 'AI Interaction';
+                    subtitle = item.service || 'Unknown Service';
+                    meta = item.timestamp ? new Date(item.timestamp).toLocaleDateString() : '';
+                    break;
+            }
+
+            card.innerHTML = `
+                <div class="item-title">${escapeHtml(title)}</div>
+                <div class="item-subtitle">${escapeHtml(subtitle)}</div>
+                <div class="item-meta">
+                    <span>${escapeHtml(meta)}</span>
+                    ${status}
+                </div>
+            `;
+
+            card.addEventListener('click', () => {
+                selectItem(item);
+            });
+
+            return card;
+        }
+
+        // Select an item
+        function selectItem(item) {
+            currentItem = item;
+
+            // Update selected state
+            document.querySelectorAll('.item-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.querySelector(`[data-item-id="${item.id}"]`).classList.add('active');
+
+            renderItemDetails(item);
+        }
+
+        // Show empty state
+        function showEmptyState() {
+            const content = document.getElementById('details-content');
+            const icons = {
+                jobs: 'briefcase',
+                resumes: 'file-alt',
+                letters: 'envelope',
+                ai: 'robot'
+            };
+
+            const messages = {
+                jobs: 'Select a job to view details',
+                resumes: 'Select a resume to view details', 
+                letters: 'Select a letter to view details',
+                ai: 'Select an AI interaction to view details'
+            };
+
+            content.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-${icons[currentSection]}"></i>
+                    <h3>${messages[currentSection]}</h3>
+                    <p>Choose an item from the list to view and edit its information</p>
+                </div>
+            `;
+        }
+
+        // Render item details
+        function renderItemDetails(item) {
+            const content = document.getElementById('details-content');
+            const schema = schemas[currentSection];
+            
+            let html = '<div class="form-container">';
+            
+            Object.entries(schema).forEach(([key, field]) => {
+                if (field.type === 'hidden') return;
+                
+                let value = item[key] || '';
+                const readonly = field.readonly ? 'readonly' : '';
+                const required = field.required ? 'required' : '';
+                
+                html += `<div class="form-group">`;
+                html += `<label class="form-label">${escapeHtml(field.label)}</label>`;
+                
+                if (field.type === 'textarea') {
+                    const rows = field.rows || 3;
+                    html += `<textarea class="form-input form-textarea" rows="${rows}" ${readonly} ${required}>${escapeHtml(value)}</textarea>`;
+                } else if (field.type === 'resume-editor') {
+                    // Special handling for resume editor component
+                    const resumeData = typeof value === 'string' ? value : JSON.stringify(value || {}, null, 2);
+                    html += `
+                        <div class="resume-editor-container">
+                            <resume-editor id="resume-editor-${key}" data-field="${key}"></resume-editor>
+                        </div>
+                    `;
+                } else if (field.type === 'select') {
+                    html += `<select class="form-input" ${readonly} ${required}>`;
+                    if (typeof field.options === 'function') {
+                        field.options().forEach(opt => {
+                            const selected = value === opt.value ? 'selected' : '';
+                            html += `<option value="${escapeHtml(opt.value)}" ${selected}>${escapeHtml(opt.label)}</option>`;
+                        });
+                    } else {
+                        field.options.forEach(opt => {
+                            const selected = value === opt ? 'selected' : '';
+                            html += `<option value="${escapeHtml(opt)}" ${selected}>${escapeHtml(opt)}</option>`;
+                        });
+                    }
+                    html += `</select>`;
+                } else {
+                    html += `<input type="${field.type}" class="form-input" value="${escapeHtml(value)}" ${readonly} ${required}>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            if (currentSection !== 'ai') {
+                html += `
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="editCurrentItem()">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        ${currentSection === 'jobs' ? `
+                            <button type="button" class="btn btn-success" onclick="generateAIContent()" style="background: #27ae60;">
+                                <i class="fas fa-robot"></i> AI Tailor Resume & Letter
+                            </button>
+                        ` : ''}
+                        <button type="button" class="btn" onclick="deleteCurrentItem()" style="background: #e74c3c; color: white;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            content.innerHTML = html;
+            
+            // Initialize resume editor if present
+            if (currentSection === 'resumes' && item.content) {
+                setTimeout(() => {
+                    const resumeEditor = document.querySelector(`#resume-editor-content`);
+                    if (resumeEditor) {
+                        try {
+                            const resumeData = typeof item.content === 'string' ? JSON.parse(item.content) : item.content;
+                            resumeEditor.setResumeData(resumeData);
+                        } catch (e) {
+                            console.error('Error loading resume data into editor:', e);
+                        }
+                    }
+                }, 100);
+            }
+        }
+
+        // Add new item
+        function addNewItem() {
+            const newItem = { id: generateId() };
+            
+            // Set default values based on section
+            if (currentSection === 'jobs') {
+                newItem.status = 'saved';
+                newItem.dateCreated = new Date().toISOString();
+            } else if (currentSection === 'resumes') {
+                newItem.dateCreated = new Date().toISOString();
+                newItem.dateModified = new Date().toISOString();
+                newItem.content = '{}';
+            } else if (currentSection === 'letters') {
+                newItem.type = 'cover_letter';
+                newItem.dateCreated = new Date().toISOString();
+            }
+            
+            openFormModal('Add ' + currentSection.slice(0, -1), newItem, true);
+        }
+
+        // Edit current item
+        window.editCurrentItem = function() {
+            if (!currentItem) return;
+            openFormModal('Edit ' + currentSection.slice(0, -1), currentItem, false);
+        };
+
+        // Delete current item
+        window.deleteCurrentItem = function() {
+            if (!currentItem) return;
+            
+            const itemName = currentItem.name || currentItem.position || currentItem.company || 'this item';
+            if (confirm(`Are you sure you want to delete ${itemName}?`)) {
+                const index = data[currentSection].findIndex(item => item.id === currentItem.id);
+                if (index > -1) {
+                    data[currentSection].splice(index, 1);
+                    saveData();
+                    renderItemsList();
+                    showEmptyState();
+                }
+            }
+        };
+
+        // Open form modal
+        function openFormModal(title, item, isNew) {
+            document.getElementById('form-modal-title').textContent = title;
+            const form = document.getElementById('generic-form');
+            const schema = schemas[currentSection];
+            
+            form.innerHTML = '';
+            form.dataset.itemId = item.id;
+            form.dataset.isNew = isNew;
+            
+            Object.entries(schema).forEach(([key, field]) => {
+                let value = item[key] || '';
+                
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                
+                if (field.type === 'hidden') {
+                    group.innerHTML = `<input type="hidden" name="${key}" value="${escapeHtml(value)}">`;
+                } else {
+                    const required = field.required ? 'required' : '';
+                    const readonly = field.readonly ? 'readonly' : '';
+                    
+                    group.innerHTML = `
+                        <label class="form-label">${escapeHtml(field.label)}</label>
+                    `;
+                    
+                    if (field.type === 'textarea') {
+                        const rows = field.rows || 3;
+                        group.innerHTML += `<textarea class="form-input form-textarea" name="${key}" rows="${rows}" ${required} ${readonly}>${escapeHtml(value)}</textarea>`;
+                    } else if (field.type === 'resume-editor') {
+                        // For resume editor in modal, use a textarea for JSON editing
+                        const jsonValue = sanitizeJsonForForm(value);
+                        group.innerHTML += `
+                            <div class="resume-editor-modal-container">
+                                <textarea class="form-input form-textarea" name="${key}" rows="15" ${required} ${readonly} placeholder="Resume JSON content">${escapeHtml(jsonValue)}</textarea>
+                                <div class="field-help">
+                                    <small>Edit the resume as JSON, or click "Use Visual Editor" to open the full resume editor</small>
+                                    <button type="button" class="btn btn-primary" onclick="openResumeEditorModal('${key}')">
+                                        <i class="fas fa-edit"></i> Use Visual Editor
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else if (field.type === 'select') {
+                        let optionsHtml = '';
+                        if (typeof field.options === 'function') {
+                            field.options().forEach(opt => {
+                                const selected = value === opt.value ? 'selected' : '';
+                                optionsHtml += `<option value="${escapeHtml(opt.value)}" ${selected}>${escapeHtml(opt.label)}</option>`;
+                            });
+                        } else {
+                            field.options.forEach(opt => {
+                                const selected = value === opt ? 'selected' : '';
+                                optionsHtml += `<option value="${escapeHtml(opt)}" ${selected}>${escapeHtml(opt)}</option>`;
+                            });
+                        }
+                        group.innerHTML += `<select class="form-input" name="${key}" ${required} ${readonly}>${optionsHtml}</select>`;
+                    } else {
+                        group.innerHTML += `<input type="${field.type}" class="form-input" name="${key}" value="${escapeHtml(value)}" ${required} ${readonly}>`;
+                    }
+                }
+                
+                form.appendChild(group);
+            });
+            
+            document.getElementById('form-modal').classList.remove('hidden');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('form-modal').classList.add('hidden');
+        }
+
+
+        // Settings functions
+        function openSettings() {
+            // Load current settings
+            const apiKey = localStorage.getItem('api_key') || '';
+            const apiType = localStorage.getItem('api_type') || 'claude';
+            const useDirectApi = localStorage.getItem('use_direct_api') === 'true';
+            
+            document.getElementById('api-key').value = apiKey;
+            document.getElementById('api-type').value = apiType;
+            document.getElementById('use-direct-api').checked = useDirectApi;
+            
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function saveSettings() {
+            const apiKey = document.getElementById('api-key').value;
+            const apiType = document.getElementById('api-type').value;
+            const useDirectApi = document.getElementById('use-direct-api').checked;
+            
+            localStorage.setItem('api_key', apiKey);
+            localStorage.setItem('api_type', apiType);
+            localStorage.setItem('use_direct_api', useDirectApi);
+            
+            closeSettings();
+            
+            // Show success message
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #27ae60;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                z-index: 1001;
+            `;
+            toast.textContent = 'Settings saved successfully';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 3000);
+        }
+
+        // AI Generation Functions
+        window.generateAIContent = function() {
+            if (!currentItem || currentSection !== 'jobs') {
+                alert('Please select a job first.');
+                return;
+            }
+
+            // Check API configuration
+            const apiKey = localStorage.getItem('api_key');
+            if (!apiKey) {
+                document.getElementById('ai-api-warning').classList.remove('hidden');
+                document.getElementById('ai-generate').disabled = true;
+            } else {
+                document.getElementById('ai-api-warning').classList.add('hidden');
+                document.getElementById('ai-generate').disabled = false;
+            }
+
+            // Populate job details
+            populateJobDetails();
+            
+            // Populate resume options
+            populateResumeOptions();
+            
+            // Show AI modal
+            document.getElementById('ai-modal').classList.remove('hidden');
+        };
+
+        function populateJobDetails() {
+            const job = currentItem;
+            const container = document.getElementById('ai-job-details');
+            
+            container.innerHTML = `
+                <div style="margin-bottom: 10px;">
+                    <strong>${escapeHtml(job.position || 'Unknown Position')}</strong> at 
+                    <strong>${escapeHtml(job.company || 'Unknown Company')}</strong>
+                </div>
+                ${job.location ? `<div style="margin-bottom: 10px;"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(job.location)}</div>` : ''}
+                ${job.description ? `
+                    <div style="margin-bottom: 10px;">
+                        <strong>Description:</strong><br>
+                        <div style="max-height: 100px; overflow-y: auto; padding: 5px; background: white; border: 1px solid #ddd; border-radius: 3px;">
+                            ${escapeHtml(job.description)}
+                        </div>
+                    </div>
+                ` : ''}
+                ${job.jobDetails ? `
+                    <div>
+                        <strong>Job Details:</strong><br>
+                        <div style="max-height: 150px; overflow-y: auto; padding: 5px; background: white; border: 1px solid #ddd; border-radius: 3px;">
+                            ${escapeHtml(job.jobDetails)}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function populateResumeOptions() {
+            const select = document.getElementById('ai-base-resume');
+            select.innerHTML = '<option value="">Choose a resume to tailor...</option>';
+            
+            data.resumes.forEach(resume => {
+                const option = document.createElement('option');
+                option.value = resume.id;
+                option.textContent = resume.name || 'Untitled Resume';
+                select.appendChild(option);
+            });
+        }
+
+        function closeAIModal() {
+            document.getElementById('ai-modal').classList.add('hidden');
+            document.getElementById('ai-progress').classList.add('hidden');
+            document.getElementById('ai-custom-instructions').value = '';
+            document.getElementById('ai-base-resume').value = '';
+        }
+
+        async function processAIGeneration() {
+            const job = currentItem;
+            const baseResumeId = document.getElementById('ai-base-resume').value;
+            const customInstructions = document.getElementById('ai-custom-instructions').value;
+            const generateCoverLetter = document.getElementById('ai-generate-cover-letter').checked;
+
+            if (!baseResumeId) {
+                alert('Please select a base resume to tailor.');
+                return;
+            }
+
+            // Find the base resume
+            const baseResume = data.resumes.find(r => r.id === baseResumeId);
+            if (!baseResume) {
+                alert('Selected resume not found.');
+                return;
+            }
+
+            // Get API configuration
+            const apiKey = localStorage.getItem('api_key');
+            const apiType = localStorage.getItem('api_type') || 'claude';
+            const useDirectApi = localStorage.getItem('use_direct_api') === 'true';
+
+            if (!apiKey) {
+                alert('Please configure your API key in Settings.');
+                return;
+            }
+
+            // Show progress
+            showAIProgress('Analyzing job requirements and tailoring resume...');
+
+            try {
+                let result;
+                const jobDescription = `${job.description || ''}\n\n${job.jobDetails || ''}`.trim();
+                
+                if (useDirectApi) {
+                    // Direct API calls
+                    if (apiType === 'claude') {
+                        result = await callClaudeDirectly(baseResume.content, jobDescription, apiKey, customInstructions);
+                    } else if (apiType === 'chatgpt') {
+                        result = await callOpenAIDirectly(baseResume.content, jobDescription, apiKey, customInstructions);
+                    } else {
+                        throw new Error('Invalid API type selected');
+                    }
+                } else {
+                    // Server API approach
+                    result = await callServerAPI(baseResume.content, jobDescription, apiKey, apiType, customInstructions);
+                }
+
+                if (!result || !result.resume) {
+                    throw new Error('Invalid response format from AI service');
+                }
+
+                // Process results
+                await processAIResults(result, job, baseResume, generateCoverLetter);
+
+            } catch (error) {
+                console.error('Error in AI generation:', error);
+                alert(`Error: ${error.message}`);
+            } finally {
+                closeAIModal();
+            }
+        }
+
+        function showAIProgress(message) {
+            document.getElementById('ai-progress-text').textContent = message;
+            document.getElementById('ai-progress').classList.remove('hidden');
+            document.getElementById('ai-generate').disabled = true;
+        }
+
+        async function processAIResults(result, job, baseResume, generateCoverLetter) {
+            const timestamp = new Date().toISOString();
+
+            // Create tailored resume
+            const tailoredResume = {
+                id: generateId(),
+                name: `${job.position} at ${job.company} - ${new Date().toLocaleDateString()}`,
+                content: result.resume,
+                dateCreated: timestamp,
+                dateModified: timestamp
+            };
+
+            // Add to resumes
+            data.resumes.push(tailoredResume);
+
+            // Update job to associate with tailored resume
+            const jobIndex = data.jobs.findIndex(j => j.id === job.id);
+            if (jobIndex > -1) {
+                data.jobs[jobIndex].resumeId = tailoredResume.id;
+            }
+
+            // Create cover letter if requested
+            let coverLetter = null;
+            if (generateCoverLetter && result.coverLetter) {
+                coverLetter = {
+                    id: generateId(),
+                    name: `Cover Letter - ${job.position} at ${job.company}`,
+                    type: 'cover_letter',
+                    content: result.coverLetter,
+                    jobId: job.id,
+                    dateCreated: timestamp
+                };
+                data.letters.push(coverLetter);
+            }
+
+            // Log AI interaction
+            const aiLog = {
+                id: generateId(),
+                type: 'resume_tailoring',
+                service: localStorage.getItem('api_type') || 'claude',
+                prompt: `Tailor resume for ${job.position} at ${job.company}`,
+                response: 'Resume and cover letter generated successfully',
+                timestamp: timestamp,
+                jobId: job.id,
+                resumeId: tailoredResume.id,
+                coverLetterId: coverLetter?.id || null
+            };
+            data.ai.push(aiLog);
+
+            // Save all data
+            saveData();
+
+            // Refresh UI
+            renderItemsList();
+            if (currentItem && currentItem.id === job.id) {
+                selectItem(data.jobs.find(j => j.id === job.id)); // Refresh the current job display
+            }
+
+            // Show success message
+            let message = `✅ Successfully created tailored resume: "${tailoredResume.name}"`;
+            if (coverLetter) {
+                message += `\n✅ Generated cover letter: "${coverLetter.name}"`;
+            }
+            alert(message);
+        }
+
+        // Direct Claude API call (adapted from your existing implementation)
+        async function callClaudeDirectly(resumeContent, jobDescription, apiKey, customInstructions = '') {
+            console.log('Calling Claude API directly from browser');
+            
+            const resumeStr = typeof resumeContent === 'string' ? resumeContent : JSON.stringify(resumeContent, null, 2);
+            
+            const customPrompt = customInstructions ? `\n\nCustom instructions: ${customInstructions}` : '';
+            
+            const prompt = `
+You must create a valid, properly escaped JSON object containing a tailored resume and cover letter for this job description:
+\`\`\`
+${jobDescription.substring(0, 2000)}${jobDescription.length > 2000 ? '...' : ''}
+\`\`\`
+
+Based on this resume:
+\`\`\`json
+${resumeStr.substring(0, 6000)}${resumeStr.length > 6000 ? '...' : ''}
+\`\`\`
+${customPrompt}
+
+IMPORTANT:
+1. Your response MUST be ONLY a valid JSON object with NO explanation or additional text
+2. The JSON must be properly escaped - all quotes within strings must be escaped, no unescaped newlines in strings
+3. Use the EXACT structure shown below, with these fields:
+{
+  "resume": {/* Tailored resume object following JSON Resume schema */},
+  "coverLetter": "Professional cover letter text",
+  "jobDescription": "Original job description"
+}
+4. Make sure all strings are properly quoted and all JSON syntax is correct
+5. Do not include any markdown formatting like \`\`\`json or \`\`\` in your response
+6. CRITICAL: Include ALL sections from the original resume. Tailor content but preserve structure.
+7. For the cover letter, write a professional, personalized letter that highlights relevant experience.`;
+
+            try {
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01',
+                        'anthropic-dangerous-direct-browser-access': 'true'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-3-5-sonnet-20241022',
+                        max_tokens: 4000,
+                        temperature: 0.3,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        system: "You are an expert resume writer and career coach. Create valid, properly escaped JSON responses for resume tailoring and cover letter generation."
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Claude API error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const assistantMessage = data.content[0].text;
+
+                // Parse the JSON response
+                const jsonMatch = assistantMessage.match(/{[\s\S]*}/);
+                if (!jsonMatch) {
+                    throw new Error('Could not extract JSON from Claude response');
+                }
+
+                return JSON.parse(jsonMatch[0]);
+                
+            } catch (error) {
+                console.error('Error calling Claude API directly:', error);
+                throw new Error(`Claude API error: ${error.message}`);
+            }
+        }
+
+        // Direct OpenAI API call (adapted from your existing implementation)
+        async function callOpenAIDirectly(resumeContent, jobDescription, apiKey, customInstructions = '') {
+            console.log('Calling OpenAI API directly from browser');
+            
+            const resumeStr = typeof resumeContent === 'string' ? resumeContent : JSON.stringify(resumeContent, null, 2);
+            const customPrompt = customInstructions ? `\n\nCustom instructions: ${customInstructions}` : '';
+            
+            const systemMessage = "You are an expert resume writer and career coach. You specialize in tailoring resumes and writing cover letters. " +
+                                 "Respond ONLY with a complete, syntactically valid JSON object. No markdown, no code blocks, no explanations. " +
+                                 "Ensure all quotes in strings are escaped properly and there are no unescaped newlines in string values.";
+            
+            const userMessage = `Create a tailored resume and cover letter for this job description:
+\`\`\`
+${jobDescription.substring(0, 2000)}${jobDescription.length > 2000 ? '...' : ''}
+\`\`\`
+
+Based on this original resume:
+\`\`\`json
+${resumeStr.substring(0, 6000)}${resumeStr.length > 6000 ? '...' : ''}
+\`\`\`
+${customPrompt}
+
+REQUIREMENTS:
+1. Return ONLY a valid JSON object with NO explanations or text outside the JSON
+2. Use this exact structure:
+{
+  "resume": {/* Tailored resume object */},
+  "coverLetter": "Cover letter text",
+  "jobDescription": "Original job description"
+}
+3. Include ALL sections from the original resume, tailored for the job
+4. Write a professional, personalized cover letter`;
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: systemMessage
+                            },
+                            {
+                                role: 'user',
+                                content: userMessage
+                            }
+                        ],
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const messageContent = data.choices[0].message.content;
+                
+                // Clean and parse the JSON
+                const cleanedContent = messageContent.trim().replace(/^```json\n|^```\n|```$/g, '');
+                return JSON.parse(cleanedContent);
+                
+            } catch (error) {
+                console.error('Error calling OpenAI API directly:', error);
+                throw new Error(`OpenAI API error: ${error.message}`);
+            }
+        }
+
+        // Server API call
+        async function callServerAPI(resumeContent, jobDescription, apiKey, apiType, customInstructions = '') {
+            const requestData = {
+                resume: resumeContent,
+                jobDescription: jobDescription,
+                apiKey: apiKey,
+                apiType: apiType,
+                customInstructions: customInstructions
+            };
+            
+            const endpoint = `http://${window.location.hostname}:3000/api/tailor-resume`;
+            console.log(`Sending request to server: ${endpoint}`);
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to tailor resume');
+            }
+            
+            return await response.json();
+        }
+
+        // Import Job Functions
+        function openImportJobModal() {
+            // Check API configuration
+            const apiKey = localStorage.getItem('api_key');
+            if (!apiKey) {
+                document.getElementById('import-api-warning').classList.remove('hidden');
+                document.getElementById('import-job-submit').disabled = true;
+            } else {
+                document.getElementById('import-api-warning').classList.add('hidden');
+                document.getElementById('import-job-submit').disabled = false;
+            }
+            
+            document.getElementById('import-job-modal').classList.remove('hidden');
+        }
+
+        function closeImportJobModal() {
+            document.getElementById('import-job-modal').classList.add('hidden');
+            document.getElementById('import-progress').classList.add('hidden');
+            document.getElementById('import-job-url').value = '';
+            document.getElementById('import-job-description').value = '';
+            document.getElementById('import-custom-instructions').value = '';
+            document.getElementById('import-method-url').checked = true;
+            toggleImportMethod();
+        }
+
+        function toggleImportMethod() {
+            const urlMethod = document.getElementById('import-method-url').checked;
+            const urlSection = document.getElementById('import-url-section');
+            const descSection = document.getElementById('import-description-section');
+            
+            if (urlMethod) {
+                urlSection.classList.remove('hidden');
+                descSection.classList.add('hidden');
+            } else {
+                urlSection.classList.add('hidden');
+                descSection.classList.remove('hidden');
+            }
+        }
+
+        async function processJobImport() {
+            const urlMethod = document.getElementById('import-method-url').checked;
+            const jobUrl = document.getElementById('import-job-url').value.trim();
+            const jobDescription = document.getElementById('import-job-description').value.trim();
+            const customInstructions = document.getElementById('import-custom-instructions').value.trim();
+
+            if (urlMethod && !jobUrl) {
+                alert('Please enter a job URL');
+                return;
+            }
+            if (!urlMethod && !jobDescription) {
+                alert('Please paste the job description');
+                return;
+            }
+
+            const apiKey = localStorage.getItem('api_key');
+            const apiType = localStorage.getItem('api_type') || 'claude';
+            const useDirectApi = localStorage.getItem('use_direct_api') === 'true';
+
+            if (!apiKey) {
+                alert('Please configure your API key in Settings.');
+                return;
+            }
+
+            // Show progress
+            showImportProgress('Analyzing job content and extracting information...');
+
+            try {
+                let content = jobDescription;
+                
+                if (urlMethod) {
+                    // For URL method, we'll send the URL to AI to extract content
+                    content = `Please fetch and analyze the job posting at this URL: ${jobUrl}`;
+                }
+
+                let result;
+                if (useDirectApi) {
+                    if (apiType === 'claude') {
+                        result = await extractJobDataWithClaude(content, customInstructions, apiKey, urlMethod);
+                    } else if (apiType === 'chatgpt') {
+                        result = await extractJobDataWithOpenAI(content, customInstructions, apiKey, urlMethod);
+                    } else {
+                        throw new Error('Invalid API type selected');
+                    }
+                } else {
+                    // Server API approach
+                    result = await extractJobDataWithServer(content, customInstructions, apiKey, apiType, urlMethod);
+                }
+
+                if (!result) {
+                    throw new Error('Invalid response from AI service');
+                }
+
+                // Process the extracted job data
+                await processImportedJobData(result, urlMethod ? jobUrl : null);
+
+            } catch (error) {
+                console.error('Error importing job:', error);
+                alert(`Error: ${error.message}`);
+            } finally {
+                closeImportJobModal();
+            }
+        }
+
+        function showImportProgress(message) {
+            document.getElementById('import-progress-text').textContent = message;
+            document.getElementById('import-progress').classList.remove('hidden');
+            document.getElementById('import-job-submit').disabled = true;
+        }
+
+        async function processImportedJobData(jobData, sourceUrl = null) {
+            const timestamp = new Date().toISOString();
+
+            // Create new job with extracted data
+            const newJob = {
+                id: generateId(),
+                company: jobData.company || '',
+                position: jobData.position || jobData.title || '',
+                status: 'saved',
+                datePosted: jobData.datePosted || '',
+                dateApplied: null,
+                description: jobData.shortDescription || jobData.description || '',
+                jobDetails: jobData.jobDetails || jobData.fullDescription || jobData.description || '',
+                location: jobData.location || '',
+                contactName: jobData.contactName || '',
+                contactEmail: jobData.contactEmail || '',
+                contactPhone: jobData.contactPhone || '',
+                url: sourceUrl || jobData.url || '',
+                notes: jobData.notes || '',
+                dateCreated: timestamp,
+                dateUpdated: timestamp
+            };
+
+            // Add to jobs
+            data.jobs.push(newJob);
+
+            // Log AI interaction
+            const aiLog = {
+                id: generateId(),
+                type: 'job_import',
+                service: localStorage.getItem('api_type') || 'claude',
+                prompt: sourceUrl ? `Import job from URL: ${sourceUrl}` : 'Import job from description',
+                response: `Imported job: ${newJob.position} at ${newJob.company}`,
+                timestamp: timestamp,
+                jobId: newJob.id
+            };
+            data.ai.push(aiLog);
+
+            // Save data
+            saveData();
+
+            // Refresh UI
+            renderItemsList();
+            selectItem(newJob);
+
+            // Show success message
+            alert(`✅ Successfully imported job: "${newJob.position}" at "${newJob.company}"`);
+        }
+
+        // Extract job data using Claude
+        async function extractJobDataWithClaude(content, customInstructions, apiKey, isUrl = false) {
+            console.log('Extracting job data with Claude');
+            
+            const customPrompt = customInstructions ? `\n\nCustom instructions: ${customInstructions}` : '';
+            const urlNote = isUrl ? '\n\nNote: This is a URL - please fetch the content from this URL first, then extract the job information.' : '';
+            
+            const prompt = `
+Extract job information from the following content and return it as a valid JSON object.
+
+${urlNote}
+
+Content:
+\`\`\`
+${content.substring(0, 3000)}${content.length > 3000 ? '...' : ''}
+\`\`\`
+${customPrompt}
+
+IMPORTANT:
+1. Your response MUST be ONLY a valid JSON object with NO explanation or additional text
+2. Use this EXACT schema structure:
+{
+  "company": "Company name",
+  "position": "Job title/position",
+  "location": "Job location (city, state/country)",
+  "shortDescription": "Brief 2-3 sentence summary",
+  "jobDetails": "Full job description including responsibilities and requirements",
+  "datePosted": "Date posted (YYYY-MM-DD format if available)",
+  "contactName": "Contact person name if mentioned",
+  "contactEmail": "Contact email if mentioned", 
+  "contactPhone": "Contact phone if mentioned",
+  "url": "Job posting URL if different from source",
+  "notes": "Any additional relevant information"
+}
+3. Extract as much information as possible from the content
+4. If information is not available, use empty string ""
+5. Ensure all JSON syntax is correct with proper escaping`;
+
+            try {
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01',
+                        'anthropic-dangerous-direct-browser-access': 'true'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-3-5-sonnet-20241022',
+                        max_tokens: 2000,
+                        temperature: 0.1,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        system: "You are an expert at extracting structured job information from unstructured text. Always return valid, properly escaped JSON."
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Claude API error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const assistantMessage = data.content[0].text;
+
+                // Parse the JSON response
+                const jsonMatch = assistantMessage.match(/{[\s\S]*}/);
+                if (!jsonMatch) {
+                    throw new Error('Could not extract JSON from Claude response');
+                }
+
+                return JSON.parse(jsonMatch[0]);
+                
+            } catch (error) {
+                console.error('Error calling Claude API for job extraction:', error);
+                throw new Error(`Claude API error: ${error.message}`);
+            }
+        }
+
+        // Extract job data using OpenAI
+        async function extractJobDataWithOpenAI(content, customInstructions, apiKey, isUrl = false) {
+            console.log('Extracting job data with OpenAI');
+            
+            const customPrompt = customInstructions ? `\n\nCustom instructions: ${customInstructions}` : '';
+            const urlNote = isUrl ? '\n\nNote: This is a URL - please fetch the content from this URL first, then extract the job information.' : '';
+            
+            const systemMessage = "You are an expert at extracting structured job information from unstructured text. " +
+                                 "Respond ONLY with a complete, syntactically valid JSON object. No markdown, no code blocks, no explanations.";
+            
+            const userMessage = `Extract job information from the following content and return it as a valid JSON object.
+
+${urlNote}
+
+Content:
+\`\`\`
+${content.substring(0, 3000)}${content.length > 3000 ? '...' : ''}
+\`\`\`
+${customPrompt}
+
+Use this EXACT schema:
+{
+  "company": "Company name",
+  "position": "Job title/position", 
+  "location": "Job location",
+  "shortDescription": "Brief summary",
+  "jobDetails": "Full description",
+  "datePosted": "YYYY-MM-DD if available",
+  "contactName": "Contact name if mentioned",
+  "contactEmail": "Contact email if mentioned",
+  "contactPhone": "Contact phone if mentioned", 
+  "url": "Job URL if different",
+  "notes": "Additional info"
+}
+
+Return ONLY the JSON object with no additional text.`;
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: systemMessage
+                            },
+                            {
+                                role: 'user',
+                                content: userMessage
+                            }
+                        ],
+                        temperature: 0.1
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const messageContent = data.choices[0].message.content;
+                
+                // Clean and parse the JSON
+                const cleanedContent = messageContent.trim().replace(/^```json\n|^```\n|```$/g, '');
+                return JSON.parse(cleanedContent);
+                
+            } catch (error) {
+                console.error('Error calling OpenAI API for job extraction:', error);
+                throw new Error(`OpenAI API error: ${error.message}`);
+            }
+        }
+
+        // Extract job data using server API
+        async function extractJobDataWithServer(content, customInstructions, apiKey, apiType, isUrl = false) {
+            const requestData = {
+                content: content,
+                customInstructions: customInstructions,
+                apiKey: apiKey,
+                apiType: apiType,
+                isUrl: isUrl
+            };
+            
+            const endpoint = `http://${window.location.hostname}:3000/api/extract-job`;
+            console.log(`Sending request to server: ${endpoint}`);
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to extract job data');
+            }
+            
+            return await response.json();
+        }
+
+        // Open resume editor modal for visual editing
+        window.openResumeEditorModal = function(fieldKey) {
+            // This would open a full-screen modal with the resume editor
+            // For now, we'll show a message about the functionality
+            alert('Visual resume editor integration - this would open a full resume editing interface. For now, please use the JSON textarea.');
+        };
+
+        // Save item with special handling for resume content
+        function saveItemWithResumeData() {
+            const form = document.getElementById('generic-form');
+            const formData = new FormData(form);
+            const itemData = {};
+            
+            for (const [key, value] of formData.entries()) {
+                if (key === 'content' && currentSection === 'resumes') {
+                    // Special handling for resume content - validate JSON
+                    try {
+                        const parsedContent = JSON.parse(value);
+                        itemData[key] = parsedContent;
+                    } catch (e) {
+                        alert('Invalid JSON in resume content. Please check your formatting.');
+                        return false;
+                    }
+                } else {
+                    itemData[key] = value;
+                }
+            }
+            
+            const isNew = form.dataset.isNew === 'true';
+            
+            if (isNew) {
+                data[currentSection].push(itemData);
+            } else {
+                const index = data[currentSection].findIndex(item => item.id === itemData.id);
+                if (index > -1) {
+                    // Preserve certain fields for updates
+                    if (currentSection === 'resumes') {
+                        itemData.dateModified = new Date().toISOString();
+                    }
+                    data[currentSection][index] = { ...data[currentSection][index], ...itemData };
+                }
+            }
+            
+            saveData();
+            renderItemsList();
+            closeModal();
+            
+            // Select the updated/new item
+            const item = data[currentSection].find(item => item.id === itemData.id);
+            if (item) {
+                selectItem(item);
+            }
+            
+            return true;
+        }
+
+        // Update the save item function to use the new one
+        function saveItem() {
+            if (currentSection === 'resumes') {
+                return saveItemWithResumeData();
+            }
+            
+            const form = document.getElementById('generic-form');
+            const formData = new FormData(form);
+            const itemData = {};
+            
+            for (const [key, value] of formData.entries()) {
+                itemData[key] = value;
+            }
+            
+            const isNew = form.dataset.isNew === 'true';
+            
+            if (isNew) {
+                data[currentSection].push(itemData);
+            } else {
+                const index = data[currentSection].findIndex(item => item.id === itemData.id);
+                if (index > -1) {
+                    // Preserve certain fields for updates
+                    if (currentSection === 'resumes') {
+                        itemData.dateModified = new Date().toISOString();
+                    }
+                    data[currentSection][index] = { ...data[currentSection][index], ...itemData };
+                }
+            }
+            
+            saveData();
+            renderItemsList();
+            closeModal();
+            
+            // Select the updated/new item
+            const item = data[currentSection].find(item => item.id === itemData.id);
+            if (item) {
+                selectItem(item);
+            }
+        }
+
+        // Toast notification function for resume editor compatibility
+        window.showToast = function(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            
+            toast.textContent = message;
+            toast.className = `toast show ${type}`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        };
+
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>

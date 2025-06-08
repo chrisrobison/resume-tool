@@ -17,6 +17,281 @@
     font-size: 16px;
 }
 
+/* Resume Editor Component Styles */
+.resume-editor {
+    background: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.resume-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.resume-section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.input-group label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.input-group input,
+.input-group textarea,
+.input-group select {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus,
+.input-group textarea:focus,
+.input-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.1);
+}
+
+.input-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.small-button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.small-button:hover {
+    background: #2971ff;
+}
+
+.resume-item {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.resume-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.resume-item-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.resume-item-subtitle {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+.resume-item-buttons {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.icon-button {
+    background: transparent;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    border-radius: 4px;
+    color: var(--secondary-color);
+    transition: all 0.2s;
+}
+
+.icon-button:hover {
+    background: var(--section-bg);
+    color: var(--text-color);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--secondary-color);
+}
+
+.empty-state i {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.help-text {
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    margin-top: 0.25rem;
+}
+
+.success {
+    background-color: var(--success-color) !important;
+}
+
+.success:hover {
+    background-color: #218838 !important;
+}
+
+.secondary {
+    background-color: var(--secondary-color) !important;
+    color: white !important;
+}
+
+.secondary:hover {
+    background-color: #545b62 !important;
+}
+
+.preview-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--secondary-color);
+}
+
+.card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    padding: 1rem;
+}
+
+/* Resume Preview Styles */
+.resume-preview {
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+.resume-preview.modern {
+    font-family: "Lexend", sans-serif;
+}
+
+.resume-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #333;
+}
+
+.resume-header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    color: #333;
+}
+
+.resume-header h2 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.contact-info {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.contact-info span {
+    font-size: 0.9rem;
+}
+
+.resume-section {
+    margin-bottom: 1.5rem;
+}
+
+.resume-section h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.3rem;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+}
+
+.work-item, .education-item, .project-item {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.work-item:last-child, .education-item:last-child, .project-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.work-item h4, .education-item h4, .project-item h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.work-item h5, .education-item h5 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    color: #666;
+}
+
+.skills-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.skill-item {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.keywords {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
 body {
     background-color: var(--background-color);
     color: var(--text-color);
@@ -1242,4 +1517,52 @@ button.danger, .button.danger {
     .hamburger-menu {
         display: none;
     }
+}
+
+/* Settings styles */
+.settings-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+.settings-group {
+    margin-bottom: 1.5rem;
+}
+
+.settings-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #555;
+}
+
+.settings-group select,
+.settings-group input[type="password"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.settings-group select:focus,
+.settings-group input[type="password"]:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
 }
