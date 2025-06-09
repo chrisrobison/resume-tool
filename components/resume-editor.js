@@ -1098,12 +1098,13 @@ class ResumeEditor extends HTMLElement {
             });
         });
         
-        // Profile modal
+        // Only set up modals for list sections
         this.setupProfileModal();
         this.setupWorkModal();
         this.setupEducationModal();
         this.setupSkillsModal();
         this.setupProjectsModal();
+        // No modal setup for basics/meta
     }
 
     setupProfileModal() {

@@ -33,6 +33,10 @@
                     <i class="fas fa-robot"></i>
                     <span>AI History</span>
                 </a>
+                <a href="#" class="nav-item" data-section="help" id="help-nav">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help</span>
+                </a>
             </nav>
             
             <div class="sidebar-footer">
@@ -60,7 +64,7 @@
 
             <div class="content-panels">
                 <!-- Items List Panel -->
-                <div class="items-panel">
+                <div class="items-panel" id="items-panel">
                     <div class="items-header" id="items-header">Jobs</div>
                     <div class="items-list" id="items-list">
                         <!-- Items will be populated here -->
@@ -68,12 +72,91 @@
                 </div>
 
                 <!-- Details Panel -->
-                <div class="details-panel">
+                <div class="details-panel" id="details-panel">
                     <div class="details-content" id="details-content">
                         <div class="empty-state">
                             <i class="fas fa-briefcase"></i>
                             <h3>Select a job to view details</h3>
                             <p>Choose a job from the list to view and edit its information</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help Panel -->
+                <div id="help-panel" class="help-panel" style="display:none; width:100%;">
+                    <style>
+                        .help-container {
+                            max-width: 800px;
+                            margin: 40px auto;
+                            background: #fff;
+                            border-radius: 12px;
+                            box-shadow: 0 4px 24px rgba(44,62,80,0.08);
+                            padding: 2.5rem 2rem;
+                        }
+                        .help-container h1 {
+                            font-size: 2.2rem;
+                            margin-bottom: 0.5em;
+                        }
+                        .help-container h2 {
+                            margin-top: 2em;
+                            font-size: 1.3rem;
+                            color: #2980b9;
+                        }
+                        .help-container ul, .help-container ol {
+                            margin-left: 1.5em;
+                        }
+                        .help-container code {
+                            background: #f4f4f4;
+                            border-radius: 4px;
+                            padding: 2px 6px;
+                            font-size: 0.98em;
+                        }
+                        .help-container .tip {
+                            background: #eafaf1;
+                            border-left: 4px solid #27ae60;
+                            padding: 0.7em 1em;
+                            margin: 1.5em 0;
+                            border-radius: 6px;
+                            color: #145a32;
+                        }
+                    </style>
+                    <div class="help-container">
+                        <h1><i class="fas fa-question-circle"></i> Job Hunt Manager Help & Usage Guide</h1>
+                        <p>Welcome to the Job Hunt Manager! This guide will help you get the most out of the tool.</p>
+
+                        <h2>Getting Started</h2>
+                        <ol>
+                            <li><strong>Add Jobs:</strong> Click <b>Add Job</b> to enter job details manually, or use <b>Import Job</b> to extract details from a job posting URL or description.</li>
+                            <li><strong>Track Status:</strong> Update the status of each job (e.g., saved, applied, interviewing, etc.) as your search progresses.</li>
+                            <li><strong>Manage Resumes:</strong> Store and edit multiple resumes. Tailor resumes for specific jobs using the AI features.</li>
+                            <li><strong>Generate Cover Letters:</strong> Use the AI tool to create personalized cover letters for each job application.</li>
+                        </ol>
+
+                        <h2>Sections Overview</h2>
+                        <ul>
+                            <li><b>Jobs:</b> List and manage all job opportunities. Click a job to view or edit details.</li>
+                            <li><b>Resumes:</b> Store, edit, and tailor resumes. Use the visual editor for easy updates.</li>
+                            <li><b>Letters:</b> Manage cover letters and other correspondence.</li>
+                            <li><b>AI History:</b> View a log of all AI-powered actions (resume tailoring, letter generation, etc.).</li>
+                        </ul>
+
+                        <h2>AI Features</h2>
+                        <ul>
+                            <li><b>Tailor Resume:</b> Select a job and a base resume, then use the AI to generate a tailored resume for that job.</li>
+                            <li><b>Generate Cover Letter:</b> Optionally generate a cover letter at the same time as tailoring a resume.</li>
+                            <li><b>API Key Required:</b> Set your API key in <b>Settings</b> to use AI features. You can use OpenAI (ChatGPT) or Anthropic (Claude).</li>
+                        </ul>
+
+                        <h2>Tips & Best Practices</h2>
+                        <ul>
+                            <li>Regularly save your data. All information is stored in your browser's local storage.</li>
+                            <li>Use the <b>Import Job</b> feature to quickly add jobs from URLs or descriptions.</li>
+                            <li>Keep your resumes up to date and tailor them for each application.</li>
+                            <li>Check the <b>AI History</b> tab to review past AI actions and outputs.</li>
+                        </ul>
+
+                        <div class="tip">
+                            <b>Need more help?</b> If you have questions or encounter issues, please contact the developer or check for updates.
                         </div>
                     </div>
                 </div>
@@ -294,6 +377,15 @@
             return text.toString().replace(/[&<>"']/g, m => map[m]);
         }
 
+        // Utility: format date for datetime-local input
+        function formatDateForInput(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '';
+            const pad = n => n.toString().padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
         // Utility function to sanitize JSON for form display
         function sanitizeJsonForForm(jsonObj) {
             if (typeof jsonObj === 'string') {
@@ -407,9 +499,13 @@
             // Navigation
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', (e) => {
-                    e.preventDefault();
+                    // Only handle section switching for items with data-section
                     const section = item.dataset.section;
-                    switchSection(section);
+                    if (section) {
+                        e.preventDefault();
+                        switchSection(section);
+                    }
+                    // If no data-section (e.g., Help), let the default link behavior occur
                 });
             });
 
@@ -472,29 +568,51 @@
                 jobs: 'Jobs',
                 resumes: 'Resumes', 
                 letters: 'Cover Letters',
-                ai: 'AI Interactions'
+                ai: 'AI Interactions',
+                help: 'Help'
             };
-            document.getElementById('section-title').textContent = titles[section];
-            document.getElementById('items-header').textContent = titles[section];
+            document.getElementById('section-title').textContent = titles[section] || '';
+            document.getElementById('items-header').textContent = titles[section] || '';
             document.getElementById('add-item-text').textContent = `Add ${section.slice(0, -1)}`;
 
-            // Show/hide buttons based on section
+            // Show/hide panels and buttons based on section
             const addBtn = document.getElementById('add-item-btn');
             const importBtn = document.getElementById('import-job-btn');
-            
+            const itemsPanel = document.getElementById('items-panel');
+            const detailsPanel = document.getElementById('details-panel');
+            const helpPanel = document.getElementById('help-panel');
+
             if (section === 'ai') {
                 addBtn.style.display = 'none';
                 importBtn.style.display = 'none';
+                itemsPanel.style.display = '';
+                detailsPanel.style.display = '';
+                helpPanel.style.display = 'none';
+                renderItemsList();
+                showEmptyState();
             } else if (section === 'jobs') {
                 addBtn.style.display = 'flex';
                 importBtn.style.display = 'flex';
+                itemsPanel.style.display = '';
+                detailsPanel.style.display = '';
+                helpPanel.style.display = 'none';
+                renderItemsList();
+                showEmptyState();
+            } else if (section === 'help') {
+                addBtn.style.display = 'none';
+                importBtn.style.display = 'none';
+                itemsPanel.style.display = 'none';
+                detailsPanel.style.display = 'none';
+                helpPanel.style.display = 'block';
             } else {
                 addBtn.style.display = 'flex';
                 importBtn.style.display = 'none';
+                itemsPanel.style.display = '';
+                detailsPanel.style.display = '';
+                helpPanel.style.display = 'none';
+                renderItemsList();
+                showEmptyState();
             }
-
-            renderItemsList();
-            showEmptyState();
         }
 
         // Render items list
@@ -622,6 +740,10 @@
                 let value = item[key] || '';
                 const readonly = field.readonly ? 'readonly' : '';
                 const required = field.required ? 'required' : '';
+                // Format for datetime-local
+                if (field.type === 'datetime-local') {
+                    value = formatDateForInput(value);
+                }
                 
                 html += `<div class="form-group">`;
                 html += `<label class="form-label">${escapeHtml(field.label)}</label>`;
@@ -649,6 +771,8 @@
                         });
                     }
                     html += `</select>`;
+                } else if (field.type === 'datetime-local') {
+                    html += `<input type="datetime-local" class="form-input" value="${escapeHtml(value)}" ${readonly} ${required}>`;
                 } else {
                     html += `<input type="${field.type}" class="form-input" value="${escapeHtml(value)}" ${readonly} ${required}>`;
                 }
@@ -756,7 +880,10 @@
                 } else {
                     const required = field.required ? 'required' : '';
                     const readonly = field.readonly ? 'readonly' : '';
-                    
+                    // Format for datetime-local
+                    if (field.type === 'datetime-local') {
+                        value = formatDateForInput(value);
+                    }
                     group.innerHTML = `
                         <label class="form-label">${escapeHtml(field.label)}</label>
                     `;
@@ -784,6 +911,8 @@
                             });
                         }
                         group.innerHTML += `<select class="form-input" name="${key}" ${required} ${readonly}>${optionsHtml}</select>`;
+                    } else if (field.type === 'datetime-local') {
+                        group.innerHTML += `<input type="datetime-local" class="form-input" name="${key}" value="${escapeHtml(value)}" ${required} ${readonly}>`;
                     } else {
                         group.innerHTML += `<input type="${field.type}" class="form-input" name="${key}" value="${escapeHtml(value)}" ${required} ${readonly}>`;
                     }
@@ -1682,6 +1811,9 @@ Return ONLY the JSON object with no additional text.`;
                     // Preserve certain fields for updates
                     if (currentSection === 'resumes') {
                         itemData.dateModified = new Date().toISOString();
+                    }
+                    if (currentSection === 'jobs') {
+                        itemData.dateUpdated = new Date().toISOString();
                     }
                     data[currentSection][index] = { ...data[currentSection][index], ...itemData };
                 }
