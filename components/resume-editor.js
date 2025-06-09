@@ -20,6 +20,14 @@ class ResumeEditor extends HTMLElement {
         this.loadResumeData();
         this.state.loaded = true;
         
+        // Escape key closes any open modal
+        this._escapeHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeAnyOpenModal();
+            }
+        };
+        document.addEventListener('keydown', this._escapeHandler);
+        
         // Emit initial data event
         setTimeout(() => {
             this.dispatchEvent(new CustomEvent('resume-change', {
@@ -27,6 +35,10 @@ class ResumeEditor extends HTMLElement {
                 bubbles: true
             }));
         }, 100);
+    }
+
+    disconnectedCallback() {
+        document.removeEventListener('keydown', this._escapeHandler);
     }
 
     initLocalStorage() {
@@ -110,6 +122,152 @@ class ResumeEditor extends HTMLElement {
 
     render() {
         this.innerHTML = `
+            <style>
+                .modal-backdrop {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.35);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1100;
+                    transition: background 0.2s;
+                }
+                .modal-backdrop.hidden { display: none; }
+                .modal {
+                    background: #fff;
+                    border-radius: 16px;
+                    width: 96%;
+                    max-width: 480px;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 1.5px 6px rgba(0,0,0,0.08);
+                    padding: 0 0 1.5rem 0;
+                    animation: modalPop 0.18s cubic-bezier(.4,1.4,.6,1) 1;
+                }
+                @keyframes modalPop {
+                    0% { transform: scale(0.95) translateY(30px); opacity: 0; }
+                    100% { transform: scale(1) translateY(0); opacity: 1; }
+                }
+                .modal-header {
+                    padding: 1.25rem 1.5rem 1rem 1.5rem;
+                    border-bottom: 1px solid #e9ecef;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    background: #f8f9fa;
+                    border-radius: 16px 16px 0 0;
+                }
+                .modal-title {
+                    font-size: 1.25rem;
+                    font-weight: 700;
+                    margin: 0;
+                    color: #2c3e50;
+                }
+                .modal-close {
+                    background: none;
+                    border: none;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    color: #6c757d;
+                    transition: color 0.2s;
+                }
+                .modal-close:hover {
+                    color: #e74c3c;
+                }
+                .form-grid {
+                    padding: 1.25rem 1.5rem 0 1.5rem;
+                }
+                .input-group {
+                    margin-bottom: 1.25rem;
+                }
+                .input-group label {
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    font-weight: 500;
+                    color: #495057;
+                }
+                .input-group input, .input-group textarea {
+                    width: 100%;
+                    padding: 0.6rem 0.75rem;
+                    border: 1px solid #dee2e6;
+                    border-radius: 6px;
+                    font-size: 1rem;
+                    background: #f8f9fa;
+                    transition: border-color 0.2s;
+                }
+                .input-group input:focus, .input-group textarea:focus {
+                    border-color: #3498db;
+                    outline: none;
+                    background: #fff;
+                }
+                .button-group {
+                    display: flex;
+                    gap: 0.75rem;
+                    padding: 1.25rem 1.5rem 0 1.5rem;
+                    justify-content: flex-end;
+                }
+                .success {
+                    background: #27ae60;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 0.5rem 1.25rem;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                }
+                .success:hover {
+                    background: #229954;
+                }
+                .secondary {
+                    background: #6c757d;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 0.5rem 1.25rem;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                }
+                .secondary:hover {
+                    background: #545b62;
+                }
+                /* Save button styling */
+                .resume-save-bar {
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                    padding: 1.5rem 2rem 1rem 2rem;
+                    background: #f8f9fa;
+                    border-top: 1px solid #e9ecef;
+                    border-radius: 0 0 12px 12px;
+                    position: sticky;
+                    bottom: 0;
+                    z-index: 10;
+                }
+                .resume-save-btn {
+                    background: #3498db;
+                    color: #fff;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 0.7rem 2rem;
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(52,152,219,0.08);
+                    transition: background 0.2s, box-shadow 0.2s;
+                }
+                .resume-save-btn:hover {
+                    background: #217dbb;
+                    box-shadow: 0 4px 16px rgba(52,152,219,0.13);
+                }
+            </style>
             <div class="resume-editor">
                 <div class="tabs" role="tablist">
                     <div class="tab active" data-tab="basics" role="tab" aria-selected="true">Basics</div>
@@ -311,6 +469,9 @@ class ResumeEditor extends HTMLElement {
                         </div>
                     </div>
                 </div>
+                <div class="resume-save-bar">
+                    <button class="resume-save-btn" id="resume-save-btn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                </div>
             </div>
 
             <!-- Profile Modal -->
@@ -505,6 +666,20 @@ class ResumeEditor extends HTMLElement {
                 </div>
             </div>
         `;
+        // After rendering, set up Save button event
+        setTimeout(() => {
+            const saveBtn = this.querySelector('#resume-save-btn');
+            if (saveBtn) {
+                saveBtn.onclick = () => {
+                    this.saveToLocalStorage();
+                    this.showToast('Resume saved!', 'success');
+                    this.dispatchEvent(new CustomEvent('resume-saved', {
+                        detail: { resumeData: this.data },
+                        bubbles: true
+                    }));
+                };
+            }
+        }, 0);
     }
 
     setupEventListeners() {
@@ -1884,6 +2059,14 @@ class ResumeEditor extends HTMLElement {
             "'": '&#039;'
         };
         return text ? text.replace(/[&<>"']/g, m => map[m]) : '';
+    }
+
+    closeAnyOpenModal() {
+        this.querySelectorAll('.modal-backdrop').forEach(modal => {
+            if (!modal.classList.contains('hidden')) {
+                modal.classList.add('hidden');
+            }
+        });
     }
 }
 
