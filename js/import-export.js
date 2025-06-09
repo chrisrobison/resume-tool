@@ -1,6 +1,6 @@
 // import-export.js - Import and export functionality
 import { $, showToast, safelyParseJSON } from './utils.js';
-import { hideModal } from './modals.js';
+import { hideModal, showModal } from './modals.js';
 
 // Export resume to JSON
 export function exportResumeToJson(resumeData) {
