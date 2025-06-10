@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Store Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .demo-section { border: 1px solid #ccc; margin: 10px 0; padding: 15px; }
+        .state-display { background: #f5f5f5; padding: 10px; margin: 10px 0; }
+        button { margin: 5px; padding: 8px 12px; }
+        input { margin: 5px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Global Store Demo</h1>
+    
+    <!-- Global Store Instance -->
+    <global-store></global-store>
+    
+    <div class="demo-section">
+        <h2>Current State</h2>
+        <div id="state-display" class="state-display">
+            Loading state...
+        </div>
+        <button onclick="refreshState()">Refresh State Display</button>
+        <button onclick="debugStore()">Console Log State</button>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Job Operations</h2>
+        <input type="text" id="job-title" placeholder="Job Title" value="Software Engineer">
+        <input type="text" id="job-company" placeholder="Company" value="Tech Corp">
+        <button onclick="addJob()">Add Job</button>
+        <button onclick="setCurrentJob()">Set as Current Job</button>
+        <button onclick="clearCurrentJob()">Clear Current Job</button>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Resume Operations</h2>
+        <input type="text" id="resume-name" placeholder="Resume Name" value="Main Resume">
+        <button onclick="addResume()">Add Resume</button>
+        <button onclick="setCurrentResume()">Set as Current Resume</button>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Settings Operations</h2>
+        <select id="theme-select">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+        </select>
+        <button onclick="updateTheme()">Update Theme</button>
+        <button onclick="toggleLoading()">Toggle Loading</button>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Event Log</h2>
+        <div id="event-log" style="height: 200px; overflow-y: scroll; background: #f9f9f9; padding: 10px;">
+            <!-- Events will appear here -->
+        </div>
+        <button onclick="clearEventLog()">Clear Log</button>
+    </div>
+
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module">
+        import { getState, setState, subscribe, addJob as storeAddJob, addResume as storeAddResume, setCurrentJob as storeSetCurrentJob, setCurrentResume as storeSetCurrentResume, updateSettings, setLoading } from './js/store.js';
+        
+        let eventLogCounter = 0;
+        
+        // Subscribe to all state changes
+        const unsubscribe = subscribe((event) => {
+            logEvent(`State changed by: ${event.source}`, event);
+            refreshState();
+        });
+        
+        // Make functions global for button onclick handlers
+        window.refreshState = function() {
+            const state = getState();
+            document.getElementById('state-display').innerHTML = `
+                <h3>Global State:</h3>
+                <pre>${JSON.stringify(state, null, 2)}</pre>
+            `;
+        };
+        
+        window.debugStore = function() {
+            const store = document.querySelector('global-store');
+            console.log('Global Store Debug:', store.debug());
+        };
+        
+        window.addJob = function() {
+            const title = document.getElementById('job-title').value;
+            const company = document.getElementById('job-company').value;
+            
+            const newJob = {
+                id: 'job_' + Date.now(),
+                title,
+                company,
+                dateCreated: new Date().toISOString(),
+                status: 'saved'
+            };
+            
+            storeAddJob(newJob);
+            logEvent(`Added job: ${title} at ${company}`);
+        };
+        
+        window.setCurrentJob = function() {
+            const state = getState();
+            const jobs = state.jobs;
+            if (jobs.length > 0) {
+                storeSetCurrentJob(jobs[jobs.length - 1]);
+                logEvent('Set current job to most recent');
+            } else {
+                logEvent('No jobs available to set as current');
+            }
+        };
+        
+        window.clearCurrentJob = function() {
+            storeSetCurrentJob(null);
+            logEvent('Cleared current job');
+        };
+        
+        window.addResume = function() {
+            const name = document.getElementById('resume-name').value;
+            
+            const newResume = {
+                id: 'resume_' + Date.now(),
+                name,
+                dateCreated: new Date().toISOString(),
+                data: {
+                    basics: { name: 'John Doe' },
+                    work: [],
+                    education: []
+                }
+            };
+            
+            storeAddResume(newResume);
+            logEvent(`Added resume: ${name}`);
+        };
+        
+        window.setCurrentResume = function() {
+            const state = getState();
+            const resumes = state.resumes;
+            if (resumes.length > 0) {
+                storeSetCurrentResume(resumes[resumes.length - 1]);
+                logEvent('Set current resume to most recent');
+            } else {
+                logEvent('No resumes available to set as current');
+            }
+        };
+        
+        window.updateTheme = function() {
+            const theme = document.getElementById('theme-select').value;
+            updateSettings({ theme });
+            logEvent(`Updated theme to: ${theme}`);
+        };
+        
+        window.toggleLoading = function() {
+            const currentLoading = getState('ui.isLoading');
+            setLoading(!currentLoading);
+            logEvent(`Set loading to: ${!currentLoading}`);
+        };
+        
+        window.clearEventLog = function() {
+            document.getElementById('event-log').innerHTML = '';
+            eventLogCounter = 0;
+        };
+        
+        function logEvent(message, eventData = null) {
+            const eventLog = document.getElementById('event-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `
+                <strong>${++eventLogCounter}.</strong> [${timestamp}] ${message}
+                ${eventData ? `<br><small>Data: ${JSON.stringify(eventData.source)} -> ${JSON.stringify(eventData.newState.currentJob?.title || 'none')}</small>` : ''}
+            `;
+            logEntry.style.borderBottom = '1px solid #eee';
+            logEntry.style.padding = '5px 0';
+            eventLog.appendChild(logEntry);
+            eventLog.scrollTop = eventLog.scrollHeight;
+        }
+        
+        // Initialize display
+        setTimeout(() => {
+            refreshState();
+            logEvent('Demo initialized');
+        }, 100);
+    </script>
+</body>
+</html>
