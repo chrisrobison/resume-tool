@@ -67,9 +67,10 @@ class AIAssistantWorker extends HTMLElement {
         // Subscribe to store changes
         this._storeUnsubscribe = subscribe((event) => {
             console.log('AI Assistant: Store change event:', event); // Debug log
-            // Listen for any state change that might affect currentJob or currentResume
+            // Listen for any state change that might affect currentJob, currentResume, or settings
             if (event.source.includes('job') || event.source.includes('resume') || 
-                event.source.includes('Job') || event.source.includes('Resume')) {
+                event.source.includes('Job') || event.source.includes('Resume') ||
+                event.source.includes('settings') || event.source.includes('Settings')) {
                 console.log('AI Assistant: Relevant state change detected, updating...'); // Debug log
                 this.updateFromStore();
             }
@@ -1042,19 +1043,42 @@ class AIAssistantWorker extends HTMLElement {
 
     hasValidApiKey() {
         const settings = getState('settings');
-        const providers = settings?.apiProviders || {};
-        return (providers.claude && providers.claude.apiKey) || 
-               (providers.openai && providers.openai.apiKey);
+        console.log('AI Assistant hasValidApiKey - Full settings:', settings); // Debug log
+        
+        if (!settings) {
+            console.log('AI Assistant hasValidApiKey - No settings found'); // Debug log
+            return false;
+        }
+        
+        const providers = settings.apiProviders || {};
+        console.log('AI Assistant hasValidApiKey - Providers:', providers); // Debug log
+        
+        const claudeValid = providers.claude && providers.claude.apiKey && providers.claude.apiKey.trim().length > 0;
+        const openaiValid = providers.openai && providers.openai.apiKey && providers.openai.apiKey.trim().length > 0;
+        
+        console.log('AI Assistant hasValidApiKey - Claude valid:', claudeValid); // Debug log
+        console.log('AI Assistant hasValidApiKey - OpenAI valid:', openaiValid); // Debug log
+        
+        return claudeValid || openaiValid;
     }
 
     getApiConfig() {
         const settings = getState('settings');
-        const providers = settings?.apiProviders || {};
+        console.log('AI Assistant getApiConfig - Full settings:', settings); // Debug log
         
-        if (providers.claude && providers.claude.apiKey) {
-            return { provider: 'claude', apiKey: providers.claude.apiKey };
-        } else if (providers.openai && providers.openai.apiKey) {
-            return { provider: 'openai', apiKey: providers.openai.apiKey };
+        if (!settings) {
+            throw new Error('No settings found in store');
+        }
+        
+        const providers = settings.apiProviders || {};
+        console.log('AI Assistant getApiConfig - Providers:', providers); // Debug log
+        
+        if (providers.claude && providers.claude.apiKey && providers.claude.apiKey.trim().length > 0) {
+            console.log('AI Assistant getApiConfig - Using Claude'); // Debug log
+            return { provider: 'claude', apiKey: providers.claude.apiKey.trim() };
+        } else if (providers.openai && providers.openai.apiKey && providers.openai.apiKey.trim().length > 0) {
+            console.log('AI Assistant getApiConfig - Using OpenAI'); // Debug log
+            return { provider: 'openai', apiKey: providers.openai.apiKey.trim() };
         }
         
         throw new Error('No valid API key configured');

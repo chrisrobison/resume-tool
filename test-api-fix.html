@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Key Fix</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+        }
+        .debug { 
+            background: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            border-radius: 4px; 
+            padding: 15px; 
+            margin: 15px 0; 
+            font-family: monospace; 
+            font-size: 12px; 
+            white-space: pre-wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 API Key Reading Fix Test</h1>
+    
+    <button class="btn" onclick="testApiKeyReading()">Test API Key Reading</button>
+    <button class="btn" onclick="setApiKey()">Set Test API Key</button>
+    <button class="btn" onclick="clearData()">Clear Data</button>
+    
+    <div id="output" class="debug">Ready to test...</div>
+    
+    <!-- Include components -->
+    <global-store></global-store>
+    
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./js/store.js"></script>
+    <script type="module">
+        import { setState, getState } from './js/store.js';
+        
+        function log(message) {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `[${timestamp}] ${message}\n`;
+        }
+        
+        window.testApiKeyReading = function() {
+            log('=== Testing API Key Reading ===');
+            
+            // Wait for store to be ready
+            setTimeout(() => {
+                const state = getState();
+                log('Full state: ' + JSON.stringify(state, null, 2));
+                
+                // Test the exact same logic the AI Assistant uses
+                const settings = getState('settings');
+                log('Settings from getState("settings"): ' + JSON.stringify(settings, null, 2));
+                
+                const providers = settings?.apiProviders || {};
+                log('Providers: ' + JSON.stringify(providers, null, 2));
+                
+                const hasClaudeKey = providers.claude && providers.claude.apiKey;
+                const hasOpenAIKey = providers.openai && providers.openai.apiKey;
+                
+                log(`Claude key exists: ${hasClaudeKey}`);
+                log(`OpenAI key exists: ${hasOpenAIKey}`);
+                
+                const hasValidApiKey = hasClaudeKey || hasOpenAIKey;
+                log(`Has valid API key: ${hasValidApiKey}`);
+                
+                // Test getApiConfig logic
+                try {
+                    let apiConfig = null;
+                    if (providers.claude && providers.claude.apiKey) {
+                        apiConfig = { provider: 'claude', apiKey: providers.claude.apiKey };
+                    } else if (providers.openai && providers.openai.apiKey) {
+                        apiConfig = { provider: 'openai', apiKey: providers.openai.apiKey };
+                    }
+                    
+                    if (apiConfig) {
+                        log(`API Config: ${JSON.stringify({...apiConfig, apiKey: apiConfig.apiKey.substring(0, 10) + '...'})}`);
+                    } else {
+                        log('No valid API key configured');
+                    }
+                } catch (error) {
+                    log(`Error getting API config: ${error.message}`);
+                }
+            }, 500);
+        };
+        
+        window.setApiKey = function() {
+            log('Setting test API key...');
+            
+            const testSettings = {
+                apiProviders: {
+                    claude: {
+                        apiKey: 'sk-ant-test12345',
+                        model: 'claude-3-sonnet-20240229',
+                        enabled: true
+                    },
+                    openai: {
+                        apiKey: 'sk-test67890',
+                        model: 'gpt-4',
+                        enabled: false
+                    }
+                },
+                preferences: {
+                    theme: 'light',
+                    defaultProvider: 'claude'
+                }
+            };
+            
+            setState({ settings: testSettings }, 'api-key-test');
+            log('API key set in store');
+            
+            // Test reading immediately
+            setTimeout(() => {
+                log('\n=== Immediate Test ===');
+                testApiKeyReading();
+            }, 100);
+        };
+        
+        window.clearData = function() {
+            setState({ 
+                settings: {
+                    apiProviders: {},
+                    theme: 'light'
+                }
+            }, 'clear-test');
+            log('Data cleared');
+        };
+        
+        // Auto-run on load
+        setTimeout(() => {
+            log('Page loaded, testing...');
+            testApiKeyReading();
+        }, 1000);
+    </script>
+</body>
+</html>
