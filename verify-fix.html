@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify AI Assistant Fix</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5; 
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .status { 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin: 10px 0; 
+            font-weight: 600;
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb;
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+        .debug { 
+            background: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            border-radius: 4px; 
+            padding: 10px; 
+            margin: 10px 0; 
+            font-family: monospace; 
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 AI Assistant Fix Verification</h1>
+        
+        <div class="status success">
+            ✅ <strong>Fix Applied:</strong> Job titles now support both 'title' and 'position' properties<br>
+            ✅ <strong>Fix Applied:</strong> State subscription now listens for all relevant events<br>
+            ✅ <strong>Fix Applied:</strong> Force UI updates after state changes
+        </div>
+
+        <h2>Test Components</h2>
+        
+        <!-- Global Store -->
+        <global-store></global-store>
+        
+        <!-- Fixed AI Assistant -->
+        <ai-assistant-fixed></ai-assistant-fixed>
+        
+        <h2>Quick Test</h2>
+        <button class="btn" onclick="runTest()">🚀 Run Verification Test</button>
+        <button class="btn" onclick="clearAll()">🗑️ Clear All</button>
+        
+        <div id="test-results" class="debug">
+            Click "Run Verification Test" to verify the fixes...
+        </div>
+        
+        <h2>Manual Test Instructions</h2>
+        <ol>
+            <li>Click "Run Verification Test" to setup test data</li>
+            <li>Wait for the AI Assistant to show job/resume counts</li>
+            <li>Click "Select Job" - a modal should open with job titles visible</li>
+            <li>Select a job - the modal should close and the job should be displayed</li>
+            <li>Click "Select Resume" - a modal should open with resume names</li>
+            <li>Select a resume - the modal should close and the resume should be displayed</li>
+            <li>Verify the debug info shows the correct selections</li>
+        </ol>
+    </div>
+
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./components/ai-assistant-fixed.js"></script>
+    <script type="module" src="./js/store.js"></script>
+    <script type="module">
+        import { setState, getState, addJob, addResume } from './js/store.js';
+        
+        function log(message) {
+            const results = document.getElementById('test-results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `[${timestamp}] ${message}<br>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        window.runTest = async function() {
+            log('🔄 Starting verification test...');
+            
+            // Clear existing data
+            setState({ jobs: [], resumes: [], currentJob: null, currentResume: null }, 'test-clear');
+            log('✅ Cleared existing data');
+            
+            // Add test job with 'position' property (jobs.html schema)
+            const testJob = {
+                id: 'test-job-verify',
+                position: 'Senior Software Engineer',  // Using 'position' not 'title'
+                company: 'Test Company Inc',
+                location: 'San Francisco, CA',
+                description: 'Test job for verification',
+                status: 'saved',
+                dateCreated: new Date().toISOString()
+            };
+            
+            addJob(testJob);
+            log('✅ Added test job with position: "Senior Software Engineer"');
+            
+            // Add test resume
+            const testResume = {
+                id: 'test-resume-verify',
+                name: 'Test Resume',
+                data: {
+                    basics: {
+                        name: 'John Doe',
+                        email: 'john@test.com',
+                        summary: 'Test resume for verification'
+                    }
+                },
+                lastModified: new Date().toISOString()
+            };
+            
+            addResume(testResume);
+            log('✅ Added test resume: "Test Resume"');
+            
+            // Wait a moment for the UI to update
+            setTimeout(() => {
+                const state = getState();
+                log(`📊 Current state: ${state.jobs?.length || 0} jobs, ${state.resumes?.length || 0} resumes`);
+                log('🎯 Test data ready! Try the selection buttons in the AI Assistant above.');
+                log('');
+                log('Expected behavior:');
+                log('- Job button should show "Select Job (1 available)"');
+                log('- Resume button should show "Select Resume (1 available)"');
+                log('- Clicking buttons should open modals with the test data');
+                log('- Job should display as "Senior Software Engineer at Test Company Inc"');
+                log('- Selecting items should update the Current Selection display');
+            }, 200);
+        };
+        
+        window.clearAll = function() {
+            setState({ jobs: [], resumes: [], currentJob: null, currentResume: null }, 'test-clear');
+            log('🗑️ All data cleared');
+        };
+        
+        // Auto-run test after components load
+        setTimeout(() => {
+            log('🚀 Page loaded, components initialized');
+            log('Click "Run Verification Test" to test the fixes');
+        }, 1000);
+    </script>
+</body>
+</html>

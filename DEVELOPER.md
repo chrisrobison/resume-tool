@@ -1,418 +1,470 @@
-# Resume.json Editor - Developer Documentation
+# Job-Centric Career Management Tool - Developer Documentation
 
 ## Project Overview
 
-This is a browser-based Resume.json Editor tool that allows users to create, edit, and manage resumes using the JSON Resume schema format. The application is a fully client-side single-page application that functions without a build process or server-side dependencies, though an optional Node.js component is included for AI resume customization.
+This is a comprehensive job-centric career management tool that has evolved from a simple resume editor into a complete job search workflow system. The application follows a job-first approach where jobs drive everything - resumes and cover letters are tailored to support specific job applications. The system is built with modern Web Components, global state management, and Web Worker-based AI integration.
 
-## Architecture
+## Architecture Evolution
 
-The application follows a modular JavaScript architecture:
+The project has undergone a complete architectural transformation:
 
-1. **Core App Object**: The main controller that coordinates all functionality
-2. **Module-based Organization**: Functionality is split into specialized modules
-3. **Local Storage**: Client-side persistence for saving resumes and settings
-4. **Event Delegation**: Centralized event handling for dynamic elements
-5. **AI Integration**: Optional Claude and OpenAI API integration
+**Evolution Path**: `index.html` → `demo.html` → `jobs.html`  
+- **index.html**: Simple JSON Resume editor (legacy)
+- **demo.html**: Web Components demonstration (transitional)  
+- **jobs.html**: Job-centric career management system (current)
+
+### Current Architecture
+
+1. **Job-Centric Design**: Jobs are the central organizing principle
+2. **Web Components**: Modern component-based architecture with Shadow DOM
+3. **Global State Management**: Reactive state system with event-driven updates
+4. **Web Worker AI**: Non-blocking AI operations for resume tailoring and analysis
+5. **Modular System**: Clean separation of concerns with specialized components
+6. **Zero Build**: No compilation required - pure ES6 modules and modern browser features
 
 ## Project Structure
 
 ```
-resume-tool/
-├── index.html            # Main application HTML
-├── styles.css            # Global styles
-├── js/                   # JavaScript modules
-│   ├── core.js           # Main application object and initialization
-│   ├── config.js         # Configuration and default data
-│   ├── ui.js             # UI and view management
-│   ├── utils.js          # Utility functions
-│   ├── storage.js        # Local storage operations
-│   ├── modals.js         # Modal dialogs and form handling
-│   ├── preview.js        # Resume preview and themes
-│   ├── import-export.js  # Import/export functionality
-│   ├── jobs.js           # Job management system
-│   ├── logs.js           # Activity logging and history
-│   └── theme-styles.css  # Theme-specific CSS styles
-└── server/               # Optional Node.js server for AI integration
+job-tool/
+├── jobs.html                    # 🏠 Main job-centric application
+├── jobs.css                     # 🎨 Main application styles
+├── components/                  # 📦 Web Components
+│   ├── global-store.js          # 🗄️ Global state management
+│   ├── settings-manager.js      # ⚙️ Comprehensive settings component
+│   ├── ai-assistant-worker.js   # 🤖 AI assistant with Web Worker
+│   ├── ai-assistant-fixed.js    # 🔧 Enhanced AI assistant (debug version)
+│   ├── resume-editor.js         # ✏️ Visual resume editor component
+│   ├── resume-viewer.js         # 👁️ Resume display component
+│   ├── job-manager.js           # 💼 Job management component
+│   ├── resume-analytics.js      # 📊 Resume analysis component
+│   └── api-settings.js          # 🔑 API configuration component
+├── js/                          # 📁 Core JavaScript modules
+│   ├── ai-service.js           # 🧠 Web Worker AI service interface
+│   ├── store.js                # 📋 State management utilities
+│   ├── core.js                 # 🔧 Core application logic
+│   ├── utils.js                # 🛠️ Utility functions
+│   ├── storage.js              # 💾 Storage operations
+│   ├── modals.js               # 🪟 Modal management
+│   ├── ui.js                   # 🖥️ UI management
+│   ├── preview.js              # 👁️ Resume preview
+│   ├── import-export.js        # 📤 Import/export functionality
+│   ├── jobs.js                 # 💼 Job management logic
+│   ├── logs.js                 # 📊 Activity logging
+│   ├── config.js               # ⚙️ Configuration
+│   └── main.js                 # 🚀 Application entry point
+├── workers/                     # 🔄 Web Workers
+│   └── ai-worker.js            # 🤖 AI processing worker
+├── test-*.html                  # 🧪 Test and debug pages
+├── demo-*.html                  # 🎯 Feature demonstration pages
+├── verify-fix.html              # ✅ Fix verification page
+├── debug-ai-assistant.html      # 🔍 AI assistant debugging
+├── index.html                   # 📄 Legacy resume editor
+├── demo.html                    # 🎪 Web Components demo
+├── reference.html               # 📚 Component reference
+├── server/                      # 🖥️ Optional Node.js server
+│   ├── index.js                # 🚀 Express server
+│   ├── claudeService.js        # 🤖 Claude API integration
+│   └── chatgptService.js       # 🤖 OpenAI API integration
+└── docs/                        # 📖 Documentation
+    ├── DEVELOPER.md             # 📘 This file
+    ├── README.md                # 📝 Project overview
+    ├── TESTING.md               # 🧪 Testing documentation
+    ├── PROJECT_MAP.md           # 🗺️ Comprehensive project map
+    ├── AI-ASSISTANT-FIX-SUMMARY.md     # 🔧 Bug fix documentation
+    └── SELECTION-FIXES-APPLIED.md      # ✅ Selection fix details
 ```
 
-## Modules and Key Components
+## Core Components
 
-### core.js
+### Global State Management (`components/global-store.js`, `js/store.js`)
 
-The central module containing the main application object and initialization logic. Coordinates the interaction between all other modules. Uses the namespace import pattern to reference functions from other modules.
+**GlobalStore Web Component**: Invisible component that manages application state
+- Event-driven state updates with CustomEvents
+- Automatic localStorage persistence with deep merge
+- Component subscription patterns for reactive updates
+- Convenience methods for common operations
 
-Key functions:
-- `app.init()`: Initialize the application
-- `app.updateAllFields()`: Update UI from data model
-- `app.saveNamedResume()`: Save resume with name to localStorage
-- `app.loadSavedResume()`: Load resume from localStorage
+**Key Features**:
+```javascript
+// State structure
+{
+  currentJob: null,
+  currentResume: null,
+  jobs: [],
+  resumes: [],
+  coverLetters: [],
+  settings: { apiProviders: {}, theme: 'light' },
+  ui: { activeView: 'jobs', isLoading: false },
+  logs: []
+}
 
-### utils.js
+// Usage
+import { setState, getState, subscribe } from './js/store.js';
+setState({ currentJob: job }, 'source-identifier');
+const state = getState();
+subscribe((event) => console.log('State changed:', event));
+```
 
-Provides utility functions used throughout the application.
+### AI System (`workers/ai-worker.js`, `js/ai-service.js`)
 
-Key functions:
-- `$(selector)`: Shorthand for querySelector
-- `$$(selector)`: Shorthand for querySelectorAll
-- `escapeHtml(str)`: Escape HTML entities for safe rendering
-- `formatDate(dateStr, format)`: Format dates with multiple format options
-- `showToast(message, type)`: Show toast notifications
+**Web Worker Architecture**: AI operations run in separate thread to prevent UI blocking
+- Support for Claude and OpenAI APIs
+- Comprehensive match analysis with scoring
+- Progress tracking and error handling
+- Resume tailoring and cover letter generation
 
-### storage.js
+**Key Features**:
+```javascript
+// AI Service Interface
+import aiService from './js/ai-service.js';
 
-Handles all localStorage operations for persistent data storage.
+const result = await aiService.tailorResume({
+  resume: resumeData,
+  jobDescription: jobDesc,
+  provider: 'claude',
+  apiKey: apiKey,
+  onProgress: (message) => console.log(message)
+});
+```
 
-Key functions:
-- `initLocalStorage()`: Initialize storage if needed
-- `saveResumeToStorage(data)`: Save current resume to localStorage
-- `loadResumeFromStorage()`: Load resume from localStorage
-- `saveNamedResume(data, name)`: Save a named resume version
-- `loadNamedResume(name)`: Load a specific named resume
-- `deleteNamedResume(name)`: Delete a named resume
+### AI Assistant (`components/ai-assistant-worker.js`)
 
-### ui.js
+**Enhanced AI Component**: Rich UI for AI interactions
+- Job and resume selection with modal dialogs
+- Real-time match analysis and scoring display
+- Progress tracking with visual indicators
+- Integration with global state management
 
-Manages the user interface, view switching, and tab navigation.
+**Key Features**:
+- Visual job/resume selection
+- Comprehensive match analysis UI
+- Progress tracking and error handling
+- Store synchronization for selections
 
-Key functions:
-- `setupUIEventListeners(app)`: Set up UI-related event listeners
-- `switchView(viewId)`: Switch between main views (resume, jobs, history)
-- `switchTab(tabId)`: Switch between tabs in the resume editor
-- `createSectionItem(data, index, type)`: Create list items for resume sections
+### Settings Management (`components/settings-manager.js`)
 
-### modals.js
+**Comprehensive Settings Component**: Tabbed interface for all settings
+- Multi-provider API configuration with testing
+- Theme selection and UI preferences  
+- Resume defaults and version management
+- Privacy controls and data export options
 
-Handles all modal dialogs and their associated forms.
-
-Key functions:
-- `setupModals(app)`: Initialize all modal event handlers
-- `showModal(modalId)`: Show a specific modal
-- `hideModal(modalId)`: Hide a specific modal
-- `clearModalFields(modalId)`: Clear form fields in a modal
-- Functions for each section: `setupProfileModal`, `setupWorkModal`, etc.
-- Render functions: `renderProfiles`, `renderWork`, `renderEducation`, etc.
-
-### preview.js
-
-Manages the resume preview functionality and different theme renderings.
-
-Key functions:
-- `setupPreviewEventListeners(app)`: Set up preview-related event listeners
-- `renderPreview(resumeData)`: Render the resume preview with selected theme
-- `generateModernTheme(resumeData)`: Generate HTML for modern theme
-- `generateClassicTheme(resumeData)`: Generate HTML for classic theme
-- `generateMinimalTheme(resumeData)`: Generate HTML for minimal theme
-
-### import-export.js
-
-Handles importing and exporting resume data.
-
-Key functions:
-- `setupImportFunctionality(app)`: Set up import-related event listeners
-- `setupExportFunctionality(app)`: Set up export-related event listeners
-- `importFromJson(jsonString, app)`: Import resume from JSON text
-- `importFromFile(file, app)`: Import resume from uploaded file
-- `importFromUrl(url, app)`: Import resume from URL
-
-### jobs.js
-
-Manages job tracking, applications, and resume tailoring.
-
-Key functions:
-- `setupJobEventListeners(app)`: Set up job-related event listeners
-- `createDefaultJob()`: Create a new job object with default values
-- `saveJob(job)`: Save a job to localStorage
-- `loadJobs()`: Load all jobs from localStorage
-- `renderJobs(app)`: Render the jobs list in the UI
-- `associateResumeWithJob(jobId, resumeId)`: Link a resume to a job
-
-### logs.js
-
-Handles activity logging and history tracking.
-
-Key functions:
-- `addLog(type, action, details)`: Add a general log entry
-- `logApiCall(provider, action, details)`: Log an API call
-- `logJobAction(action, jobId, details)`: Log a job-related action
-- `renderLogs(container)`: Render the logs in the UI
-- `setupLogFilters(container, form)`: Set up log filtering
-
-## Data Models
-
-### Resume Schema
-
-Based on the JSON Resume standard (jsonresume.org/schema/):
-
+**Settings Structure**:
 ```javascript
 {
-  "basics": {
-    "name": "",
-    "label": "",
-    "email": "",
-    "phone": "",
-    "website": "",
-    "summary": "",
-    "location": {
-      "address": "",
-      "postalCode": "",
-      "city": "",
-      "countryCode": "",
-      "region": ""
-    },
-    "profiles": [
-      {
-        "network": "",
-        "username": "",
-        "url": ""
-      }
-    ]
+  apiProviders: {
+    claude: { apiKey: '', enabled: true },
+    openai: { apiKey: '', enabled: false }
   },
-  "work": [
-    {
-      "name": "",
-      "position": "",
-      "url": "",
-      "startDate": "",
-      "endDate": "",
-      "summary": "",
-      "highlights": []
-    }
-  ],
-  "education": [
-    {
-      "institution": "",
-      "area": "",
-      "studyType": "",
-      "startDate": "",
-      "endDate": "",
-      "score": "",
-      "courses": []
-    }
-  ],
-  "skills": [
-    {
-      "name": "",
-      "level": "",
-      "keywords": []
-    }
-  ],
-  "projects": [
-    {
-      "name": "",
-      "description": "",
-      "highlights": [],
-      "startDate": "",
-      "endDate": "",
-      "url": ""
-    }
-  ],
-  "meta": {
-    "theme": "",
-    "language": "",
-    "lastModified": ""
+  theme: 'light',
+  defaultResume: null,
+  preferences: {
+    autoSave: true,
+    showAnalytics: true
   }
 }
 ```
 
-### Job Schema
+### Resume Editor (`components/resume-editor.js`)
 
-Custom schema for tracking job applications:
+**Visual Resume Editor**: Full-featured resume editing component
+- Complete JSON Resume schema support
+- Modal-based editing for all sections
+- Real-time preview and validation
+- Auto-save and version management
 
+## Data Models
+
+### Job Schema (jobs.html format)
 ```javascript
 {
-  "id": "job_timestamp_random",
-  "title": "",
-  "company": "",
-  "location": "",
-  "url": "",
-  "description": "",
-  "contactName": "",
-  "contactEmail": "",
-  "contactPhone": "",
-  "notes": "",
-  "status": "saved", // One of: saved, applied, interviewing, offered, accepted, rejected
-  "dateCreated": "",
-  "dateUpdated": "",
-  "dateApplied": "",
-  "resumeId": null, // Associated tailored resume ID
-  "statusHistory": [
+  id: "job_timestamp_random",
+  company: "Company Name",
+  position: "Job Title",           // Note: uses 'position' not 'title'
+  status: "saved|applied|interviewing|offered|rejected|accepted|declined",
+  datePosted: "YYYY-MM-DD",
+  dateApplied: "YYYY-MM-DD", 
+  description: "Short description",
+  jobDetails: "Full job description",
+  location: "City, State",
+  contactName: "Contact Person",
+  contactEmail: "contact@company.com",
+  contactPhone: "123-456-7890",
+  url: "https://jobposting.url",
+  resumeId: "associated_resume_id",
+  notes: "Personal notes",
+  dateCreated: "ISO timestamp",
+  statusHistory: [
     {
-      "from": "saved",
-      "to": "applied",
-      "date": "",
-      "notes": ""
+      from: "saved",
+      to: "applied", 
+      date: "ISO timestamp",
+      notes: "Status change notes"
     }
   ]
 }
 ```
 
-### Log Entry Schema
-
-Custom schema for tracking activity history:
-
+### Resume Schema (JSON Resume Standard)
 ```javascript
 {
-  "id": "log_timestamp_random",
-  "type": "api_call|job_action|resume_action|system",
-  "action": "action_name",
-  "timestamp": "ISO timestamp",
-  "details": {
-    // Action-specific details
+  basics: {
+    name: "Full Name",
+    label: "Job Title",
+    email: "email@example.com",
+    phone: "123-456-7890",
+    website: "https://website.com",
+    summary: "Professional summary",
+    location: {
+      address: "Street Address",
+      postalCode: "12345",
+      city: "City",
+      countryCode: "US",
+      region: "State"
+    },
+    profiles: [
+      {
+        network: "LinkedIn",
+        username: "username",
+        url: "https://linkedin.com/in/username"
+      }
+    ]
+  },
+  work: [
+    {
+      name: "Company Name",
+      position: "Job Title",
+      url: "https://company.com",
+      startDate: "YYYY-MM-DD",
+      endDate: "YYYY-MM-DD",
+      summary: "Role summary",
+      highlights: ["Achievement 1", "Achievement 2"]
+    }
+  ],
+  education: [
+    {
+      institution: "University Name",
+      area: "Field of Study",
+      studyType: "Degree Type",
+      startDate: "YYYY-MM-DD",
+      endDate: "YYYY-MM-DD",
+      score: "GPA",
+      courses: ["Course 1", "Course 2"]
+    }
+  ],
+  skills: [
+    {
+      name: "Skill Category",
+      level: "Expert|Advanced|Intermediate|Beginner",
+      keywords: ["skill1", "skill2"]
+    }
+  ],
+  projects: [
+    {
+      name: "Project Name",
+      description: "Project description",
+      highlights: ["Feature 1", "Feature 2"],
+      startDate: "YYYY-MM-DD",
+      endDate: "YYYY-MM-DD",
+      url: "https://project.url"
+    }
+  ],
+  meta: {
+    theme: "modern|classic|minimal",
+    lastModified: "ISO timestamp"
   }
+}
+```
+
+### AI Analysis Result Schema
+```javascript
+{
+  overallScore: 85,           // 0-100 compatibility score
+  matchScore: 90,            // Job-resume match score
+  strengths: ["strength1", "strength2"],
+  improvements: ["improvement1", "improvement2"],
+  missingSkills: ["skill1", "skill2"],
+  skillsMatch: {
+    score: 80,
+    matchedSkills: ["JavaScript", "React"],
+    missingSkills: ["Python", "Docker"]
+  },
+  experienceMatch: {
+    score: 90,
+    relevantExperience: ["5 years frontend", "React projects"],
+    gaps: ["No backend experience"]
+  },
+  recommendations: ["Focus on Python skills", "Add backend projects"],
+  concerns: ["Limited backend experience"]
 }
 ```
 
 ## Key Features Implemented
 
-1. **Modular JS Architecture**
-   - Split code into specialized modules with clear responsibilities
-   - Used namespace imports pattern (`import * as moduleName`)
-   - Enhanced maintainability and code organization
+### 1. Job-Centric Architecture
+- Jobs as central organizing principle
+- Resume-job associations and tailoring
+- Cover letter management per job
+- Integrated workflow in jobs.html
 
-2. **Complete Resume Editor**
-   - Implemented all JSON Resume schema sections (basics, work, education, skills, projects)
-   - Support for adding, editing, and deleting entries in each section
-   - Form validation and data integrity checks
+### 2. Enhanced AI Integration
+- Web Worker-based processing (non-blocking)
+- Comprehensive job-resume match analysis
+- Detailed scoring and recommendations
+- Progress tracking and error handling
+- Support for Claude and OpenAI APIs
 
-3. **Multiple Themes**
-   - Modern theme: Clean, contemporary styling with card-based layout
-   - Classic theme: Traditional resume format with formal styling
-   - Minimal theme: Simple, elegant design with minimalist aesthetics
+### 3. Global State Management
+- Reactive state system with CustomEvents
+- Automatic localStorage persistence
+- Component subscription patterns
+- Deep merge state updates
 
-4. **Enhanced Date Formatting**
-   - Support for multiple date formats (YYYY-MM-DD, MMM YYYY, YYYY)
-   - Consistent date display across different resume sections
-   - Smart handling of incomplete or invalid dates
+### 4. Comprehensive Settings
+- Multi-provider API configuration
+- API key testing and validation
+- Theme and preference management
+- Privacy and data controls
 
-5. **Job Management System**
-   - Job tracking with different statuses (saved, applied, interviewing, etc.)
-   - History tracking for job status changes
-   - Association of tailored resumes with specific job applications
+### 5. Modern Component Architecture
+- Web Components with Shadow DOM
+- Event-driven communication
+- Modular and reusable design
+- Clean separation of concerns
 
-6. **Activity Logging**
-   - Comprehensive logging system for important actions
-   - Log filtering by type, date, and action
-   - Detailed history view for all activities
+### 6. Testing Infrastructure
+- Comprehensive test pages
+- Interactive debugging tools
+- Fix verification systems
+- Component isolation testing
 
-7. **Resume Import/Export**
-   - Import from JSON text, file upload, or URL
-   - Export to JSON file or clipboard
-   - Validation of imported data against schema
+## Development Workflow
 
-8. **AI Resume Tailoring**
-   - Integration with Claude and OpenAI APIs
-   - Customization of resumes based on job descriptions
-   - Cover letter generation
+### Getting Started
+1. **Main Application**: Open `jobs.html` for the full job-centric experience
+2. **Component Testing**: Use `test-*.html` pages for isolated component testing
+3. **Debugging**: Use `debug-ai-assistant.html` for AI component debugging
+4. **Legacy**: `index.html` for the original resume editor
 
-9. **Local Storage**
-   - Save multiple named resumes
-   - Automatic saving of current work
-   - Resume management with load and delete operations
+### Making Changes
+1. Edit components in the `components/` directory
+2. Modify core logic in the `js/` directory
+3. Test changes using the test pages
+4. Refresh browser to see updates (no build process)
 
-10. **Responsive UI**
-    - Mobile-friendly interface with swipe navigation
-    - Adaptive layout for different screen sizes
-    - Touch-optimized controls
+### Adding New Components
+1. Create new Web Component in `components/`
+2. Register with `customElements.define()`
+3. Add to global store integration if needed
+4. Create test page for validation
 
-## Recent Improvements
+### AI Integration
+1. Configure API keys in Settings
+2. Test with `verify-fix.html` or `test-fixed-assistant.html`
+3. Monitor console for debugging information
+4. Use Web Worker for heavy processing
 
-1. **Fixed Education, Skills, and Projects Sections**
-   - Implemented missing modal functionality
-   - Fixed event handlers for add/edit/delete operations
-   - Corrected modal ID references
+## Common Issues and Solutions
 
-2. **Enhanced Theme System**
-   - Added complete implementations for Classic and Minimal themes
-   - Created separate theme-styles.css for better organization
-   - Improved HTML generation for all themes
+### Selection Button Issues
+**Problem**: Buttons show "Untitled Job" or selections don't persist
+**Solution**: 
+- Ensure job objects use both `title` and `position` properties
+- Check state subscription patterns
+- Verify store synchronization timing
 
-3. **Refactored Code Structure**
-   - Converted to namespace imports for all modules
-   - Improved initialization sequence
-   - Better error handling throughout the application
+### State Management Issues
+**Problem**: Components not updating when state changes
+**Solution**:
+- Check component subscription to global store
+- Verify event source names in setState calls
+- Use store debugging: `debugStore()` function
 
-4. **Job and History Integration**
-   - Connected job management system with logging
-   - Enhanced status tracking workflow
-   - Improved UI for job management
+### AI Integration Issues
+**Problem**: AI operations failing or hanging
+**Solution**:
+- Verify API keys in Settings
+- Check browser console for Worker errors
+- Test with `verify-fix.html` page
+- Ensure proper error handling
 
-## Technical Notes
+### Component Communication Issues
+**Problem**: Components not sharing data correctly
+**Solution**:
+- Use global store for shared state
+- Implement proper event listeners
+- Check CustomEvent dispatch/listen patterns
 
-1. **Module Pattern**
-   - The application uses ES6 modules with explicit exports
-   - Each module has a clear responsibility and API
-   - Dependencies are explicitly imported at the top of each file
+## Testing Strategy
 
-2. **Event Handling**
-   - Uses event delegation for dynamically created elements
-   - Centralizes event binding in setup functions
-   - Maintains clear separation between event handlers and logic
+### Test Pages Available
+- `test-fixed-assistant.html` - AI Assistant comprehensive testing
+- `verify-fix.html` - Quick selection button verification
+- `debug-ai-assistant.html` - Console debugging with test data
+- `demo-*.html` - Feature demonstration pages
 
-3. **Form Management**
-   - Consistent pattern for form handling across all modals
-   - Form field validation before saving data
-   - Clear error messages for validation failures
+### Testing Approach
+1. **Unit Testing**: Individual component testing
+2. **Integration Testing**: Component communication testing  
+3. **End-to-End Testing**: Full workflow testing
+4. **Debug Testing**: Interactive debugging tools
 
-4. **UI State Management**
-   - Application state is maintained in the app.state object
-   - UI updates are triggered by state changes
-   - Clear data flow from model to view
+## Performance Considerations
 
-5. **API Integration**
-   - Support for both Claude and OpenAI APIs
-   - Error handling and response validation
-   - Configurable API settings
+### Web Workers
+- AI operations run in separate thread
+- No UI blocking during processing
+- Progress callbacks for user feedback
+- Error handling and timeout management
+
+### State Management
+- Efficient deep merge algorithms
+- Minimal re-renders with targeted updates
+- Event-driven architecture reduces coupling
+- localStorage persistence optimization
+
+### Component Architecture
+- Shadow DOM isolation
+- Lazy component initialization
+- Event delegation patterns
+- Memory leak prevention
+
+## Security Considerations
+
+### API Key Management
+- Local storage only (never sent to our servers)
+- User-controlled API configuration
+- Secure transmission to AI providers
+- Option to use local server proxy
+
+### Data Privacy
+- All data stays in browser localStorage
+- No tracking or analytics
+- User controls data export/import
+- Optional AI processing with user consent
 
 ## Future Enhancements
 
-1. **Sync with Cloud Storage**
-   - Add support for Google Drive or Dropbox integration
-   - Enable cross-device synchronization
+### Planned Features
+1. **Interview Preparation**: Question banks and practice sessions
+2. **Application Tracking**: Deadline reminders and follow-up scheduling
+3. **Salary Negotiation**: Tools and templates for negotiations
+4. **Network Management**: Contact tracking and relationship management
+5. **Portfolio Integration**: Project showcase and portfolio management
+6. **Analytics Dashboard**: Success metrics and application analytics
 
-2. **Export to PDF/Word**
-   - Enhanced export options for different file formats
-   - More customization options for exports
-
-3. **Enhanced Theme Editor**
-   - Visual theme customization tools
-   - Custom theme creation and saving
-
-4. **Improved AI Features**
-   - More targeted resume customization options
-   - Resume analysis and improvement suggestions
-
-5. **Offline Support**
-   - Implement Service Workers for offline functionality
-   - Local caching of application data
-
-## Troubleshooting
-
-Common issues and solutions:
-
-1. **Modal Dialogs Not Opening**
-   - Check for correct modal ID references in code
-   - Verify the modal HTML exists in the document
-   - Check browser console for errors
-
-2. **Local Storage Issues**
-   - Clear browser cache and local storage if encountering data corruption
-   - Check storage limits in the browser
-   - Use storage.clearStorage() to reset the application
-
-3. **API Integration Problems**
-   - Verify API keys are correctly entered
-   - Check network requests in browser dev tools
-   - Review API response handling in the code
-
-4. **UI Rendering Issues**
-   - Verify DOM element IDs match those referenced in JavaScript
-   - Check for CSS conflicts or overrides
-   - Test in different browsers for compatibility issues
+### Technical Improvements
+1. **Offline Support**: Service Worker implementation
+2. **Cloud Sync**: Optional cloud storage integration
+3. **Mobile App**: Progressive Web App features
+4. **Advanced AI**: More sophisticated analysis algorithms
+5. **Export Options**: PDF, Word, and other format support
+6. **Accessibility**: Enhanced screen reader and keyboard support
 
 ## Contributors
 
-This project has been developed and improved with assistance from Claude AI (Anthropic).
+This project has been developed with assistance from Claude AI (Anthropic) and represents a comprehensive evolution from a simple resume editor to a complete job-centric career management system.
 
 ## License
 
-This project is intended for educational and personal use.
+This project is intended for educational and personal use. Please review the LICENSE file for complete terms.

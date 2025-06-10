@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Fixed AI Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .debug-panel {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .debug-panel h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: 1px solid #007bff;
+            background: #007bff;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+            border-color: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            border-color: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+            border-color: #1e7e34;
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 4px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="debug-panel">
+            <h1>🔧 Fixed AI Assistant Test</h1>
+            <p>This page tests the <strong>fixed version</strong> of the AI Assistant component with improved debugging and state management.</p>
+            <div>
+                <span class="status loading" id="status">Initializing...</span>
+            </div>
+        </div>
+
+        <!-- Global Store Instance -->
+        <global-store></global-store>
+
+        <!-- AI Assistant Components - Both versions for comparison -->
+        <div class="debug-panel">
+            <h3>Fixed AI Assistant Component</h3>
+            <ai-assistant-fixed></ai-assistant-fixed>
+        </div>
+
+        <div class="debug-panel">
+            <h3>Test Controls</h3>
+            <button class="btn" onclick="setupTestData()">
+                <i class="fas fa-database"></i>
+                Setup Test Data
+            </button>
+            <button class="btn" onclick="showStoreState()">
+                <i class="fas fa-info-circle"></i>
+                Show Store State
+            </button>
+            <button class="btn" onclick="testButtonAccess()">
+                <i class="fas fa-mouse-pointer"></i>
+                Test Button Access
+            </button>
+            <button class="btn btn-success" onclick="clearStore()">
+                <i class="fas fa-trash"></i>
+                Clear Store
+            </button>
+        </div>
+
+        <div class="debug-panel">
+            <h3>Console Output</h3>
+            <div id="console-output" class="debug-info">
+                Waiting for console output...
+            </div>
+        </div>
+
+        <div class="debug-panel">
+            <h3>Quick Navigation</h3>
+            <a href="jobs.html" class="btn">
+                <i class="fas fa-briefcase"></i>
+                Open Main App (jobs.html)
+            </a>
+            <a href="test-ai-assistant.html" class="btn">
+                <i class="fas fa-bug"></i>
+                Original Debug Page
+            </a>
+        </div>
+    </div>
+
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./components/ai-assistant-fixed.js"></script>
+    <script type="module" src="./js/ai-service.js"></script>
+    <script type="module" src="./js/store.js"></script>
+    <script type="module">
+        import { setState, getState, addJob, addResume, debugStore } from './js/store.js';
+        
+        let componentReady = false;
+        
+        // Status tracking
+        function updateStatus(text, type = 'loading') {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            status.className = `status ${type}`;
+        }
+        
+        // Enhanced console logging with UI output
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+        
+        function logToUI(level, args) {
+            const output = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const levelColors = {
+                log: '#333',
+                warn: '#856404', 
+                error: '#721c24'
+            };
+            
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            output.innerHTML += `<div style="color: ${levelColors[level] || '#333'}; margin: 2px 0;"><strong>[${timestamp}] ${level.toUpperCase()}:</strong> ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, arguments);
+            logToUI('log', args);
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, arguments);
+            logToUI('warn', args);
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, arguments);
+            logToUI('error', args);
+        };
+
+        window.setupTestData = function() {
+            console.log('=== Setting up comprehensive test data ===');
+            
+            // Create varied test jobs (using jobs.html schema with 'position' instead of 'title')
+            const testJobs = [
+                {
+                    id: 'job-frontend-1',
+                    position: 'Senior Frontend Developer',
+                    company: 'TechCorp Inc',
+                    location: 'San Francisco, CA',
+                    description: 'Join our team as a Senior Frontend Developer working with React, TypeScript, and modern web technologies.',
+                    dateCreated: new Date().toISOString(),
+                    status: 'saved'
+                },
+                {
+                    id: 'job-backend-1',
+                    position: 'Backend Engineer',
+                    company: 'DataSystems Ltd',
+                    location: 'New York, NY',
+                    description: 'Backend engineer position focusing on Python, PostgreSQL, and microservices architecture.',
+                    dateCreated: new Date().toISOString(),
+                    status: 'applied'
+                },
+                {
+                    id: 'job-fullstack-1',
+                    position: 'Full Stack Developer',
+                    company: 'StartupXYZ',
+                    location: 'Austin, TX',
+                    description: 'Full stack role covering React frontend and Node.js backend development.',
+                    dateCreated: new Date().toISOString(),
+                    status: 'interviewing'
+                }
+            ];
+            
+            // Create varied test resumes
+            const testResumes = [
+                {
+                    id: 'resume-main-1',
+                    name: 'Main Professional Resume',
+                    data: {
+                        basics: {
+                            name: 'Jane Smith',
+                            email: 'jane.smith@email.com',
+                            summary: 'Experienced full-stack developer with 6+ years in web technologies'
+                        },
+                        work: [{
+                            name: 'Tech Solutions Inc',
+                            position: 'Senior Developer',
+                            startDate: '2021-01-01',
+                            endDate: '2024-01-01'
+                        }],
+                        skills: [
+                            { name: 'JavaScript', level: 'Expert' },
+                            { name: 'React', level: 'Advanced' },
+                            { name: 'Python', level: 'Intermediate' }
+                        ]
+                    },
+                    lastModified: new Date().toISOString()
+                },
+                {
+                    id: 'resume-backend-1',
+                    name: 'Backend-Focused Resume',
+                    data: {
+                        basics: {
+                            name: 'Jane Smith',
+                            email: 'jane.smith@email.com',
+                            summary: 'Backend specialist with expertise in Python, databases, and API development'
+                        },
+                        work: [{
+                            name: 'Backend Systems Corp',
+                            position: 'Backend Engineer',
+                            startDate: '2020-01-01',
+                            endDate: '2024-01-01'
+                        }],
+                        skills: [
+                            { name: 'Python', level: 'Expert' },
+                            { name: 'PostgreSQL', level: 'Advanced' },
+                            { name: 'Docker', level: 'Intermediate' }
+                        ]
+                    },
+                    lastModified: new Date().toISOString()
+                }
+            ];
+            
+            // Add to store with detailed logging
+            testJobs.forEach((job, index) => {
+                console.log(`Adding job ${index + 1}/${testJobs.length}: ${job.title} at ${job.company}`);
+                addJob(job);
+            });
+            
+            testResumes.forEach((resume, index) => {
+                console.log(`Adding resume ${index + 1}/${testResumes.length}: ${resume.name}`);
+                addResume(resume);
+            });
+            
+            console.log('=== Test data setup complete! ===');
+            updateStatus('Test data loaded', 'ready');
+            
+            // Show the results
+            setTimeout(() => {
+                showStoreState();
+                updateStatus('Ready for testing', 'ready');
+            }, 200);
+        };
+
+        window.showStoreState = function() {
+            console.log('=== Current Store State ===');
+            const state = getState();
+            console.log('Full state object:', state);
+            
+            if (state) {
+                console.log(`Jobs: ${state.jobs?.length || 0} items`);
+                state.jobs?.forEach((job, i) => {
+                    console.log(`  Job ${i + 1}: ${job.title || job.position} at ${job.company} (${job.status})`);
+                });
+                
+                console.log(`Resumes: ${state.resumes?.length || 0} items`);
+                state.resumes?.forEach((resume, i) => {
+                    console.log(`  Resume ${i + 1}: ${resume.name}`);
+                });
+                
+                console.log('Current selections:');
+                console.log(`  Current Job: ${state.currentJob ? `${state.currentJob.title || state.currentJob.position} at ${state.currentJob.company}` : 'None'}`);
+                console.log(`  Current Resume: ${state.currentResume ? state.currentResume.name : 'None'}`);
+            } else {
+                console.warn('Store state is null or undefined');
+            }
+            console.log('=== End Store State ===');
+        };
+
+        window.testButtonAccess = function() {
+            console.log('=== Testing Button Access ===');
+            
+            const aiAssistant = document.querySelector('ai-assistant-fixed');
+            if (!aiAssistant) {
+                console.error('AI Assistant Fixed component not found');
+                return;
+            }
+            
+            console.log('AI Assistant Fixed component found:', aiAssistant);
+            
+            const shadowRoot = aiAssistant.shadowRoot;
+            if (!shadowRoot) {
+                console.error('Shadow root not found');
+                return;
+            }
+            
+            console.log('Shadow root found');
+            
+            // Check buttons
+            const selectJobBtn = shadowRoot.getElementById('select-job');
+            const selectResumeBtn = shadowRoot.getElementById('select-resume');
+            
+            console.log('Select job button:', selectJobBtn);
+            console.log('  - Disabled:', selectJobBtn?.disabled);
+            console.log('  - Text:', selectJobBtn?.textContent?.trim());
+            
+            console.log('Select resume button:', selectResumeBtn);
+            console.log('  - Disabled:', selectResumeBtn?.disabled);
+            console.log('  - Text:', selectResumeBtn?.textContent?.trim());
+            
+            // Try programmatic clicks
+            if (selectJobBtn && !selectJobBtn.disabled) {
+                console.log('Attempting programmatic click on job button...');
+                selectJobBtn.click();
+            }
+            
+            console.log('=== End Button Access Test ===');
+        };
+
+        window.clearStore = function() {
+            console.log('=== Clearing Store ===');
+            setState({
+                jobs: [],
+                resumes: [],
+                currentJob: null,
+                currentResume: null
+            }, 'test-clear');
+            console.log('Store cleared');
+            updateStatus('Store cleared', 'ready');
+        };
+
+        // Initialize when page loads
+        setTimeout(() => {
+            console.log('=== Page Initialization ===');
+            console.log('AI Assistant Fixed component:', document.querySelector('ai-assistant-fixed'));
+            console.log('Global Store component:', document.querySelector('global-store'));
+            
+            updateStatus('Components loaded', 'ready');
+            showStoreState();
+            
+            componentReady = true;
+        }, 1000);
+        
+        // Auto-setup data after 2 seconds for convenience
+        setTimeout(() => {
+            if (componentReady) {
+                console.log('Auto-setting up test data...');
+                setupTestData();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -33,6 +33,10 @@
                     <i class="fas fa-robot"></i>
                     <span>AI History</span>
                 </a>
+                <a href="#" class="nav-item" data-section="ai-assistant">
+                    <i class="fas fa-magic"></i>
+                    <span>AI Assistant</span>
+                </a>
                 <a href="#" class="nav-item" data-section="help" id="help-nav">
                     <i class="fas fa-question-circle"></i>
                     <span>Help</span>
@@ -80,6 +84,16 @@
                             <p>Choose a job from the list to view and edit its information</p>
                         </div>
                     </div>
+                </div>
+
+                <!-- Settings Panel -->
+                <div id="settings-panel" class="settings-panel" style="display:none; width:100%;">
+                    <settings-manager></settings-manager>
+                </div>
+
+                <!-- AI Assistant Panel -->
+                <div id="ai-assistant-panel" class="ai-assistant-panel" style="display:none; width:100%;">
+                    <ai-assistant-worker></ai-assistant-worker>
                 </div>
 
                 <!-- Help Panel -->
@@ -348,9 +362,19 @@
 
     <!-- Resume Editor Component -->
     <script type="module" src="./components/resume-editor.js"></script>
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./components/settings-manager.js"></script>
+    <script type="module" src="./components/ai-assistant-worker.js"></script>
+    <script type="module" src="./js/ai-service.js"></script>
+    <script type="module" src="./js/store.js"></script>
+
+    <!-- Global Store Instance -->
+    <global-store></global-store>
 
     <!-- Job Hunt Manager JavaScript -->
     <script type="module">
+        import { setState, getState } from './js/store.js';
+        
         // Data structure for the job hunt manager
         const defaultData = {
             jobs: [],
@@ -476,6 +500,7 @@
         function init() {
             setupEventListeners();
             switchSection('jobs');
+            syncWithGlobalStore();
         }
 
         // Load data from localStorage
@@ -484,9 +509,27 @@
             return stored ? JSON.parse(stored) : defaultData;
         }
 
+        // Sync data with global store
+        function syncWithGlobalStore() {
+            // Wait for global store to be ready
+            setTimeout(() => {
+                setState({
+                    jobs: data.jobs || [],
+                    resumes: data.resumes || [],
+                    coverLetters: data.letters || []
+                }, 'jobs-html-sync');
+            }, 100);
+        }
+
         // Save data to localStorage
         function saveData() {
             localStorage.setItem('jobHuntData', JSON.stringify(data));
+            // Also sync with global store
+            setState({
+                jobs: data.jobs || [],
+                resumes: data.resumes || [],
+                coverLetters: data.letters || []
+            }, 'jobs-html-save-sync');
         }
 
         // Generate unique ID
@@ -569,6 +612,8 @@
                 resumes: 'Resumes', 
                 letters: 'Cover Letters',
                 ai: 'AI Interactions',
+                'ai-assistant': 'AI Assistant',
+                settings: 'Settings',
                 help: 'Help'
             };
             document.getElementById('section-title').textContent = titles[section] || '';
@@ -581,13 +626,37 @@
             const itemsPanel = document.getElementById('items-panel');
             const detailsPanel = document.getElementById('details-panel');
             const helpPanel = document.getElementById('help-panel');
+            const settingsPanel = document.getElementById('settings-panel');
+            const aiAssistantPanel = document.getElementById('ai-assistant-panel');
 
-            if (section === 'ai') {
+            // Hide all special panels first
+            helpPanel.style.display = 'none';
+            settingsPanel.style.display = 'none';
+            aiAssistantPanel.style.display = 'none';
+
+            if (section === 'settings') {
+                addBtn.style.display = 'none';
+                importBtn.style.display = 'none';
+                itemsPanel.style.display = 'none';
+                detailsPanel.style.display = 'none';
+                settingsPanel.style.display = 'block';
+            } else if (section === 'ai-assistant') {
+                addBtn.style.display = 'none';
+                importBtn.style.display = 'none';
+                itemsPanel.style.display = 'none';
+                detailsPanel.style.display = 'none';
+                aiAssistantPanel.style.display = 'block';
+            } else if (section === 'help') {
+                addBtn.style.display = 'none';
+                importBtn.style.display = 'none';
+                itemsPanel.style.display = 'none';
+                detailsPanel.style.display = 'none';
+                helpPanel.style.display = 'block';
+            } else if (section === 'ai') {
                 addBtn.style.display = 'none';
                 importBtn.style.display = 'none';
                 itemsPanel.style.display = '';
                 detailsPanel.style.display = '';
-                helpPanel.style.display = 'none';
                 renderItemsList();
                 showEmptyState();
             } else if (section === 'jobs') {
@@ -595,21 +664,13 @@
                 importBtn.style.display = 'flex';
                 itemsPanel.style.display = '';
                 detailsPanel.style.display = '';
-                helpPanel.style.display = 'none';
                 renderItemsList();
                 showEmptyState();
-            } else if (section === 'help') {
-                addBtn.style.display = 'none';
-                importBtn.style.display = 'none';
-                itemsPanel.style.display = 'none';
-                detailsPanel.style.display = 'none';
-                helpPanel.style.display = 'block';
             } else {
                 addBtn.style.display = 'flex';
                 importBtn.style.display = 'none';
                 itemsPanel.style.display = '';
                 detailsPanel.style.display = '';
-                helpPanel.style.display = 'none';
                 renderItemsList();
                 showEmptyState();
             }
@@ -697,6 +758,13 @@
                 card.classList.remove('active');
             });
             document.querySelector(`[data-item-id="${item.id}"]`).classList.add('active');
+
+            // Sync with global store
+            if (currentSection === 'jobs') {
+                setState({ currentJob: item }, 'jobs-html-job-selection');
+            } else if (currentSection === 'resumes') {
+                setState({ currentResume: item }, 'jobs-html-resume-selection');
+            }
 
             renderItemDetails(item);
         }
@@ -947,16 +1015,7 @@
 
         // Settings functions
         function openSettings() {
-            // Load current settings
-            const apiKey = localStorage.getItem('api_key') || '';
-            const apiType = localStorage.getItem('api_type') || 'claude';
-            const useDirectApi = localStorage.getItem('use_direct_api') === 'true';
-            
-            document.getElementById('api-key').value = apiKey;
-            document.getElementById('api-type').value = apiType;
-            document.getElementById('use-direct-api').checked = useDirectApi;
-            
-            document.getElementById('settings-modal').classList.remove('hidden');
+            switchSection('settings');
         }
 
         function closeSettings() {
