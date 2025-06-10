@@ -182,11 +182,12 @@ class ResumeEditor extends HTMLElement {
                     padding: 1.25rem 1.5rem 0 1.5rem;
                 }
                 .input-group {
-                    margin-bottom: 1.25rem;
+                    margin-bottom: 0;
+                    padding: 0;
                 }
                 .input-group label {
                     display: block;
-                    margin-bottom: 0.5rem;
+                    margin-bottom: 0.25rem;
                     font-weight: 500;
                     color: #495057;
                 }
@@ -570,22 +571,24 @@ class ResumeEditor extends HTMLElement {
                             <label for="education-studyType">Degree Type</label>
                             <input type="text" id="education-studyType" placeholder="Bachelor's, Master's, Ph.D.">
                         </div>
-                        <div class="input-group">
-                            <label for="education-startDate">Start Date</label>
-                            <input type="text" id="education-startDate" placeholder="YYYY-MM-DD">
-                        </div>
-                        <div class="input-group">
-                            <label for="education-endDate">End Date</label>
-                            <input type="text" id="education-endDate" placeholder="YYYY-MM-DD or 'Present'">
+                        <div class="input-group-row" style="display:flex;justify-content:space-between;">
+                            <div class="input-group" style="padding-right:1em;">
+                                <label for="education-startDate">Start Date</label>
+                                <input type="text" id="education-startDate" placeholder="YYYY-MM-DD">
+                            </div>
+                            <div class="input-group">
+                                <label for="education-endDate">End Date</label>
+                                <input type="text" id="education-endDate" placeholder="YYYY-MM-DD or 'Present'">
+                            </div>
                         </div>
                         <div class="input-group">
                             <label for="education-gpa">GPA</label>
-                            <input type="text" id="education-gpa">
+                            <input type="text" id="education-gpa" size="4">
                         </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="education-courses">Courses (one per line)</label>
-                        <textarea id="education-courses"></textarea>
+                        <div class="input-group">
+                            <label for="education-courses">Courses (one per line)</label>
+                            <textarea id="education-courses" style="width27em;"></textarea>
+                        </div>
                     </div>
                     <div class="button-group">
                         <button id="save-education" class="success"><i class="fa-solid fa-check"></i> Save</button>
