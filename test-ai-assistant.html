@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AI Assistant Selection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        
+        .debug-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .debug-panel h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #007bff;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 AI Assistant Selection Test</h1>
+    <p>This page tests the AI Assistant selection functionality with proper data setup.</p>
+
+    <!-- Global Store Instance -->
+    <global-store></global-store>
+
+    <!-- AI Assistant Component -->
+    <ai-assistant-worker></ai-assistant-worker>
+
+    <div class="debug-panel">
+        <h3>Test Controls</h3>
+        <button class="btn" onclick="setupTestData()">Setup Test Data</button>
+        <button class="btn" onclick="showStoreState()">Show Store State</button>
+        <button class="btn" onclick="testButtonAccess()">Test Button Access</button>
+        <button class="btn" onclick="clearStore()">Clear Store</button>
+    </div>
+
+    <div class="debug-panel">
+        <h3>Console Output</h3>
+        <div id="console-output" class="debug-info">
+            Console output will appear here...
+        </div>
+    </div>
+
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./components/ai-assistant-worker.js"></script>
+    <script type="module" src="./js/ai-service.js"></script>
+    <script type="module" src="./js/store.js"></script>
+    <script type="module">
+        import { setState, getState, addJob, addResume } from './js/store.js';
+        
+        // Redirect console.log to our debug panel
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, arguments);
+            const output = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `[${timestamp}] ${args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ')}<br>`;
+            output.scrollTop = output.scrollHeight;
+        };
+
+        // Also redirect console.warn and console.error
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            originalWarn.apply(console, arguments);
+            const output = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `[${timestamp}] <strong>WARN:</strong> ${args.join(' ')}<br>`;
+            output.scrollTop = output.scrollHeight;
+        };
+
+        window.setupTestData = function() {
+            console.log('Setting up test data...');
+            
+            // Create test jobs
+            const testJobs = [
+                {
+                    id: 'test-job-1',
+                    title: 'Frontend Developer',
+                    company: 'Tech Corp',
+                    location: 'San Francisco, CA',
+                    description: 'We are looking for a skilled frontend developer with React experience.',
+                    dateCreated: new Date().toISOString(),
+                    status: 'saved'
+                },
+                {
+                    id: 'test-job-2',
+                    title: 'Backend Engineer',
+                    company: 'Data Systems Inc',
+                    location: 'New York, NY', 
+                    description: 'Python and Node.js backend engineer needed for scalable systems.',
+                    dateCreated: new Date().toISOString(),
+                    status: 'applied'
+                }
+            ];
+            
+            // Create test resumes
+            const testResumes = [
+                {
+                    id: 'test-resume-1',
+                    name: 'Main Resume',
+                    data: {
+                        basics: {
+                            name: 'John Doe',
+                            email: 'john@example.com',
+                            summary: 'Experienced software engineer with 5+ years'
+                        },
+                        work: [{
+                            name: 'Previous Company',
+                            position: 'Software Engineer',
+                            startDate: '2020-01-01',
+                            endDate: '2023-12-31'
+                        }],
+                        skills: [{
+                            name: 'JavaScript',
+                            level: 'Expert'
+                        }, {
+                            name: 'React', 
+                            level: 'Advanced'
+                        }]
+                    },
+                    lastModified: new Date().toISOString()
+                },
+                {
+                    id: 'test-resume-2',
+                    name: 'Backend Resume',
+                    data: {
+                        basics: {
+                            name: 'John Doe',
+                            email: 'john@example.com',
+                            summary: 'Backend-focused software engineer'
+                        },
+                        work: [{
+                            name: 'Backend Corp',
+                            position: 'Backend Engineer',
+                            startDate: '2019-01-01',
+                            endDate: '2023-12-31'
+                        }],
+                        skills: [{
+                            name: 'Python',
+                            level: 'Expert'
+                        }, {
+                            name: 'Node.js',
+                            level: 'Advanced'
+                        }]
+                    },
+                    lastModified: new Date().toISOString()
+                }
+            ];
+            
+            // Add to store
+            testJobs.forEach(job => {
+                console.log('Adding job:', job.title);
+                addJob(job);
+            });
+            
+            testResumes.forEach(resume => {
+                console.log('Adding resume:', resume.name);
+                addResume(resume);
+            });
+            
+            console.log('Test data setup complete!');
+            setTimeout(() => showStoreState(), 100);
+        };
+
+        window.showStoreState = function() {
+            const state = getState();
+            console.log('Current store state:', state);
+            console.log('Jobs array:', state?.jobs || []);
+            console.log('Resumes array:', state?.resumes || []);
+        };
+
+        window.testButtonAccess = function() {
+            console.log('Testing button access...');
+            
+            const aiAssistant = document.querySelector('ai-assistant-worker');
+            if (!aiAssistant) {
+                console.log('AI Assistant component not found');
+                return;
+            }
+            
+            console.log('AI Assistant component found:', aiAssistant);
+            
+            // Check shadow root
+            const shadowRoot = aiAssistant.shadowRoot;
+            if (!shadowRoot) {
+                console.log('Shadow root not found');
+                return;
+            }
+            
+            console.log('Shadow root found:', shadowRoot);
+            
+            // Look for buttons
+            const selectJobBtn = shadowRoot.getElementById('select-job');
+            const selectResumeBtn = shadowRoot.getElementById('select-resume');
+            
+            console.log('Select job button:', selectJobBtn);
+            console.log('Select job button disabled:', selectJobBtn?.disabled);
+            console.log('Select resume button:', selectResumeBtn);
+            console.log('Select resume button disabled:', selectResumeBtn?.disabled);
+            
+            // Try clicking programmatically
+            if (selectJobBtn && !selectJobBtn.disabled) {
+                console.log('Programmatically clicking select job button...');
+                selectJobBtn.click();
+            } else {
+                console.log('Select job button not available or disabled');
+            }
+        };
+
+        window.clearStore = function() {
+            setState({
+                jobs: [],
+                resumes: [],
+                currentJob: null,
+                currentResume: null
+            }, 'test-clear');
+            console.log('Store cleared');
+        };
+
+        // Wait for components to load
+        setTimeout(() => {
+            console.log('Test page loaded');
+            console.log('AI Assistant component:', document.querySelector('ai-assistant-worker'));
+            console.log('Global Store component:', document.querySelector('global-store'));
+            showStoreState();
+        }, 1000);
+    </script>
+</body>
+</html>
