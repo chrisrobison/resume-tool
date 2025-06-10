@@ -14,16 +14,29 @@ This file contains a comprehensive map of the JavaScript project structure, incl
 
 ## Project Overview
 
-- **JavaScript Files:** 15
-- **HTML Files:** 2
-- **CSS Files:** 2
-- **Generated:** Mon May 26 05:17:53 PM PDT 2025
+- **JavaScript Files:** 23
+- **HTML Files:** 9
+- **CSS Files:** 3
+- **Generated:** Mon Jun  9 02:36:39 PM PDT 2025
 
 ## File Structure
 
 ```
+components/
+  ai-assistant.js
+  api-settings.js
+  demo.html
+  job-manager.js
+  resume-analytics.js
+  resume-editor.js
+  resume-viewer.js
+demo.html
 DEVELOPER.md
+goal.html
+help.html
 index.html
+jobs.css
+jobs.html
 js/
   config.js
   core.js
@@ -39,20 +52,51 @@ js/
   ui.js
   utils.js
 main.js
+package-test.json
 PROJECT_MAP.md
 README.md
 reference.html
+resume-component.html
+resume.json
 server/
   chatgptService.js
   claudeService.js
   index.js
   package.json
 styles.css
+test-demo.js
+test-in-browser.js
+TESTING.md
+verify-demo.html
 ```
 
 ## Dependencies
 
 ### Module Imports
+
+**components/ai-assistant.js:**
+```javascript
+import { logApiCall } from '../js/jobs.js';
+```
+
+**components/job-manager.js:**
+```javascript
+import { JOB_STATUSES, createDefaultJob, saveJob, deleteJob, updateJobStatus, associateResumeWithJob, addJobLog, editJob } from '../js/jobs.js';
+```
+
+**components/resume-analytics.js:**
+```javascript
+        const requiredFields = ['name', 'email', 'phone', 'summary'];
+            const requiredFields = ['company', 'position', 'startDate'];
+            const missingFields = requiredFields.filter(field => !job[field]);
+            const requiredFields = ['institution', 'studyType', 'area', 'startDate'];
+            const missingFields = requiredFields.filter(field => !edu[field]);
+```
+
+**components/resume-editor.js:**
+```javascript
+    importJSON(jsonString) {
+```
 
 **js/core.js:**
 ```javascript
@@ -65,13 +109,13 @@ import * as preview from './preview.js';
 import * as importExport from './import-export.js';
 import * as jobs from './jobs.js';
 import * as logs from './logs.js';
-        importExport.setupImportFunctionality(this);
+import '../components/job-manager.js';
 ```
 
 **js/import-export.js:**
 ```javascript
 import { $, showToast, safelyParseJSON } from './utils.js';
-import { hideModal } from './modals.js';
+import { hideModal, showModal } from './modals.js';
         const requiredSections = ['basics', 'work', 'education', 'skills', 'projects', 'meta'];
                 importedData[section] = section === 'basics' 
             importedData.basics.location = {};
@@ -96,6 +140,7 @@ import { $, $$ } from './utils.js';
 **js/main.js:**
 ```javascript
 import { app } from './core.js';
+import '../components/job-manager.js';
 ```
 
 **js/modals.js:**
@@ -152,10 +197,27 @@ const { tailorResumeWithClaude } = require('./claudeService');
 const { tailorResumeWithChatGPT } = require('./chatgptService');
 ```
 
+**test-demo.js:**
+```javascript
+const puppeteer = require('puppeteer');
+const path = require('path');
+```
+
+**components/demo.html (Script Tags):**
+```html
+    <script type="module" src="resume-editor.js"></script>
+    <script src="resume-viewer.js"></script>
+```
+
 **index.html (Script Tags):**
 ```html
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="module" src="js/main.js"></script>
+```
+
+**jobs.html (Script Tags):**
+```html
+    <script type="module" src="./components/resume-editor.js"></script>
 ```
 
 **reference.html (Script Tags):**
@@ -164,6 +226,86 @@ const { tailorResumeWithChatGPT } = require('./chatgptService');
 ```
 
 ## Modules & Classes
+
+### components/ai-assistant.js
+
+**Classes:**
+```javascript
+class AIAssistant extends HTMLElement {
+```
+
+**Module Objects:**
+```javascript
+        const response = await fetch('/api/tailor-resume', {
+```
+
+### components/api-settings.js
+
+**Classes:**
+```javascript
+class ApiSettings extends HTMLElement {
+```
+
+**Module Objects:**
+```javascript
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+```
+
+### components/job-manager.js
+
+**Classes:**
+```javascript
+class JobManager extends HTMLElement {
+```
+
+**Module Objects:**
+```javascript
+        const jobInfo = {
+            const jobInfo = {
+```
+
+### components/resume-analytics.js
+
+**Classes:**
+```javascript
+class ResumeAnalytics extends HTMLElement {
+```
+
+**Module Objects:**
+```javascript
+        const analysis = {
+        const getScoreColor = (score) => {
+```
+
+### components/resume-editor.js
+
+**Classes:**
+```javascript
+class ResumeEditor extends HTMLElement {
+```
+
+**Module Objects:**
+```javascript
+            const workData = {
+            const educationData = {
+            const projectData = {
+        const opt = {
+        const map = {
+```
+
+### components/resume-viewer.js
+
+**Classes:**
+```javascript
+class ResumeJson extends HTMLElement {
+```
+
+**Module Objects:**
+```javascript
+        const templates = {
+        const templateStyles = {
+```
 
 ### js/import-export.js
 
@@ -180,7 +322,6 @@ function setupUrlImport(app) {
 function createJobCard(job) {
 function getStatusClass(status) {
 function viewJobDetails(job, app) {
-function editJob(job, app) {
 function showUpdateStatusModal(job, app) {
 ```
 
@@ -256,7 +397,147 @@ function getMonthName(monthIndex, abbreviated = false) {
             const sampleData = {
 ```
 
+### test-demo.js
+
+**Module Objects:**
+```javascript
+    const hasWorkEvents = await page.evaluate(() => {
+    const hasProjectsEvents = await page.evaluate(() => {
+    const noErrors = await page.evaluate(() => {
+```
+
+### test-in-browser.js
+
+**Constructor Functions:**
+```javascript
+function runQuickTests() {
+function testEditButtonFunctionality() {
+```
+
 ## Functions & Methods
+
+### components/ai-assistant.js
+
+**Methods:**
+```javascript
+    constructor() {
+    connectedCallback() {
+    setJob(job) {
+    setResume(resume) {
+    render() {
+    renderContent() {
+        if (!this._job) {
+        if (!this._resume) {
+        if (this._isGenerating) {
+    setupEventListeners() {
+```
+
+### components/api-settings.js
+
+**Methods:**
+```javascript
+    constructor() {
+    connectedCallback() {
+    loadApiKeys() {
+    saveApiKeys() {
+    render() {
+    setupEventListeners() {
+            if (tgt.dataset.click) {
+        if (!apiKey) {
+        if (this._selectedService === 'claude') {
+            if (!response.ok) {
+```
+
+### components/job-manager.js
+
+**Methods:**
+```javascript
+    constructor() {
+    connectedCallback() {
+    loadJobs() {
+    render() {
+    renderJobList() {
+        if (jobs.length === 0) {
+    renderJobDetail() {
+        if (!this._selectedJob) {
+    renderJobTab(job) {
+    renderDetailsTab(job) {
+```
+
+### components/resume-analytics.js
+
+**Functions:**
+```javascript
+            const filledFields = locationFields.filter(field => basics.location[field]);
+            const missingFields = requiredFields.filter(field => !job[field]);
+            const missingFields = requiredFields.filter(field => !edu[field]);
+        const words = cleanText.split(/\s+/).filter(word => 
+        const getScoreColor = (score) => {
+```
+
+**Methods:**
+```javascript
+    constructor() {
+    connectedCallback() {
+    analyzeResume() {
+    analyzeBasics(analysis) {
+            if (!basics[field]) {
+        if (basics.summary) {
+            if (summaryLength < 50) {
+        if (basics.location) {
+            if (filledFields.length === locationFields.length) {
+        if (basics.profiles && basics.profiles.length > 0) {
+```
+
+### components/resume-editor.js
+
+**Functions:**
+```javascript
+                const existingResume = registry.find(r => r.name === name && r.id !== this.data.meta.id);
+        const existingResume = registry.find(r => r.name === nameInput.value && r.id !== this.data.meta.id);
+            const existingIndex = registry.findIndex(r => r.id === resumeId);
+            const index = registry.findIndex(r => r.id === resumeId);
+            const latestResume = registry.sort((a, b) => new Date(b.savedDate) - new Date(a.savedDate))[0];
+```
+
+**Methods:**
+```javascript
+    constructor() {
+    connectedCallback() {
+            if (e.key === 'Escape') {
+    disconnectedCallback() {
+    initLocalStorage() {
+            if (!resumeRegistry) {
+    isLocalStorageAvailable() {
+    getDefaultResumeData() {
+    render() {
+            if (saveBtn) {
+```
+
+### components/resume-viewer.js
+
+**Functions:**
+```javascript
+                const profilesHtml = data.basics.profiles.map(p => 
+            const workHtml = data.work.map(job => `
+            const educationHtml = data.education.map(edu => `
+            const skillsHtml = data.skills.map(skill => `
+            const projectsHtml = data.projects.map(project => `
+```
+
+**Methods:**
+```javascript
+    constructor() {
+    connectedCallback() {
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === 'template') {
+    render() {
+        if (!this._resumeData) {
+    processTemplate(template, data) {
+        if (data.basics) {
+            if (data.basics.profiles) {
+        if (data.work) {
+```
 
 ### js/core.js
 
@@ -303,7 +584,6 @@ function setupUrlImport(app) {
 function createJobCard(job) {
 function getStatusClass(status) {
 function viewJobDetails(job, app) {
-function editJob(job, app) {
 function showUpdateStatusModal(job, app) {
 ```
 
@@ -318,7 +598,7 @@ function showUpdateStatusModal(job, app) {
     if (job.url) {
     if (job.resumeId) {
     if (job.statusHistory && job.statusHistory.length > 0) {
-    if (statusSelect) {
+    if (!app) {
 ```
 
 ### js/logs.js
@@ -482,8 +762,42 @@ function getMonthName(monthIndex, abbreviated = false) {
 **Methods:**
 ```javascript
   if (req.secure || req.hostname === 'localhost' || req.hostname === '127.0.0.1') {
-    if (!resume || !jobDescription || !apiType || !apiKey) {
+    if (!prompt || !apiType || !apiKey) {
     if (apiType === 'claude') {
+```
+
+### test-demo.js
+
+**Functions:**
+```javascript
+    const hasWorkEvents = await page.evaluate(() => {
+    const hasProjectsEvents = await page.evaluate(() => {
+    const noErrors = await page.evaluate(() => {
+```
+
+**Methods:**
+```javascript
+    if (hasWorkEvents && hasProjectsEvents) {
+    if (noErrors) {
+if (require.main === module) {
+```
+
+### test-in-browser.js
+
+**Functions:**
+```javascript
+function runQuickTests() {
+function testEditButtonFunctionality() {
+```
+
+**Methods:**
+```javascript
+            if (test.details) {
+            if (test.details) {
+    if (passed === total) {
+    if (!window.app.currentResumeData) {
+    if (editButtons.length > 0) {
+if (typeof module !== 'undefined' && module.exports) {
 ```
 
 ## Global Variables & Constants
@@ -517,7 +831,60 @@ const { tailorResumeWithChatGPT } = require('./chatgptService');
 const app = express();
 ```
 
+### test-demo.js
+```javascript
+const puppeteer = require('puppeteer');
+const path = require('path');
+```
+
 ## Event Listeners & DOM Interactions
+
+### components/ai-assistant.js
+```javascript
+        this.shadowRoot.addEventListener('click', (e) => {
+        const serviceSelector = this.shadowRoot.getElementById('ai-service');
+            serviceSelector.addEventListener('change', (e) => {
+        const section = document.createElement('div');
+        this.shadowRoot.querySelector('.ai-content').appendChild(section);
+        const error = document.createElement('div');
+        this.shadowRoot.querySelector('.ai-content').appendChild(error);
+            const success = document.createElement('div');
+```
+
+### components/api-settings.js
+```javascript
+        this.shadowRoot.addEventListener('click', (e) => {
+        const apiKeyInput = this.shadowRoot.getElementById('api-key');
+        const statusElement = this.shadowRoot.getElementById('status-message');
+```
+
+### components/job-manager.js
+```javascript
+        const resumeViewer = this.shadowRoot.querySelector('#job-resume-viewer');
+        if (window.app && typeof window.app.getSavedResumes === 'function') {
+            return window.app.getSavedResumes() || [];
+        if (window.app && typeof window.app.getSavedResumes === 'function') {
+            const savedResumes = window.app.getSavedResumes();
+        this.shadowRoot.addEventListener('click', (e) => {
+        this.shadowRoot.addEventListener('change', (e) => {
+        this.shadowRoot.addEventListener('submit', (e) => {
+        this.shadowRoot.addEventListener('input', (e) => {
+        this.shadowRoot.addEventListener('change', (e) => {
+```
+
+### components/resume-editor.js
+```javascript
+        document.addEventListener('keydown', this._escapeHandler);
+        document.removeEventListener('keydown', this._escapeHandler);
+            const saveButton = document.querySelector('#save-button');
+            const loadButton = document.querySelector('#load-button');
+            const saveBtn = this.querySelector('#resume-save-btn');
+        this.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+        const saveButton = document.querySelector('#save-button');
+            saveButton.addEventListener('click', () => this.openSaveModal());
+        const loadButton = document.querySelector('#load-button');
+```
 
 ### js/core.js
 ```javascript
@@ -627,7 +994,61 @@ export const $$ = str => document.querySelectorAll(str);
                 btn.addEventListener('click', app.closeAllModals);
 ```
 
+### test-demo.js
+```javascript
+        const workList = document.querySelector('#work-list');
+        const projectsList = document.querySelector('#projects-list');
+            if (!window.app) return false;
+            if (typeof window.app.setupSectionEventDelegation !== 'function') return false;
+            if (typeof window.app.updateWorkSection !== 'function') return false;
+            if (typeof window.app.updateProjectsSection !== 'function') return false;
+```
+
+### test-in-browser.js
+```javascript
+        test: () => typeof window.app === 'object' && window.app !== null,
+        details: 'window.app should be defined'
+        test: () => containers.every(selector => document.querySelector(selector) !== null),
+        test: () => typeof window.app.setupSectionEventDelegation === 'function',
+        test: () => updateMethods.every(method => typeof window.app[method] === 'function'),
+        window.app.setupSectionEventDelegation();
+    const workList = document.querySelector('#work-list');
+    const projectsList = document.querySelector('#projects-list');
+                if (workList) workList.addEventListener('test', () => {});
+                if (projectsList) projectsList.addEventListener('test', () => {});
+```
+
 ## API Endpoints & External Calls
+
+### components/ai-assistant.js
+```javascript
+        const response = await fetch('/api/tailor-resume', {
+```
+
+### components/api-settings.js
+```javascript
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+```
+
+### components/job-manager.js
+```javascript
+        this._selectedJob.title = formData.get('title') || '';
+        this._selectedJob.company = formData.get('company') || '';
+        this._selectedJob.postDate = formData.get('postDate') || '';
+        this._selectedJob.shortDescription = formData.get('shortDescription') || '';
+        this._selectedJob.location = formData.get('location') || '';
+        this._selectedJob.url = formData.get('url') || '';
+        this._selectedJob.description = formData.get('description') || '';
+        this._selectedJob.notes = formData.get('notes') || '';
+        this._selectedJob.contactName = formData.get('contactName') || '';
+        this._selectedJob.contactEmail = formData.get('contactEmail') || '';
+```
+
+### components/resume-viewer.js
+```javascript
+            const response = await fetch(url);
+```
 
 ### js/import-export.js
 ```javascript

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug API Keys</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5; 
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .debug-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 API Key Debug Tool</h1>
+        
+        <p>This tool helps debug API key reading issues in the AI Assistant component.</p>
+        
+        <button class="btn" onclick="debugStore()">🔍 Debug Store</button>
+        <button class="btn" onclick="setTestApiKey()">🔑 Set Test API Key</button>
+        <button class="btn" onclick="clearStore()">🗑️ Clear Store</button>
+        
+        <div id="debug-output" class="debug-section">
+            Click buttons above to debug the store...
+        </div>
+        
+        <!-- Components -->
+        <global-store></global-store>
+        <ai-assistant-worker></ai-assistant-worker>
+        
+        <hr>
+        <h2>AI Assistant Component</h2>
+        <p>The AI Assistant should show API key status here:</p>
+    </div>
+
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./components/ai-assistant-worker.js"></script>
+    <script type="module" src="./js/store.js"></script>
+    <script type="module">
+        import { setState, getState, debugStore as storeDebug } from './js/store.js';
+        
+        function log(message, type = 'info') {
+            const output = document.getElementById('debug-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+        }
+        
+        window.debugStore = function() {
+            log('=== STORE DEBUG ===');
+            const state = getState();
+            log('Full state: ' + JSON.stringify(state, null, 2));
+            
+            log('\n=== SETTINGS ANALYSIS ===');
+            const settings = state?.settings;
+            if (!settings) {
+                log('❌ No settings found in state', 'error');
+            } else {
+                log('✅ Settings found: ' + JSON.stringify(settings, null, 2), 'success');
+                
+                const apiProviders = settings.apiProviders;
+                if (!apiProviders) {
+                    log('❌ No apiProviders in settings', 'error');
+                } else {
+                    log('✅ API Providers found: ' + JSON.stringify(apiProviders, null, 2), 'success');
+                    
+                    // Check each provider
+                    if (apiProviders.claude) {
+                        const claudeKey = apiProviders.claude.apiKey;
+                        if (claudeKey) {
+                            log(`✅ Claude API key found: ${claudeKey.substring(0, 10)}...`, 'success');
+                        } else {
+                            log('❌ Claude API key is empty or missing', 'error');
+                        }
+                    } else {
+                        log('❌ No Claude provider config', 'error');
+                    }
+                    
+                    if (apiProviders.openai) {
+                        const openaiKey = apiProviders.openai.apiKey;
+                        if (openaiKey) {
+                            log(`✅ OpenAI API key found: ${openaiKey.substring(0, 10)}...`, 'success');
+                        } else {
+                            log('❌ OpenAI API key is empty or missing', 'error');
+                        }
+                    } else {
+                        log('❌ No OpenAI provider config', 'error');
+                    }
+                }
+            }
+            
+            log('\n=== AI ASSISTANT CHECK ===');
+            const aiAssistant = document.querySelector('ai-assistant-worker');
+            if (aiAssistant) {
+                log('✅ AI Assistant component found', 'success');
+                // Try to access the component's methods
+                try {
+                    const hasValidKey = aiAssistant.hasValidApiKey();
+                    log(`AI Assistant hasValidApiKey(): ${hasValidKey}`, hasValidKey ? 'success' : 'error');
+                } catch (error) {
+                    log(`❌ Error calling hasValidApiKey(): ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ AI Assistant component not found', 'error');
+            }
+        };
+        
+        window.setTestApiKey = function() {
+            log('Setting test API key...');
+            
+            const testSettings = {
+                apiProviders: {
+                    claude: {
+                        apiKey: 'sk-ant-test-key-12345',
+                        model: 'claude-3-sonnet-20240229',
+                        enabled: true
+                    },
+                    openai: {
+                        apiKey: 'sk-test-key-67890',
+                        model: 'gpt-4',
+                        enabled: false
+                    }
+                },
+                preferences: {
+                    theme: 'light',
+                    defaultProvider: 'claude',
+                    autoSave: true,
+                    showProgressDetails: true,
+                    includeAnalysisInRequests: true
+                }
+            };
+            
+            setState({ settings: testSettings }, 'debug-api-keys-test');
+            log('✅ Test API key set in store', 'success');
+            
+            // Re-debug to verify
+            setTimeout(() => {
+                log('\n=== VERIFICATION ===');
+                debugStore();
+            }, 100);
+        };
+        
+        window.clearStore = function() {
+            log('Clearing store...');
+            setState({ 
+                settings: null,
+                jobs: [],
+                resumes: [],
+                currentJob: null,
+                currentResume: null
+            }, 'debug-clear');
+            log('✅ Store cleared', 'success');
+        };
+        
+        // Auto-debug on load
+        setTimeout(() => {
+            log('🚀 Page loaded, running initial debug...');
+            debugStore();
+        }, 1000);
+    </script>
+</body>
+</html>

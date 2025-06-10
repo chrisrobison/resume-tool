@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug AI Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        
+        .debug-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .debug-panel h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #007bff;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 AI Assistant Debug Panel</h1>
+    <p>This page helps debug the AI Assistant selection functionality.</p>
+
+    <!-- Global Store Instance -->
+    <global-store></global-store>
+
+    <!-- AI Assistant Component -->
+    <ai-assistant-worker></ai-assistant-worker>
+
+    <div class="debug-panel">
+        <h3>Debug Controls</h3>
+        <button class="btn" onclick="addTestJob()">Add Test Job</button>
+        <button class="btn" onclick="addTestResume()">Add Test Resume</button>
+        <button class="btn" onclick="showStoreState()">Show Store State</button>
+        <button class="btn" onclick="clearStore()">Clear Store</button>
+        <button class="btn" onclick="testSelection()">Test Manual Selection</button>
+    </div>
+
+    <div class="debug-panel">
+        <h3>Console Output</h3>
+        <div id="console-output" class="debug-info">
+            Console output will appear here...
+        </div>
+    </div>
+
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./components/ai-assistant-worker.js"></script>
+    <script type="module" src="./js/ai-service.js"></script>
+    <script type="module">
+        import { setState, getState, addJob, addResume } from './js/store.js';
+        
+        // Redirect console.log to our debug panel
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, arguments);
+            const output = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `[${timestamp}] ${args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ')}<br>`;
+            output.scrollTop = output.scrollHeight;
+        };
+
+        window.addTestJob = function() {
+            const testJob = {
+                id: 'test-job-' + Date.now(),
+                title: 'Software Engineer',
+                company: 'Test Company',
+                location: 'San Francisco, CA',
+                description: 'We are looking for a skilled software engineer with experience in JavaScript, React, and Node.js.',
+                dateCreated: new Date().toISOString(),
+                status: 'saved'
+            };
+            
+            console.log('Adding test job:', testJob);
+            addJob(testJob);
+        };
+
+        window.addTestResume = function() {
+            const testResume = {
+                id: 'test-resume-' + Date.now(),
+                name: 'Main Resume',
+                data: {
+                    basics: {
+                        name: 'John Doe',
+                        email: 'john@example.com',
+                        summary: 'Experienced software engineer'
+                    },
+                    work: [{
+                        name: 'Tech Corp',
+                        position: 'Software Engineer',
+                        startDate: '2020-01-01',
+                        endDate: '2023-12-31'
+                    }],
+                    skills: [{
+                        name: 'JavaScript',
+                        level: 'Expert'
+                    }]
+                },
+                lastModified: new Date().toISOString()
+            };
+            
+            console.log('Adding test resume:', testResume);
+            addResume(testResume);
+        };
+
+        window.showStoreState = function() {
+            const state = getState();
+            console.log('Current store state:', state);
+        };
+
+        window.clearStore = function() {
+            setState({
+                jobs: [],
+                resumes: [],
+                currentJob: null,
+                currentResume: null
+            }, 'debug-clear');
+            console.log('Store cleared');
+        };
+
+        window.testSelection = function() {
+            const state = getState();
+            if (state.jobs && state.jobs.length > 0) {
+                setState({ currentJob: state.jobs[0] }, 'debug-manual-job');
+                console.log('Manually selected first job:', state.jobs[0]);
+            }
+            if (state.resumes && state.resumes.length > 0) {
+                setState({ currentResume: state.resumes[0] }, 'debug-manual-resume');
+                console.log('Manually selected first resume:', state.resumes[0]);
+            }
+        };
+
+        // Wait for components to load
+        setTimeout(() => {
+            console.log('Debug page loaded');
+            console.log('AI Assistant component:', document.querySelector('ai-assistant-worker'));
+            console.log('Global Store component:', document.querySelector('global-store'));
+            showStoreState();
+        }, 1000);
+    </script>
+</body>
+</html>

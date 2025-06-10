@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify API Keys</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px 10px 5px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            font-size: 14px;
+        }
+        .btn:hover { background: #0056b3; }
+        .btn.success { background: #28a745; }
+        .btn.danger { background: #dc3545; }
+        .output {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .step {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 API Key Verification Tool</h1>
+    <p>This tool helps verify that API keys are being saved and read correctly.</p>
+
+    <div class="step">
+        <h3>Step 1: Test Store Functionality</h3>
+        <button class="btn" onclick="testStore()">Test Store Connection</button>
+        <button class="btn" onclick="clearStore()">Clear Store</button>
+    </div>
+
+    <div class="step">
+        <h3>Step 2: Set Test API Keys</h3>
+        <button class="btn" onclick="setClaudeKey()">Set Claude Key</button>
+        <button class="btn" onclick="setOpenAIKey()">Set OpenAI Key</button>
+        <button class="btn" onclick="setBothKeys()">Set Both Keys</button>
+    </div>
+
+    <div class="step">
+        <h3>Step 3: Test AI Assistant Reading</h3>
+        <button class="btn" onclick="testAIAssistant()">Test AI Assistant</button>
+        <button class="btn" onclick="checkStorePersistence()">Check localStorage</button>
+    </div>
+
+    <div class="step">
+        <h3>Step 4: Settings Manager Test</h3>
+        <button class="btn" onclick="testSettingsManager()">Test Settings Component</button>
+    </div>
+
+    <div class="output" id="output">
+Ready to test API key functionality...
+    </div>
+
+    <!-- Include all necessary components -->
+    <global-store></global-store>
+    <ai-assistant-worker style="display: none;"></ai-assistant-worker>
+    <settings-manager style="display: none;"></settings-manager>
+
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./components/ai-assistant-worker.js"></script>
+    <script type="module" src="./components/settings-manager.js"></script>
+    <script type="module" src="./js/store.js"></script>
+    <script type="module">
+        import { setState, getState, subscribe } from './js/store.js';
+        
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            output.innerHTML += `${prefix} [${timestamp}] ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // Subscribe to store changes
+        subscribe((event) => {
+            log(`Store changed: ${event.source}`, 'info');
+        });
+
+        window.testStore = function() {
+            log('=== TESTING STORE CONNECTION ===');
+            
+            const store = document.querySelector('global-store');
+            if (store) {
+                log('Global store component found', 'success');
+                
+                const state = getState();
+                if (state) {
+                    log('Store getState() works', 'success');
+                    log(`Current state keys: ${Object.keys(state).join(', ')}`);
+                } else {
+                    log('Store getState() returned null/undefined', 'error');
+                }
+            } else {
+                log('Global store component NOT found', 'error');
+            }
+        };
+
+        window.clearStore = function() {
+            log('Clearing all store data...');
+            setState({
+                settings: {
+                    apiProviders: {},
+                    preferences: { theme: 'light' }
+                },
+                jobs: [],
+                resumes: [],
+                currentJob: null,
+                currentResume: null
+            }, 'verification-clear');
+            log('Store cleared', 'success');
+        };
+
+        window.setClaudeKey = function() {
+            log('Setting Claude API key...');
+            const settings = {
+                apiProviders: {
+                    claude: {
+                        apiKey: 'sk-ant-test-claude-12345',
+                        model: 'claude-3-sonnet-20240229',
+                        enabled: true
+                    }
+                },
+                preferences: {
+                    theme: 'light',
+                    defaultProvider: 'claude'
+                }
+            };
+            
+            setState({ settings }, 'verification-claude');
+            log('Claude API key set', 'success');
+            
+            setTimeout(() => {
+                const readBack = getState('settings');
+                if (readBack?.apiProviders?.claude?.apiKey) {
+                    log(`Claude key verified: ${readBack.apiProviders.claude.apiKey}`, 'success');
+                } else {
+                    log('Failed to read back Claude key', 'error');
+                }
+            }, 100);
+        };
+
+        window.setOpenAIKey = function() {
+            log('Setting OpenAI API key...');
+            const settings = {
+                apiProviders: {
+                    openai: {
+                        apiKey: 'sk-test-openai-67890',
+                        model: 'gpt-4',
+                        enabled: true
+                    }
+                },
+                preferences: {
+                    theme: 'light',
+                    defaultProvider: 'openai'
+                }
+            };
+            
+            setState({ settings }, 'verification-openai');
+            log('OpenAI API key set', 'success');
+            
+            setTimeout(() => {
+                const readBack = getState('settings');
+                if (readBack?.apiProviders?.openai?.apiKey) {
+                    log(`OpenAI key verified: ${readBack.apiProviders.openai.apiKey}`, 'success');
+                } else {
+                    log('Failed to read back OpenAI key', 'error');
+                }
+            }, 100);
+        };
+
+        window.setBothKeys = function() {
+            log('Setting both API keys...');
+            const settings = {
+                apiProviders: {
+                    claude: {
+                        apiKey: 'sk-ant-test-claude-both-12345',
+                        model: 'claude-3-sonnet-20240229',
+                        enabled: true
+                    },
+                    openai: {
+                        apiKey: 'sk-test-openai-both-67890',
+                        model: 'gpt-4',
+                        enabled: false
+                    }
+                },
+                preferences: {
+                    theme: 'light',
+                    defaultProvider: 'claude'
+                }
+            };
+            
+            setState({ settings }, 'verification-both');
+            log('Both API keys set', 'success');
+            
+            setTimeout(() => {
+                const readBack = getState('settings');
+                const claudeOk = readBack?.apiProviders?.claude?.apiKey;
+                const openaiOk = readBack?.apiProviders?.openai?.apiKey;
+                log(`Claude key: ${claudeOk ? '✅' : '❌'}`, claudeOk ? 'success' : 'error');
+                log(`OpenAI key: ${openaiOk ? '✅' : '❌'}`, openaiOk ? 'success' : 'error');
+            }, 100);
+        };
+
+        window.testAIAssistant = function() {
+            log('=== TESTING AI ASSISTANT ===');
+            
+            const aiAssistant = document.querySelector('ai-assistant-worker');
+            if (!aiAssistant) {
+                log('AI Assistant component not found', 'error');
+                return;
+            }
+            
+            log('AI Assistant component found', 'success');
+            
+            // Test the hasValidApiKey method
+            try {
+                const hasValidKey = aiAssistant.hasValidApiKey();
+                log(`AI Assistant hasValidApiKey(): ${hasValidKey}`, hasValidKey ? 'success' : 'error');
+            } catch (error) {
+                log(`Error calling hasValidApiKey(): ${error.message}`, 'error');
+            }
+            
+            // Test the getApiConfig method
+            try {
+                const apiConfig = aiAssistant.getApiConfig();
+                const safeConfig = { 
+                    ...apiConfig, 
+                    apiKey: apiConfig.apiKey?.substring(0, 10) + '...' 
+                };
+                log(`AI Assistant getApiConfig(): ${JSON.stringify(safeConfig)}`, 'success');
+            } catch (error) {
+                log(`Error calling getApiConfig(): ${error.message}`, 'error');
+            }
+        };
+
+        window.checkStorePersistence = function() {
+            log('=== CHECKING LOCALSTORAGE PERSISTENCE ===');
+            
+            try {
+                const savedData = localStorage.getItem('global-store-state');
+                if (savedData) {
+                    const parsed = JSON.parse(savedData);
+                    log('Data found in localStorage', 'success');
+                    
+                    if (parsed.settings) {
+                        log('Settings found in localStorage', 'success');
+                        
+                        const providers = parsed.settings.apiProviders || {};
+                        const claudeKey = providers.claude?.apiKey;
+                        const openaiKey = providers.openai?.apiKey;
+                        
+                        log(`Claude key in localStorage: ${claudeKey ? claudeKey.substring(0, 10) + '...' : 'None'}`);
+                        log(`OpenAI key in localStorage: ${openaiKey ? openaiKey.substring(0, 10) + '...' : 'None'}`);
+                    } else {
+                        log('No settings in localStorage', 'warning');
+                    }
+                } else {
+                    log('No data in localStorage', 'warning');
+                }
+            } catch (error) {
+                log(`Error reading localStorage: ${error.message}`, 'error');
+            }
+        };
+
+        window.testSettingsManager = function() {
+            log('=== TESTING SETTINGS MANAGER ===');
+            
+            const settingsManager = document.querySelector('settings-manager');
+            if (!settingsManager) {
+                log('Settings Manager component not found', 'error');
+                return;
+            }
+            
+            log('Settings Manager component found', 'success');
+            log('Settings Manager should automatically load settings from store');
+            
+            // Check if settings manager has loaded settings
+            if (settingsManager._settings) {
+                log('Settings Manager has loaded settings', 'success');
+                const providers = settingsManager._settings.apiProviders || {};
+                log(`Settings Manager - Claude: ${providers.claude?.apiKey ? 'Set' : 'Not set'}`);
+                log(`Settings Manager - OpenAI: ${providers.openai?.apiKey ? 'Set' : 'Not set'}`);
+            } else {
+                log('Settings Manager has not loaded settings', 'warning');
+            }
+        };
+
+        // Auto-run initial test
+        setTimeout(() => {
+            log('🚀 Page loaded, running initial tests...');
+            testStore();
+            
+            // Check if any settings already exist
+            const existingSettings = getState('settings');
+            if (existingSettings?.apiProviders) {
+                const providers = existingSettings.apiProviders;
+                if (providers.claude?.apiKey || providers.openai?.apiKey) {
+                    log('Found existing API keys in store', 'success');
+                    testAIAssistant();
+                } else {
+                    log('No existing API keys found', 'warning');
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
