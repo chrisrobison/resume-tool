@@ -38,7 +38,9 @@ class ResumeViewer extends HTMLElement {
     }
 
     setTemplate(templateName) {
+        console.log('ResumeViewer.setTemplate called with:', templateName);
         this._template = templateName;
+        this.setAttribute('template', templateName);
         this.render();
     }
 
@@ -53,6 +55,7 @@ class ResumeViewer extends HTMLElement {
     }
 
     render() {
+        console.log('ResumeViewer.render called with template:', this._template);
         if (!this._resumeData) {
             this.shadowRoot.innerHTML = '<p style="padding: 20px; text-align: center; color: #999;">No resume data to display</p>';
             return;
@@ -65,6 +68,7 @@ class ResumeViewer extends HTMLElement {
             <style>${this.getStyles(this._template)}</style>
             ${processedHtml}
         `;
+        console.log('ResumeViewer.render completed for template:', this._template);
     }
 
     processTemplate(template, data) {
