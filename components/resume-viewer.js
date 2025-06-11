@@ -82,29 +82,37 @@ class ResumeViewer extends HTMLElement {
                 `${data.basics.location.city}, ${data.basics.location.region}` : '');
             
             // Process profiles
-            if (data.basics.profiles) {
+            if (data.basics.profiles && data.basics.profiles.length > 0) {
                 const profilesHtml = data.basics.profiles.map(p => 
                     `<a href="${p.url}" target="_blank">${p.network}</a>`
                 ).join(' | ');
                 html = html.replace('{{profiles}}', profilesHtml);
+            } else {
+                html = html.replace('{{profiles}}', '');
             }
+        } else {
+            // Replace all basic placeholders with empty strings
+            html = html.replace(/\{\{(name|label|email|phone|summary|location|profiles)\}\}/g, '');
         }
         
         // Process work experience
-        if (data.work) {
+        if (data.work && data.work.length > 0) {
             const workHtml = data.work.map(job => `
                 <div class="work-item">
                     <h3>${job.position} at ${job.name}</h3>
                     <div class="date">${this.formatDate(job.startDate)} - ${job.endDate ? this.formatDate(job.endDate) : 'Present'}</div>
-                    <p>${job.summary}</p>
+                    <p>${job.summary || ''}</p>
                     ${job.highlights ? `<ul>${job.highlights.map(h => `<li>${h}</li>`).join('')}</ul>` : ''}
                 </div>
             `).join('');
             html = html.replace('{{work}}', workHtml);
+        } else {
+            // Hide the entire work section if no work experience
+            html = this.hideSectionIfEmpty(html, 'work');
         }
         
         // Process education
-        if (data.education) {
+        if (data.education && data.education.length > 0) {
             const educationHtml = data.education.map(edu => `
                 <div class="education-item">
                     <h3>${edu.studyType} in ${edu.area}</h3>
@@ -113,33 +121,48 @@ class ResumeViewer extends HTMLElement {
                 </div>
             `).join('');
             html = html.replace('{{education}}', educationHtml);
+        } else {
+            // Hide the entire education section if no education
+            html = this.hideSectionIfEmpty(html, 'education');
         }
         
         // Process skills
-        if (data.skills) {
+        if (data.skills && data.skills.length > 0) {
             const skillsHtml = data.skills.map(skill => `
                 <div class="skill-group">
                     <h4>${skill.name}</h4>
-                    <div class="keywords">${skill.keywords.join(', ')}</div>
+                    <div class="keywords">${skill.keywords ? skill.keywords.join(', ') : ''}</div>
                 </div>
             `).join('');
             html = html.replace('{{skills}}', skillsHtml);
+        } else {
+            // Hide the entire skills section if no skills
+            html = this.hideSectionIfEmpty(html, 'skills');
         }
         
         // Process projects
-        if (data.projects) {
+        if (data.projects && data.projects.length > 0) {
             const projectsHtml = data.projects.map(project => `
                 <div class="project-item">
                     <h3>${project.name}</h3>
-                    <p>${project.description}</p>
+                    <p>${project.description || ''}</p>
                     ${project.highlights ? `<ul>${project.highlights.map(h => `<li>${h}</li>`).join('')}</ul>` : ''}
                     <div class="keywords">${project.keywords ? project.keywords.join(', ') : ''}</div>
                 </div>
             `).join('');
             html = html.replace('{{projects}}', projectsHtml);
+        } else {
+            // Hide the entire projects section if no projects
+            html = this.hideSectionIfEmpty(html, 'projects');
         }
         
         return html;
+    }
+
+    hideSectionIfEmpty(html, sectionName) {
+        // Remove the entire section element containing the placeholder
+        const sectionRegex = new RegExp(`<section[^>]*class="[^"]*${sectionName}[^"]*"[^>]*>.*?<\\/section>`, 'gs');
+        return html.replace(sectionRegex, '').replace(`{{${sectionName}}}`, '');
     }
 
     formatDate(dateString) {
