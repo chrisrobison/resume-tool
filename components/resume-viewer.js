@@ -1,5 +1,5 @@
 // Resume Display Web Component
-class ResumeJson extends HTMLElement {
+class ResumeViewer extends HTMLElement {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -31,6 +31,15 @@ class ResumeJson extends HTMLElement {
 
     get resumeData() {
         return this._resumeData;
+    }
+
+    setResumeData(data) {
+        this.resumeData = data;
+    }
+
+    setTemplate(templateName) {
+        this._template = templateName;
+        this.render();
     }
 
     async loadDataFromUrl(url) {
@@ -686,4 +695,4 @@ class ResumeJson extends HTMLElement {
 }
 
 // Register the web component
-customElements.define('resume-json', ResumeJson);
+customElements.define('resume-viewer', ResumeViewer);
