@@ -854,3 +854,84 @@ body {
         flex: 1;
     }
 }
+
+/* Resume Content Container Styles */
+.resume-content-container {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.resume-tabs {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+.tab-btn.active {
+    color: #2980b9;
+    border-bottom-color: #2980b9;
+    background: white;
+}
+
+.tab-content {
+    position: relative;
+}
+
+.tab-panel {
+    display: none;
+    padding: 20px;
+    min-height: 400px;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+.resume-viewer-controls {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.resume-viewer-controls label {
+    font-weight: 500;
+    color: #555;
+}
+
+.resume-viewer-controls select {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+#resume-viewer-details {
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background: white;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+#resume-editor-details {
+    min-height: 500px;
+}

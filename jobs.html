@@ -6,13 +6,15 @@
     <title>Job Hunt Manager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="jobs.css">
+    <!-- HTML2PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h1>Job Hunt Manager</h1>
+                <h1><img src="logo.svg" height="32" style="position:relative;top:8px;"> Job Hunt Manager</h1>
                 <div class="subtitle">Organize your job search</div>
             </div>
             
@@ -29,15 +31,15 @@
                     <i class="fas fa-envelope"></i>
                     <span>Letters</span>
                 </a>
-                <a href="#" class="nav-item" data-section="ai">
-                    <i class="fas fa-robot"></i>
-                    <span>AI History</span>
-                </a>
                 <a href="#" class="nav-item" data-section="ai-assistant">
                     <i class="fas fa-magic"></i>
                     <span>AI Assistant</span>
                 </a>
-                <a href="#" class="nav-item" data-section="help" id="help-nav">
+                <a href="#" class="nav-item" data-section="ai">
+                    <i class="fas fa-robot"></i>
+                    <span>AI History</span>
+                </a>
+                 <a href="#" class="nav-item" data-section="help" id="help-nav">
                     <i class="fas fa-question-circle"></i>
                     <span>Help</span>
                 </a>
@@ -58,6 +60,10 @@
                     <button class="btn btn-primary" id="import-job-btn" style="display: none;">
                         <i class="fas fa-download"></i>
                         Import Job
+                    </button>
+                    <button class="btn btn-primary" id="import-resume-btn" style="display: none;">
+                        <i class="fas fa-file-import"></i>
+                        Import Resume
                     </button>
                     <button class="btn btn-success" id="add-item-btn">
                         <i class="fas fa-plus"></i>
@@ -299,6 +305,66 @@
         </div>
     </div>
 
+    <!-- Import Resume Modal -->
+    <div class="modal-backdrop hidden" id="import-resume-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Import Resume.json</h3>
+                <button class="modal-close" id="import-resume-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Import Method</label>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="resume-import-method" value="paste" id="resume-import-method-paste" checked>
+                            <span>Paste JSON</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="resume-import-method" value="file" id="resume-import-method-file">
+                            <span>Upload File</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="resume-import-method" value="url" id="resume-import-method-url">
+                            <span>From URL</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="resume-paste-section">
+                    <label class="form-label" for="resume-json-input">Paste JSON</label>
+                    <textarea class="form-input form-textarea" id="resume-json-input" rows="10" placeholder="Paste your resume.json content here..."></textarea>
+                </div>
+
+                <div class="form-group hidden" id="resume-file-section">
+                    <label class="form-label" for="resume-file-input">Upload JSON File</label>
+                    <div id="resume-drag-drop-area" class="drag-drop-area" style="border: 2px dashed #ddd; padding: 40px; text-align: center; border-radius: 8px; cursor: pointer;">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #ccc; margin-bottom: 16px;"></i>
+                        <p>Drag & drop your resume.json file here or click to browse</p>
+                        <input type="file" id="resume-file-input" accept=".json" style="display: none;">
+                    </div>
+                    <div id="resume-file-name" class="hidden"></div>
+                </div>
+
+                <div class="form-group hidden" id="resume-url-section">
+                    <label class="form-label" for="resume-url-input">JSON URL</label>
+                    <input type="url" class="form-input" id="resume-url-input" placeholder="https://example.com/resume.json">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="resume-name-input">Resume Name</label>
+                    <input type="text" class="form-input" id="resume-name-input" placeholder="My Resume" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" id="import-resume-cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="import-resume-submit">
+                    <i class="fas fa-file-import"></i> Import Resume
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- AI Generation Modal -->
     <div class="modal-backdrop hidden" id="ai-modal">
         <div class="modal">
@@ -362,6 +428,7 @@
 
     <!-- Resume Editor Component -->
     <script type="module" src="./components/resume-editor.js"></script>
+    <script type="module" src="./components/resume-viewer.js"></script>
     <script type="module" src="./components/global-store.js"></script>
     <script type="module" src="./components/settings-manager.js"></script>
     <script type="module" src="./components/ai-assistant-worker.js"></script>
@@ -562,6 +629,11 @@
                 openImportJobModal();
             });
 
+            // Import resume button
+            document.getElementById('import-resume-btn').addEventListener('click', () => {
+                openImportResumeModal();
+            });
+
             // Modal events
             document.getElementById('form-modal-close').addEventListener('click', closeModal);
             document.getElementById('form-cancel').addEventListener('click', closeModal);
@@ -584,6 +656,14 @@
             document.getElementById('import-job-submit').addEventListener('click', processJobImport);
             document.getElementById('import-method-url').addEventListener('change', toggleImportMethod);
             document.getElementById('import-method-description').addEventListener('change', toggleImportMethod);
+
+            // Import Resume Modal
+            document.getElementById('import-resume-modal-close').addEventListener('click', closeImportResumeModal);
+            document.getElementById('import-resume-cancel').addEventListener('click', closeImportResumeModal);
+            document.getElementById('import-resume-submit').addEventListener('click', processResumeImport);
+            document.getElementById('resume-import-method-paste').addEventListener('change', toggleResumeImportMethod);
+            document.getElementById('resume-import-method-file').addEventListener('change', toggleResumeImportMethod);
+            document.getElementById('resume-import-method-url').addEventListener('change', toggleResumeImportMethod);
 
             // Close modals on backdrop click
             document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
@@ -622,7 +702,8 @@
 
             // Show/hide panels and buttons based on section
             const addBtn = document.getElementById('add-item-btn');
-            const importBtn = document.getElementById('import-job-btn');
+            const importJobBtn = document.getElementById('import-job-btn');
+            const importResumeBtn = document.getElementById('import-resume-btn');
             const itemsPanel = document.getElementById('items-panel');
             const detailsPanel = document.getElementById('details-panel');
             const helpPanel = document.getElementById('help-panel');
@@ -636,39 +717,53 @@
 
             if (section === 'settings') {
                 addBtn.style.display = 'none';
-                importBtn.style.display = 'none';
+                importJobBtn.style.display = 'none';
+                importResumeBtn.style.display = 'none';
                 itemsPanel.style.display = 'none';
                 detailsPanel.style.display = 'none';
                 settingsPanel.style.display = 'block';
             } else if (section === 'ai-assistant') {
                 addBtn.style.display = 'none';
-                importBtn.style.display = 'none';
+                importJobBtn.style.display = 'none';
+                importResumeBtn.style.display = 'none';
                 itemsPanel.style.display = 'none';
                 detailsPanel.style.display = 'none';
                 aiAssistantPanel.style.display = 'block';
             } else if (section === 'help') {
                 addBtn.style.display = 'none';
-                importBtn.style.display = 'none';
+                importJobBtn.style.display = 'none';
+                importResumeBtn.style.display = 'none';
                 itemsPanel.style.display = 'none';
                 detailsPanel.style.display = 'none';
                 helpPanel.style.display = 'block';
             } else if (section === 'ai') {
                 addBtn.style.display = 'none';
-                importBtn.style.display = 'none';
+                importJobBtn.style.display = 'none';
+                importResumeBtn.style.display = 'none';
                 itemsPanel.style.display = '';
                 detailsPanel.style.display = '';
                 renderItemsList();
                 showEmptyState();
             } else if (section === 'jobs') {
                 addBtn.style.display = 'flex';
-                importBtn.style.display = 'flex';
+                importJobBtn.style.display = 'flex';
+                importResumeBtn.style.display = 'none';
+                itemsPanel.style.display = '';
+                detailsPanel.style.display = '';
+                renderItemsList();
+                showEmptyState();
+            } else if (section === 'resumes') {
+                addBtn.style.display = 'flex';
+                importJobBtn.style.display = 'none';
+                importResumeBtn.style.display = 'flex';
                 itemsPanel.style.display = '';
                 detailsPanel.style.display = '';
                 renderItemsList();
                 showEmptyState();
             } else {
                 addBtn.style.display = 'flex';
-                importBtn.style.display = 'none';
+                importJobBtn.style.display = 'none';
+                importResumeBtn.style.display = 'none';
                 itemsPanel.style.display = '';
                 detailsPanel.style.display = '';
                 renderItemsList();
@@ -821,8 +916,29 @@
                     html += `<textarea class="form-input form-textarea" rows="${rows}" ${readonly} ${required}>${escapeHtml(value)}</textarea>`;
                 } else if (field.type === 'resume-editor') {
                     html += `
-                        <div class="resume-editor-container">
-                            <resume-editor id="resume-editor-details"></resume-editor>
+                        <div class="resume-content-container">
+                            <div class="resume-tabs">
+                                <button type="button" class="tab-btn active" data-tab="preview">Preview</button>
+                                <button type="button" class="tab-btn" data-tab="edit">Edit</button>
+                            </div>
+                            <div class="tab-content">
+                                <div class="tab-panel active" id="preview-tab">
+                                    <div class="resume-viewer-controls">
+                                        <label>Template: 
+                                            <select id="template-selector">
+                                                <option value="basic">Basic</option>
+                                                <option value="modern">Modern</option>
+                                                <option value="compact">Compact</option>
+                                                <option value="elegant">Elegant</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <resume-viewer id="resume-viewer-details" template="basic"></resume-viewer>
+                                </div>
+                                <div class="tab-panel" id="edit-tab">
+                                    <resume-editor id="resume-editor-details"></resume-editor>
+                                </div>
+                            </div>
                         </div>
                     `;
                 } else if (field.type === 'select') {
@@ -854,6 +970,22 @@
                         <button type="button" class="btn btn-primary" onclick="editCurrentItem()">
                             <i class="fas fa-edit"></i> Edit
                         </button>
+                        ${currentSection === 'resumes' ? `
+                            <button type="button" class="btn btn-success" onclick="generateResumePDF()" style="background: #e67e22;">
+                                <i class="fas fa-file-pdf"></i> Generate PDF
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="printResume()" style="background: #34495e;">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        ` : ''}
+                        ${currentSection === 'letters' ? `
+                            <button type="button" class="btn btn-success" onclick="generateLetterPDF()" style="background: #e67e22;">
+                                <i class="fas fa-file-pdf"></i> Generate PDF
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="printLetter()" style="background: #34495e;">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        ` : ''}
                         ${currentSection === 'jobs' ? `
                             <button type="button" class="btn btn-success" onclick="generateAIContent()" style="background: #27ae60;">
                                 <i class="fas fa-robot"></i> AI Tailor Resume & Letter
@@ -869,17 +1001,64 @@
             html += '</div>';
             content.innerHTML = html;
             
-            // Initialize resume editor if present
+            // Initialize resume editor and viewer if present
             if (currentSection === 'resumes' && item.content) {
                 setTimeout(() => {
                     const resumeEditor = document.querySelector('#resume-editor-details');
-                    if (resumeEditor) {
-                        try {
-                            const resumeData = typeof item.content === 'string' ? JSON.parse(item.content) : item.content;
+                    const resumeViewer = document.querySelector('#resume-viewer-details');
+                    const templateSelector = document.querySelector('#template-selector');
+                    
+                    try {
+                        const resumeData = typeof item.content === 'string' ? JSON.parse(item.content) : item.content;
+                        
+                        if (resumeEditor) {
                             resumeEditor.setResumeData(resumeData);
-                        } catch (e) {
-                            console.error('Error loading resume data into editor:', e);
                         }
+                        
+                        if (resumeViewer) {
+                            resumeViewer.setResumeData(resumeData);
+                        }
+                        
+                        // Handle template selector
+                        if (templateSelector) {
+                            // Remove any existing event listeners first
+                            templateSelector.removeEventListener('change', window.handleTemplateChangeDetails);
+                            
+                            // Create a new event handler function
+                            window.handleTemplateChangeDetails = function(e) {
+                                console.log('Switching template to:', e.target.value);
+                                if (resumeViewer) {
+                                    resumeViewer.setTemplate(e.target.value);
+                                }
+                            };
+                            
+                            templateSelector.addEventListener('change', window.handleTemplateChangeDetails);
+                        }
+                        
+                        // Handle tab switching
+                        const tabButtons = document.querySelectorAll('.tab-btn');
+                        const tabPanels = document.querySelectorAll('.tab-panel');
+                        
+                        tabButtons.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const targetTab = btn.dataset.tab;
+                                
+                                // Update active tab button
+                                tabButtons.forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
+                                
+                                // Update active tab panel
+                                tabPanels.forEach(panel => {
+                                    panel.classList.remove('active');
+                                    if (panel.id === targetTab + '-tab') {
+                                        panel.classList.add('active');
+                                    }
+                                });
+                            });
+                        });
+                        
+                    } catch (e) {
+                        console.error('Error loading resume data:', e);
                     }
                 }, 100);
             }
@@ -961,8 +1140,29 @@
                         group.innerHTML += `<textarea class="form-input form-textarea" name="${key}" rows="${rows}" ${required} ${readonly}>${escapeHtml(value)}</textarea>`;
                     } else if (field.type === 'resume-editor') {
                         group.innerHTML += `
-                            <div class="resume-editor-modal-container">
-                                <resume-editor id="resume-editor-modal"></resume-editor>
+                            <div class="resume-content-container">
+                                <div class="resume-tabs">
+                                    <button type="button" class="tab-btn active" data-tab="preview">Preview</button>
+                                    <button type="button" class="tab-btn" data-tab="edit">Edit</button>
+                                </div>
+                                <div class="tab-content">
+                                    <div class="tab-panel active" id="preview-tab-modal">
+                                        <div class="resume-viewer-controls">
+                                            <label>Template: 
+                                                <select id="template-selector-modal">
+                                                    <option value="basic">Basic</option>
+                                                    <option value="modern">Modern</option>
+                                                    <option value="compact">Compact</option>
+                                                    <option value="elegant">Elegant</option>
+                                                </select>
+                                            </label>
+                                        </div>
+                                        <resume-viewer id="resume-viewer-modal" template="basic"></resume-viewer>
+                                    </div>
+                                    <div class="tab-panel" id="edit-tab-modal">
+                                        <resume-editor id="resume-editor-modal"></resume-editor>
+                                    </div>
+                                </div>
                             </div>
                         `;
                     } else if (field.type === 'select') {
@@ -991,17 +1191,64 @@
             
             document.getElementById('form-modal').classList.remove('hidden');
             
-            // Initialize resume editor if present
+            // Initialize resume editor and viewer if present
             if (currentSection === 'resumes' && item.content) {
                 setTimeout(() => {
                     const resumeEditor = document.querySelector('#resume-editor-modal');
-                    if (resumeEditor) {
-                        try {
-                            const resumeData = typeof item.content === 'string' ? JSON.parse(item.content) : item.content;
+                    const resumeViewer = document.querySelector('#resume-viewer-modal');
+                    const templateSelector = document.querySelector('#template-selector-modal');
+                    
+                    try {
+                        const resumeData = typeof item.content === 'string' ? JSON.parse(item.content) : item.content;
+                        
+                        if (resumeEditor) {
                             resumeEditor.setResumeData(resumeData);
-                        } catch (e) {
-                            console.error('Error loading resume data into editor:', e);
                         }
+                        
+                        if (resumeViewer) {
+                            resumeViewer.setResumeData(resumeData);
+                        }
+                        
+                        // Handle template selector
+                        if (templateSelector) {
+                            // Remove any existing event listeners first
+                            templateSelector.removeEventListener('change', window.handleTemplateChangeModal);
+                            
+                            // Create a new event handler function
+                            window.handleTemplateChangeModal = function(e) {
+                                console.log('Switching modal template to:', e.target.value);
+                                if (resumeViewer) {
+                                    resumeViewer.setTemplate(e.target.value);
+                                }
+                            };
+                            
+                            templateSelector.addEventListener('change', window.handleTemplateChangeModal);
+                        }
+                        
+                        // Handle tab switching in modal
+                        const tabButtons = document.querySelectorAll('.modal .tab-btn');
+                        const tabPanels = document.querySelectorAll('.modal .tab-panel');
+                        
+                        tabButtons.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const targetTab = btn.dataset.tab;
+                                
+                                // Update active tab button
+                                tabButtons.forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
+                                
+                                // Update active tab panel
+                                tabPanels.forEach(panel => {
+                                    panel.classList.remove('active');
+                                    if (panel.id === targetTab + '-tab-modal') {
+                                        panel.classList.add('active');
+                                    }
+                                });
+                            });
+                        });
+                        
+                    } catch (e) {
+                        console.error('Error loading resume data into modal:', e);
                     }
                 }, 100);
             }
@@ -1790,6 +2037,197 @@ Return ONLY the JSON object with no additional text.`;
             return await response.json();
         }
 
+        // Import Resume Functions
+        function openImportResumeModal() {
+            document.getElementById('import-resume-modal').classList.remove('hidden');
+        }
+
+        function closeImportResumeModal() {
+            document.getElementById('import-resume-modal').classList.add('hidden');
+            document.getElementById('resume-json-input').value = '';
+            document.getElementById('resume-url-input').value = '';
+            document.getElementById('resume-name-input').value = '';
+            document.getElementById('resume-import-method-paste').checked = true;
+            toggleResumeImportMethod();
+            // Reset file input
+            const fileInput = document.getElementById('resume-file-input');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+            document.getElementById('resume-file-name').classList.add('hidden');
+        }
+
+        function toggleResumeImportMethod() {
+            const pasteMethod = document.getElementById('resume-import-method-paste').checked;
+            const fileMethod = document.getElementById('resume-import-method-file').checked;
+            const urlMethod = document.getElementById('resume-import-method-url').checked;
+            
+            const pasteSection = document.getElementById('resume-paste-section');
+            const fileSection = document.getElementById('resume-file-section');
+            const urlSection = document.getElementById('resume-url-section');
+            
+            // Hide all sections first
+            pasteSection.classList.add('hidden');
+            fileSection.classList.add('hidden');
+            urlSection.classList.add('hidden');
+            
+            if (pasteMethod) {
+                pasteSection.classList.remove('hidden');
+            } else if (fileMethod) {
+                fileSection.classList.remove('hidden');
+                setupFileDragDrop();
+            } else if (urlMethod) {
+                urlSection.classList.remove('hidden');
+            }
+        }
+
+        function setupFileDragDrop() {
+            const dragDropArea = document.getElementById('resume-drag-drop-area');
+            const fileInput = document.getElementById('resume-file-input');
+            const fileNameDiv = document.getElementById('resume-file-name');
+
+            if (dragDropArea && fileInput) {
+                // Click to browse
+                dragDropArea.addEventListener('click', () => {
+                    fileInput.click();
+                });
+
+                // File selection
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                            fileNameDiv.textContent = `Selected: ${file.name}`;
+                            fileNameDiv.classList.remove('hidden');
+                        } else {
+                            alert('Please select a valid JSON file.');
+                            e.target.value = '';
+                        }
+                    }
+                });
+
+                // Drag and drop
+                dragDropArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dragDropArea.style.borderColor = '#007bff';
+                    dragDropArea.style.backgroundColor = '#f8f9fa';
+                });
+
+                dragDropArea.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    dragDropArea.style.borderColor = '#ddd';
+                    dragDropArea.style.backgroundColor = 'transparent';
+                });
+
+                dragDropArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dragDropArea.style.borderColor = '#ddd';
+                    dragDropArea.style.backgroundColor = 'transparent';
+                    
+                    const files = e.dataTransfer.files;
+                    if (files && files[0]) {
+                        const file = files[0];
+                        if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                            fileInput.files = files;
+                            fileNameDiv.textContent = `Selected: ${file.name}`;
+                            fileNameDiv.classList.remove('hidden');
+                        } else {
+                            alert('Please drop a valid JSON file.');
+                        }
+                    }
+                });
+            }
+        }
+
+        async function processResumeImport() {
+            const pasteMethod = document.getElementById('resume-import-method-paste').checked;
+            const fileMethod = document.getElementById('resume-import-method-file').checked;
+            const urlMethod = document.getElementById('resume-import-method-url').checked;
+            
+            const resumeName = document.getElementById('resume-name-input').value.trim();
+            
+            if (!resumeName) {
+                alert('Please enter a name for the resume.');
+                return;
+            }
+
+            let resumeData = null;
+
+            try {
+                if (pasteMethod) {
+                    const jsonInput = document.getElementById('resume-json-input').value.trim();
+                    if (!jsonInput) {
+                        alert('Please paste resume JSON content.');
+                        return;
+                    }
+                    resumeData = JSON.parse(jsonInput);
+                } else if (fileMethod) {
+                    const fileInput = document.getElementById('resume-file-input');
+                    if (!fileInput.files || !fileInput.files[0]) {
+                        alert('Please select a JSON file.');
+                        return;
+                    }
+                    
+                    const file = fileInput.files[0];
+                    const fileContent = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.onerror = reject;
+                        reader.readAsText(file);
+                    });
+                    
+                    resumeData = JSON.parse(fileContent);
+                } else if (urlMethod) {
+                    const urlInput = document.getElementById('resume-url-input').value.trim();
+                    if (!urlInput) {
+                        alert('Please enter a URL.');
+                        return;
+                    }
+                    
+                    // Fetch JSON from URL
+                    const response = await fetch(urlInput);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch from URL: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    resumeData = await response.json();
+                }
+
+                // Validate basic resume structure
+                if (!resumeData || typeof resumeData !== 'object') {
+                    throw new Error('Invalid resume format - must be a JSON object.');
+                }
+
+                // Create new resume
+                const timestamp = new Date().toISOString();
+                const newResume = {
+                    id: generateId(),
+                    name: resumeName,
+                    content: resumeData,
+                    dateCreated: timestamp,
+                    dateModified: timestamp
+                };
+
+                // Add to resumes
+                data.resumes.push(newResume);
+                saveData();
+
+                // Refresh UI
+                renderItemsList();
+                selectItem(newResume);
+
+                // Close modal
+                closeImportResumeModal();
+
+                // Show success message
+                alert(`✅ Successfully imported resume: "${resumeName}"`);
+
+            } catch (error) {
+                console.error('Error importing resume:', error);
+                alert(`Error importing resume: ${error.message}`);
+            }
+        }
+
         // Open resume editor modal for visual editing
         window.openResumeEditorModal = function(fieldKey) {
             // This would open a full-screen modal with the resume editor
@@ -1900,6 +2338,241 @@ Return ONLY the JSON object with no additional text.`;
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
+        };
+
+        // PDF Generation Functions
+        window.generateResumePDF = function() {
+            if (!currentItem || currentSection !== 'resumes') {
+                alert('Please select a resume first.');
+                return;
+            }
+            
+            try {
+                const resumeViewer = document.querySelector('#resume-viewer-details');
+                if (!resumeViewer) {
+                    alert('Resume preview not available. Please switch to the Preview tab first.');
+                    return;
+                }
+                
+                // Get resume data
+                const resumeData = typeof currentItem.content === 'string' ? 
+                    JSON.parse(currentItem.content) : currentItem.content;
+                
+                const fileName = `${currentItem.name || 'Resume'}.pdf`;
+                
+                // Configure PDF options
+                const options = {
+                    margin: 10,
+                    filename: fileName,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                // Create a temporary container for PDF generation
+                const tempContainer = document.createElement('div');
+                tempContainer.style.cssText = `
+                    margin: 0;
+                    padding: 20px;
+                    background: white;
+                    width: 210mm;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                `;
+                
+                // Extract content from shadow DOM (can't clone shadow roots)
+                if (resumeViewer.shadowRoot) {
+                    // Get the HTML content from shadow DOM
+                    tempContainer.innerHTML = resumeViewer.shadowRoot.innerHTML;
+                } else {
+                    throw new Error('Resume viewer shadow DOM not available');
+                }
+                
+                // Generate PDF
+                html2pdf()
+                    .set(options)
+                    .from(tempContainer)
+                    .save()
+                    .then(() => {
+                        console.log('Resume PDF generated successfully');
+                        alert('✅ PDF generated successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error generating PDF:', error);
+                        alert('❌ Error generating PDF. Please try again.');
+                    });
+                    
+            } catch (error) {
+                console.error('Error generating resume PDF:', error);
+                alert('❌ Error generating PDF. Please check the resume data.');
+            }
+        };
+
+        window.printResume = function() {
+            if (!currentItem || currentSection !== 'resumes') {
+                alert('Please select a resume first.');
+                return;
+            }
+            
+            try {
+                const resumeViewer = document.querySelector('#resume-viewer-details');
+                if (!resumeViewer) {
+                    alert('Resume preview not available. Please switch to the Preview tab first.');
+                    return;
+                }
+                
+                // Extract content from shadow DOM for printing
+                let shadowContent = '';
+                if (resumeViewer.shadowRoot) {
+                    shadowContent = resumeViewer.shadowRoot.innerHTML;
+                } else {
+                    throw new Error('Resume viewer shadow DOM not available');
+                }
+                
+                // Create a new window for printing
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>${currentItem.name || 'Resume'}</title>
+                        <style>
+                            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 20px; }
+                            @media print { body { margin: 0; } }
+                        </style>
+                    </head>
+                    <body>
+                        ${shadowContent}
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error printing resume:', error);
+                alert('❌ Error printing resume. Please try again.');
+            }
+        };
+
+        window.generateLetterPDF = function() {
+            if (!currentItem || currentSection !== 'letters') {
+                alert('Please select a cover letter first.');
+                return;
+            }
+            
+            try {
+                const letterContent = currentItem.content || '';
+                const fileName = `${currentItem.name || 'Cover Letter'}.pdf`;
+                
+                // Create a formatted letter container
+                const letterContainer = document.createElement('div');
+                letterContainer.style.cssText = `
+                    margin: 0;
+                    padding: 30px;
+                    background: white;
+                    width: 210mm;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                `;
+                
+                letterContainer.innerHTML = `
+                    <div style="margin-bottom: 30px;">
+                        <h1 style="font-size: 24px; margin-bottom: 10px;">${escapeHtml(currentItem.name || 'Cover Letter')}</h1>
+                        <div style="color: #666; font-size: 14px;">
+                            ${currentItem.type ? `Type: ${escapeHtml(currentItem.type.replace('_', ' ').toUpperCase())}` : ''}
+                            ${currentItem.dateCreated ? ` | Created: ${new Date(currentItem.dateCreated).toLocaleDateString()}` : ''}
+                        </div>
+                    </div>
+                    <div style="white-space: pre-line; font-size: 16px; line-height: 1.8;">
+                        ${escapeHtml(letterContent)}
+                    </div>
+                `;
+                
+                const options = {
+                    margin: 10,
+                    filename: fileName,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                html2pdf()
+                    .set(options)
+                    .from(letterContainer)
+                    .save()
+                    .then(() => {
+                        console.log('Cover letter PDF generated successfully');
+                        alert('✅ PDF generated successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error generating PDF:', error);
+                        alert('❌ Error generating PDF. Please try again.');
+                    });
+                    
+            } catch (error) {
+                console.error('Error generating letter PDF:', error);
+                alert('❌ Error generating PDF. Please check the letter content.');
+            }
+        };
+
+        window.printLetter = function() {
+            if (!currentItem || currentSection !== 'letters') {
+                alert('Please select a cover letter first.');
+                return;
+            }
+            
+            try {
+                const letterContent = currentItem.content || '';
+                
+                // Create a new window for printing
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>${currentItem.name || 'Cover Letter'}</title>
+                        <style>
+                            body { 
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                                line-height: 1.6; 
+                                color: #333; 
+                                margin: 30px; 
+                                font-size: 16px;
+                            }
+                            h1 { font-size: 24px; margin-bottom: 10px; }
+                            .meta { color: #666; font-size: 14px; margin-bottom: 30px; }
+                            .content { white-space: pre-line; line-height: 1.8; }
+                            @media print { body { margin: 20px; } }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>${escapeHtml(currentItem.name || 'Cover Letter')}</h1>
+                        <div class="meta">
+                            ${currentItem.type ? `Type: ${escapeHtml(currentItem.type.replace('_', ' ').toUpperCase())}` : ''}
+                            ${currentItem.dateCreated ? ` | Created: ${new Date(currentItem.dateCreated).toLocaleDateString()}` : ''}
+                        </div>
+                        <div class="content">${escapeHtml(letterContent)}</div>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error printing letter:', error);
+                alert('❌ Error printing letter. Please try again.');
+            }
         };
 
         // Initialize the application
