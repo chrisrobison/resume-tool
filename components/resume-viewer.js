@@ -368,6 +368,69 @@ class ResumeViewer extends HTMLElement {
             a:hover {
                 text-decoration: underline;
             }
+
+            @media print {
+                :host {
+                    font-size: 12px;
+                    line-height: 1.4;
+                }
+                
+                h1 {
+                    font-size: 1.8em;
+                    margin-bottom: 0.3em;
+                }
+                
+                h2 {
+                    font-size: 1.3em;
+                    margin-bottom: 0.4em;
+                }
+                
+                h3 {
+                    font-size: 1.1em;
+                    margin-bottom: 0.3em;
+                }
+                
+                h4 {
+                    font-size: 1em;
+                    margin-bottom: 0.2em;
+                }
+                
+                section {
+                    margin-bottom: 1.2em;
+                    page-break-inside: avoid;
+                }
+                
+                .work-item, .education-item, .project-item {
+                    margin-bottom: 0.8em;
+                    page-break-inside: avoid;
+                }
+                
+                ul {
+                    margin-left: 15px;
+                    margin-top: 0.3em;
+                }
+                
+                li {
+                    margin-bottom: 0.2em;
+                }
+                
+                p {
+                    margin-bottom: 0.4em;
+                }
+                
+                .date {
+                    font-size: 0.9em;
+                }
+                
+                .keywords {
+                    font-size: 0.9em;
+                }
+            }
+
+            @page {
+                margin: 0.5in;
+                size: letter;
+            }
         `;
 
         const templateStyles = {
@@ -430,6 +493,47 @@ class ResumeViewer extends HTMLElement {
                 
                 .keywords {
                     color: #666;
+                }
+
+                @media print {
+                    .resume-basic {
+                        max-width: none;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    
+                    header {
+                        margin-bottom: 15px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px solid #ccc;
+                    }
+                    
+                    h1 {
+                        font-size: 2em;
+                    }
+                    
+                    h2 {
+                        font-size: 1.2em;
+                    }
+                    
+                    section h2 {
+                        border-bottom: 1px solid #ccc;
+                        padding-bottom: 3px;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .contact {
+                        margin: 5px 0;
+                        font-size: 0.95em;
+                    }
+                    
+                    .work-item, .education-item, .project-item {
+                        margin-bottom: 12px;
+                    }
+                    
+                    .skill-group {
+                        margin-bottom: 8px;
+                    }
                 }
             `,
             modern: `
@@ -520,6 +624,77 @@ class ResumeViewer extends HTMLElement {
                     font-size: 0.9em;
                     color: #bdc3c7;
                 }
+
+                @media print {
+                    .resume-modern {
+                        display: block;
+                        min-height: auto;
+                    }
+                    
+                    .sidebar {
+                        background: none;
+                        color: #333;
+                        padding: 0;
+                        width: 100%;
+                        margin-bottom: 15px;
+                        border-bottom: 1px solid #ccc;
+                        padding-bottom: 15px;
+                    }
+                    
+                    .sidebar h1 {
+                        font-size: 1.8em;
+                        color: #333;
+                    }
+                    
+                    .sidebar h2 {
+                        font-size: 1em;
+                        margin-top: 15px;
+                        margin-bottom: 8px;
+                        color: #333;
+                    }
+                    
+                    .sidebar h3 {
+                        font-size: 1em;
+                        color: #666;
+                        margin-bottom: 10px;
+                    }
+                    
+                    .contact-info {
+                        margin: 10px 0;
+                    }
+                    
+                    .contact-info div {
+                        margin: 3px 0;
+                        font-size: 0.9em;
+                        color: #333;
+                    }
+                    
+                    .profiles a {
+                        color: #333;
+                        display: inline;
+                        margin-right: 10px;
+                    }
+                    
+                    .main-content {
+                        padding: 0;
+                    }
+                    
+                    .main-content h2 {
+                        color: #333;
+                        font-size: 1.3em;
+                        margin-bottom: 10px;
+                        border-bottom: 1px solid #ccc;
+                        padding-bottom: 3px;
+                    }
+                    
+                    .skill-group h4 {
+                        color: #333;
+                    }
+                    
+                    .keywords {
+                        color: #666;
+                    }
+                }
             `,
             compact: `
                 ${baseStyles}
@@ -601,6 +776,66 @@ class ResumeViewer extends HTMLElement {
                 .keywords {
                     font-size: 0.9em;
                     color: #666;
+                }
+
+                @media print {
+                    .resume-compact {
+                        max-width: none;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    
+                    header {
+                        margin-bottom: 12px;
+                    }
+                    
+                    h1 {
+                        font-size: 1.8em;
+                    }
+                    
+                    .subtitle {
+                        margin-bottom: 8px;
+                        font-size: 0.9em;
+                    }
+                    
+                    .summary {
+                        margin-bottom: 15px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px solid #ccc;
+                    }
+                    
+                    .two-column {
+                        display: block;
+                        gap: 0;
+                    }
+                    
+                    .left-column, .right-column {
+                        flex: none;
+                        width: 100%;
+                    }
+                    
+                    h2 {
+                        font-size: 1.2em;
+                        margin-bottom: 8px;
+                        border-bottom: 1px solid #ccc;
+                        padding-bottom: 3px;
+                    }
+                    
+                    .work-item, .education-item {
+                        margin-bottom: 10px;
+                    }
+                    
+                    .work-item h3 {
+                        font-size: 1em;
+                    }
+                    
+                    .skill-group {
+                        margin-bottom: 6px;
+                    }
+                    
+                    .skill-group h4 {
+                        font-size: 0.95em;
+                    }
                 }
             `,
             elegant: `
@@ -713,6 +948,71 @@ class ResumeViewer extends HTMLElement {
                 
                 li {
                     margin-bottom: 5px;
+                }
+
+                @media print {
+                    .resume-elegant {
+                        max-width: none;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    
+                    .elegant-header {
+                        margin-bottom: 20px;
+                        padding-bottom: 15px;
+                        border-bottom: 2px solid #333;
+                    }
+                    
+                    .name-section h1 {
+                        font-size: 2.2em;
+                        font-weight: 300;
+                    }
+                    
+                    .name-section h2 {
+                        font-size: 1.3em;
+                        font-weight: 300;
+                    }
+                    
+                    .contact-section {
+                        font-size: 0.9em;
+                    }
+                    
+                    .elegant-section {
+                        margin-bottom: 20px;
+                    }
+                    
+                    .elegant-section h2 {
+                        font-size: 1.4em;
+                        margin-bottom: 12px;
+                        letter-spacing: 1px;
+                    }
+                    
+                    .summary {
+                        font-size: 1em;
+                        line-height: 1.5;
+                    }
+                    
+                    .work-item, .education-item, .project-item {
+                        margin-bottom: 15px;
+                    }
+                    
+                    .work-item h3, .project-item h3 {
+                        font-size: 1.1em;
+                    }
+                    
+                    .education-item h3 {
+                        font-size: 1em;
+                    }
+                    
+                    .skill-group {
+                        display: block;
+                        margin-right: 0;
+                        margin-bottom: 8px;
+                    }
+                    
+                    .skill-group h4 {
+                        font-size: 1em;
+                    }
                 }
             `
         };

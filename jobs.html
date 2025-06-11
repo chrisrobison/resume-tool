@@ -568,12 +568,43 @@
             setupEventListeners();
             switchSection('jobs');
             syncWithGlobalStore();
+            syncApiSettingsToStore();
         }
 
         // Load data from localStorage
         function loadData() {
             const stored = localStorage.getItem('jobHuntData');
             return stored ? JSON.parse(stored) : defaultData;
+        }
+
+        // Sync API settings from localStorage to global store
+        function syncApiSettingsToStore() {
+            const apiKey = localStorage.getItem('api_key') || '';
+            const apiType = localStorage.getItem('api_type') || 'claude';
+            const useDirectApi = localStorage.getItem('use_direct_api') === 'true';
+            
+            if (apiKey.trim()) {
+                console.log('Syncing API settings to store:', { apiType, hasKey: !!apiKey });
+                
+                const apiProviders = {};
+                if (apiType === 'claude') {
+                    apiProviders.claude = { apiKey: apiKey.trim() };
+                    apiProviders.openai = { apiKey: '' };
+                } else if (apiType === 'chatgpt') {
+                    apiProviders.openai = { apiKey: apiKey.trim() };
+                    apiProviders.claude = { apiKey: '' };
+                }
+                
+                setState({
+                    settings: {
+                        apiProviders: apiProviders,
+                        useDirectApi: useDirectApi,
+                        defaultProvider: apiType
+                    }
+                }, 'jobs-html-api-settings-sync');
+            } else {
+                console.log('No API key found in localStorage');
+            }
         }
 
         // Sync data with global store
@@ -1274,9 +1305,37 @@
             const apiType = document.getElementById('api-type').value;
             const useDirectApi = document.getElementById('use-direct-api').checked;
             
+            // Store in localStorage for backward compatibility
             localStorage.setItem('api_key', apiKey);
             localStorage.setItem('api_type', apiType);
             localStorage.setItem('use_direct_api', useDirectApi);
+            
+            // Also sync to global store for AI Assistant component
+            const currentSettings = getState('settings') || {};
+            const apiProviders = currentSettings.apiProviders || {};
+            
+            if (apiType === 'claude') {
+                apiProviders.claude = { apiKey: apiKey.trim() };
+                // Clear OpenAI if switching to Claude
+                if (apiProviders.openai) {
+                    apiProviders.openai = { apiKey: '' };
+                }
+            } else if (apiType === 'chatgpt') {
+                apiProviders.openai = { apiKey: apiKey.trim() };
+                // Clear Claude if switching to OpenAI
+                if (apiProviders.claude) {
+                    apiProviders.claude = { apiKey: '' };
+                }
+            }
+            
+            setState({
+                settings: {
+                    ...currentSettings,
+                    apiProviders: apiProviders,
+                    useDirectApi: useDirectApi,
+                    defaultProvider: apiType
+                }
+            }, 'jobs-html-api-settings');
             
             closeSettings();
             
@@ -2360,25 +2419,27 @@ Return ONLY the JSON object with no additional text.`;
                 
                 const fileName = `${currentItem.name || 'Resume'}.pdf`;
                 
-                // Configure PDF options
+                // Configure PDF options for US Letter (8.5" x 11")
                 const options = {
-                    margin: 10,
+                    margin: [15, 15, 15, 15], // top, left, bottom, right in mm
                     filename: fileName,
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
                 };
                 
                 // Create a temporary container for PDF generation
                 const tempContainer = document.createElement('div');
                 tempContainer.style.cssText = `
                     margin: 0;
-                    padding: 20px;
+                    padding: 15px;
                     background: white;
-                    width: 210mm;
+                    width: 185mm;
+                    max-width: 185mm;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                     line-height: 1.6;
                     color: #333;
+                    box-sizing: border-box;
                 `;
                 
                 // Extract content from shadow DOM (can't clone shadow roots)
@@ -2474,12 +2535,14 @@ Return ONLY the JSON object with no additional text.`;
                 const letterContainer = document.createElement('div');
                 letterContainer.style.cssText = `
                     margin: 0;
-                    padding: 30px;
+                    padding: 20px;
                     background: white;
-                    width: 210mm;
+                    width: 185mm;
+                    max-width: 185mm;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                     line-height: 1.6;
                     color: #333;
+                    box-sizing: border-box;
                 `;
                 
                 letterContainer.innerHTML = `
@@ -2496,11 +2559,11 @@ Return ONLY the JSON object with no additional text.`;
                 `;
                 
                 const options = {
-                    margin: 10,
+                    margin: [15, 15, 15, 15], // top, left, bottom, right in mm
                     filename: fileName,
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
                 };
                 
                 html2pdf()
