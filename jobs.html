@@ -1021,11 +1021,18 @@
                         
                         // Handle template selector
                         if (templateSelector) {
-                            templateSelector.addEventListener('change', (e) => {
+                            // Remove any existing event listeners first
+                            templateSelector.removeEventListener('change', window.handleTemplateChangeDetails);
+                            
+                            // Create a new event handler function
+                            window.handleTemplateChangeDetails = function(e) {
+                                console.log('Switching template to:', e.target.value);
                                 if (resumeViewer) {
                                     resumeViewer.setTemplate(e.target.value);
                                 }
-                            });
+                            };
+                            
+                            templateSelector.addEventListener('change', window.handleTemplateChangeDetails);
                         }
                         
                         // Handle tab switching
@@ -1204,11 +1211,18 @@
                         
                         // Handle template selector
                         if (templateSelector) {
-                            templateSelector.addEventListener('change', (e) => {
+                            // Remove any existing event listeners first
+                            templateSelector.removeEventListener('change', window.handleTemplateChangeModal);
+                            
+                            // Create a new event handler function
+                            window.handleTemplateChangeModal = function(e) {
+                                console.log('Switching modal template to:', e.target.value);
                                 if (resumeViewer) {
                                     resumeViewer.setTemplate(e.target.value);
                                 }
-                            });
+                            };
+                            
+                            templateSelector.addEventListener('change', window.handleTemplateChangeModal);
                         }
                         
                         // Handle tab switching in modal
