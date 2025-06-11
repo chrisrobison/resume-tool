@@ -6,6 +6,8 @@
     <title>Job Hunt Manager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="jobs.css">
+    <!-- HTML2PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
     <div class="app-container">
@@ -968,6 +970,22 @@
                         <button type="button" class="btn btn-primary" onclick="editCurrentItem()">
                             <i class="fas fa-edit"></i> Edit
                         </button>
+                        ${currentSection === 'resumes' ? `
+                            <button type="button" class="btn btn-success" onclick="generateResumePDF()" style="background: #e67e22;">
+                                <i class="fas fa-file-pdf"></i> Generate PDF
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="printResume()" style="background: #34495e;">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        ` : ''}
+                        ${currentSection === 'letters' ? `
+                            <button type="button" class="btn btn-success" onclick="generateLetterPDF()" style="background: #e67e22;">
+                                <i class="fas fa-file-pdf"></i> Generate PDF
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="printLetter()" style="background: #34495e;">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        ` : ''}
                         ${currentSection === 'jobs' ? `
                             <button type="button" class="btn btn-success" onclick="generateAIContent()" style="background: #27ae60;">
                                 <i class="fas fa-robot"></i> AI Tailor Resume & Letter
@@ -2306,6 +2324,231 @@ Return ONLY the JSON object with no additional text.`;
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
+        };
+
+        // PDF Generation Functions
+        window.generateResumePDF = function() {
+            if (!currentItem || currentSection !== 'resumes') {
+                alert('Please select a resume first.');
+                return;
+            }
+            
+            try {
+                const resumeViewer = document.querySelector('#resume-viewer-details');
+                if (!resumeViewer) {
+                    alert('Resume preview not available. Please switch to the Preview tab first.');
+                    return;
+                }
+                
+                // Get resume data
+                const resumeData = typeof currentItem.content === 'string' ? 
+                    JSON.parse(currentItem.content) : currentItem.content;
+                
+                const fileName = `${currentItem.name || 'Resume'}.pdf`;
+                
+                // Configure PDF options
+                const options = {
+                    margin: 10,
+                    filename: fileName,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                // Clone the resume viewer content
+                const clonedElement = resumeViewer.shadowRoot.cloneNode(true);
+                
+                // Create a temporary container for PDF generation
+                const tempContainer = document.createElement('div');
+                tempContainer.style.cssText = `
+                    margin: 0;
+                    padding: 20px;
+                    background: white;
+                    width: 210mm;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                `;
+                
+                // Copy the shadow DOM content to the temp container
+                tempContainer.innerHTML = clonedElement.innerHTML;
+                
+                // Generate PDF
+                html2pdf()
+                    .set(options)
+                    .from(tempContainer)
+                    .save()
+                    .then(() => {
+                        console.log('Resume PDF generated successfully');
+                        alert('✅ PDF generated successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error generating PDF:', error);
+                        alert('❌ Error generating PDF. Please try again.');
+                    });
+                    
+            } catch (error) {
+                console.error('Error generating resume PDF:', error);
+                alert('❌ Error generating PDF. Please check the resume data.');
+            }
+        };
+
+        window.printResume = function() {
+            if (!currentItem || currentSection !== 'resumes') {
+                alert('Please select a resume first.');
+                return;
+            }
+            
+            try {
+                const resumeViewer = document.querySelector('#resume-viewer-details');
+                if (!resumeViewer) {
+                    alert('Resume preview not available. Please switch to the Preview tab first.');
+                    return;
+                }
+                
+                // Create a new window for printing
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>${currentItem.name || 'Resume'}</title>
+                        <style>
+                            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 20px; }
+                            @media print { body { margin: 0; } }
+                        </style>
+                    </head>
+                    <body>
+                        ${resumeViewer.shadowRoot.innerHTML}
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error printing resume:', error);
+                alert('❌ Error printing resume. Please try again.');
+            }
+        };
+
+        window.generateLetterPDF = function() {
+            if (!currentItem || currentSection !== 'letters') {
+                alert('Please select a cover letter first.');
+                return;
+            }
+            
+            try {
+                const letterContent = currentItem.content || '';
+                const fileName = `${currentItem.name || 'Cover Letter'}.pdf`;
+                
+                // Create a formatted letter container
+                const letterContainer = document.createElement('div');
+                letterContainer.style.cssText = `
+                    margin: 0;
+                    padding: 30px;
+                    background: white;
+                    width: 210mm;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                `;
+                
+                letterContainer.innerHTML = `
+                    <div style="margin-bottom: 30px;">
+                        <h1 style="font-size: 24px; margin-bottom: 10px;">${escapeHtml(currentItem.name || 'Cover Letter')}</h1>
+                        <div style="color: #666; font-size: 14px;">
+                            ${currentItem.type ? `Type: ${escapeHtml(currentItem.type.replace('_', ' ').toUpperCase())}` : ''}
+                            ${currentItem.dateCreated ? ` | Created: ${new Date(currentItem.dateCreated).toLocaleDateString()}` : ''}
+                        </div>
+                    </div>
+                    <div style="white-space: pre-line; font-size: 16px; line-height: 1.8;">
+                        ${escapeHtml(letterContent)}
+                    </div>
+                `;
+                
+                const options = {
+                    margin: 10,
+                    filename: fileName,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                html2pdf()
+                    .set(options)
+                    .from(letterContainer)
+                    .save()
+                    .then(() => {
+                        console.log('Cover letter PDF generated successfully');
+                        alert('✅ PDF generated successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error generating PDF:', error);
+                        alert('❌ Error generating PDF. Please try again.');
+                    });
+                    
+            } catch (error) {
+                console.error('Error generating letter PDF:', error);
+                alert('❌ Error generating PDF. Please check the letter content.');
+            }
+        };
+
+        window.printLetter = function() {
+            if (!currentItem || currentSection !== 'letters') {
+                alert('Please select a cover letter first.');
+                return;
+            }
+            
+            try {
+                const letterContent = currentItem.content || '';
+                
+                // Create a new window for printing
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>${currentItem.name || 'Cover Letter'}</title>
+                        <style>
+                            body { 
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                                line-height: 1.6; 
+                                color: #333; 
+                                margin: 30px; 
+                                font-size: 16px;
+                            }
+                            h1 { font-size: 24px; margin-bottom: 10px; }
+                            .meta { color: #666; font-size: 14px; margin-bottom: 30px; }
+                            .content { white-space: pre-line; line-height: 1.8; }
+                            @media print { body { margin: 20px; } }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>${escapeHtml(currentItem.name || 'Cover Letter')}</h1>
+                        <div class="meta">
+                            ${currentItem.type ? `Type: ${escapeHtml(currentItem.type.replace('_', ' ').toUpperCase())}` : ''}
+                            ${currentItem.dateCreated ? ` | Created: ${new Date(currentItem.dateCreated).toLocaleDateString()}` : ''}
+                        </div>
+                        <div class="content">${escapeHtml(letterContent)}</div>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error printing letter:', error);
+                alert('❌ Error printing letter. Please try again.');
+            }
         };
 
         // Initialize the application
