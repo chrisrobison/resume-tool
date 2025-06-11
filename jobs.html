@@ -2369,9 +2369,6 @@ Return ONLY the JSON object with no additional text.`;
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
                 
-                // Clone the resume viewer content
-                const clonedElement = resumeViewer.shadowRoot.cloneNode(true);
-                
                 // Create a temporary container for PDF generation
                 const tempContainer = document.createElement('div');
                 tempContainer.style.cssText = `
@@ -2384,8 +2381,13 @@ Return ONLY the JSON object with no additional text.`;
                     color: #333;
                 `;
                 
-                // Copy the shadow DOM content to the temp container
-                tempContainer.innerHTML = clonedElement.innerHTML;
+                // Extract content from shadow DOM (can't clone shadow roots)
+                if (resumeViewer.shadowRoot) {
+                    // Get the HTML content from shadow DOM
+                    tempContainer.innerHTML = resumeViewer.shadowRoot.innerHTML;
+                } else {
+                    throw new Error('Resume viewer shadow DOM not available');
+                }
                 
                 // Generate PDF
                 html2pdf()
@@ -2420,6 +2422,14 @@ Return ONLY the JSON object with no additional text.`;
                     return;
                 }
                 
+                // Extract content from shadow DOM for printing
+                let shadowContent = '';
+                if (resumeViewer.shadowRoot) {
+                    shadowContent = resumeViewer.shadowRoot.innerHTML;
+                } else {
+                    throw new Error('Resume viewer shadow DOM not available');
+                }
+                
                 // Create a new window for printing
                 const printWindow = window.open('', '_blank');
                 printWindow.document.write(`
@@ -2433,7 +2443,7 @@ Return ONLY the JSON object with no additional text.`;
                         </style>
                     </head>
                     <body>
-                        ${resumeViewer.shadowRoot.innerHTML}
+                        ${shadowContent}
                     </body>
                     </html>
                 `);
