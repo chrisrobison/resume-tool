@@ -10,7 +10,7 @@ class AIWorker {
         self.addEventListener('message', this.handleMessage.bind(this));
         
         // Send ready signal
-        this.postMessage({ type: 'ready' });
+        self.postMessage({ type: 'ready' });
     }
 
     handleMessage(event) {
@@ -398,7 +398,7 @@ Provide honest, constructive analysis that will help the candidate understand th
     }
 
     postProgress(message, requestId) {
-        this.postMessage({
+        self.postMessage({
             type: 'progress',
             requestId,
             message,
@@ -407,7 +407,7 @@ Provide honest, constructive analysis that will help the candidate understand th
     }
 
     postSuccess(data, requestId) {
-        this.postMessage({
+        self.postMessage({
             type: 'success',
             requestId,
             data,
@@ -416,12 +416,74 @@ Provide honest, constructive analysis that will help the candidate understand th
     }
 
     postError(error, requestId) {
-        this.postMessage({
+        self.postMessage({
             type: 'error',
             requestId,
             error: typeof error === 'string' ? error : error.message,
             timestamp: new Date().toISOString()
         });
+    }
+
+    async callClaudeAPI(apiKey, prompt, requestId) {
+        this.postProgress('Connecting to Claude API...', requestId);
+        
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+                model: 'claude-3-5-sonnet-20241022',
+                max_tokens: 4000,
+                messages: [
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ]
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.text();
+            throw new Error(`Claude API error (${response.status}): ${errorData}`);
+        }
+
+        const data = await response.json();
+        return data.content[0].text;
+    }
+
+    async callOpenAIAPI(apiKey, prompt, requestId) {
+        this.postProgress('Connecting to OpenAI API...', requestId);
+        
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4',
+                messages: [
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                max_tokens: 4000,
+                temperature: 0.7
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.text();
+            throw new Error(`OpenAI API error (${response.status}): ${errorData}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
     }
 }
 

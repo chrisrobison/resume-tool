@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Worker Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .log { background: #f8f9fa; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; }
+        .error { border-left-color: #dc3545; background: #f8d7da; color: #721c24; }
+        .success { border-left-color: #28a745; background: #d4edda; color: #155724; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; color: #856404; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>Complete AI Worker Test</h1>
+    
+    <div class="status" id="status">
+        Initializing...
+    </div>
+    
+    <div>
+        <button onclick="testFullFlow()">Test Full AI Flow</button>
+        <button onclick="testApiKey()">Test API Key</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+    
+    <div id="logs"></div>
+
+    <script type="module">
+        import aiService from './js/ai-service.js';
+        
+        function log(message, type = 'log') {
+            const logs = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            logs.appendChild(div);
+            console.log(`${type.toUpperCase()}: ${message}`);
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+        
+        window.log = log;
+        window.clearLogs = function() {
+            document.getElementById('logs').innerHTML = '';
+        };
+        
+        window.testApiKey = function() {
+            log('Testing API key...');
+            
+            if (!aiService.isWorkerReady()) {
+                log('❌ AI Service not ready', 'error');
+                return;
+            }
+            
+            // Use a dummy API key for testing (this will fail but test the flow)
+            aiService.testApiKey({
+                provider: 'claude',
+                apiKey: 'test-dummy-key-12345',
+                onProgress: (message) => {
+                    log(`🔄 Progress: ${message}`, 'warning');
+                }
+            }).then(result => {
+                log(`✅ API test result: ${JSON.stringify(result)}`, 'success');
+            }).catch(error => {
+                log(`❌ API test failed (expected): ${error.message}`, 'warning');
+                // This is expected to fail with a dummy key
+            });
+        };
+        
+        window.testFullFlow = function() {
+            log('Testing full AI flow...');
+            
+            if (!aiService.isWorkerReady()) {
+                log('❌ AI Service not ready', 'error');
+                return;
+            }
+            
+            // Test with dummy data
+            const testResume = {
+                basics: { name: 'John Doe', email: 'john@example.com' },
+                work: [{ name: 'Test Company', position: 'Developer' }],
+                skills: [{ name: 'JavaScript', level: 'Advanced' }]
+            };
+            
+            const testJobDescription = 'Looking for a JavaScript developer with React experience.';
+            
+            aiService.tailorResume({
+                resume: testResume,
+                jobDescription: testJobDescription,
+                provider: 'claude',
+                apiKey: 'test-dummy-key-12345',
+                includeAnalysis: true,
+                onProgress: (message) => {
+                    log(`🔄 Progress: ${message}`, 'warning');
+                }
+            }).then(result => {
+                log(`✅ Resume tailoring result: ${JSON.stringify(result)}`, 'success');
+            }).catch(error => {
+                log(`❌ Resume tailoring failed (expected): ${error.message}`, 'warning');
+                // This is expected to fail with a dummy key
+            });
+        };
+        
+        // Monitor AI service status
+        function checkStatus() {
+            if (aiService.isWorkerReady()) {
+                updateStatus('✅ AI Service Ready', 'success');
+                log('✅ AI Service is ready!', 'success');
+            } else {
+                updateStatus('⏳ Waiting for AI Service...', 'warning');
+                setTimeout(checkStatus, 500);
+            }
+        }
+        
+        // Start monitoring
+        setTimeout(checkStatus, 100);
+        
+        // Auto-run basic test after a delay
+        setTimeout(() => {
+            if (aiService.isWorkerReady()) {
+                log('Auto-running API key test...');
+                testApiKey();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
