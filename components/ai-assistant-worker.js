@@ -892,7 +892,7 @@ class AIAssistantWorker extends HTMLElement {
             
             console.log('AI Assistant - About to call aiService.tailorResume...'); // Debug log
             
-            const resumeData = this._currentResume.data;
+            const resumeData = this._currentResume.content || this._currentResume.data;
             const jobDesc = this._currentJob.description || this._currentJob.jobDetails;
             
             console.log('AI Assistant - Sending parameters:');
@@ -943,7 +943,7 @@ class AIAssistantWorker extends HTMLElement {
             const { provider, apiKey } = this.getApiConfig();
             
             const result = await aiService.generateCoverLetter({
-                resume: this._currentResume.data,
+                resume: this._currentResume.content || this._currentResume.data,
                 jobDescription: this._currentJob.description || this._currentJob.jobDetails,
                 jobInfo: {
                     title: this._currentJob.title,
@@ -979,7 +979,7 @@ class AIAssistantWorker extends HTMLElement {
             const { provider, apiKey } = this.getApiConfig();
             
             const result = await aiService.analyzeMatch({
-                resume: this._currentResume.data,
+                resume: this._currentResume.content || this._currentResume.data,
                 jobDescription: this._currentJob.description || this._currentJob.jobDetails,
                 provider,
                 apiKey,
