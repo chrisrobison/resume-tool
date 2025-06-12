@@ -22,6 +22,14 @@ class SettingsManager extends HTMLElement {
         this.setupEventListeners();
         this.subscribeToStore();
         this.loadSettings();
+        
+        // Set up file input listener after render
+        setTimeout(() => {
+            const fileInput = this.shadowRoot.getElementById('import-file');
+            if (fileInput) {
+                fileInput.addEventListener('change', (e) => this.handleFileImport(e));
+            }
+        }, 100);
     }
 
     subscribeToStore() {
@@ -307,6 +315,15 @@ class SettingsManager extends HTMLElement {
                 .btn-secondary {
                     background: #6c757d;
                     color: white;
+                }
+                
+                .btn-success {
+                    background: #28a745;
+                    color: white;
+                }
+                
+                .btn-success:hover:not(:disabled) {
+                    background: #1e7e34;
                 }
                 
                 .api-provider {
@@ -678,10 +695,32 @@ class SettingsManager extends HTMLElement {
                 
                 <div class="setting-group">
                     <h3>Data Management</h3>
-                    <p>Manage your local data and privacy settings.</p>
-                    <div>
-                        <button class="btn btn-secondary" id="export-data">Export All Data</button>
-                        <button class="btn btn-danger" id="clear-data">Clear All Data</button>
+                    <p>Backup and restore all your job hunt data including jobs, resumes, settings, and API keys.</p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                        <button class="btn btn-primary" id="export-data">
+                            <i class="fas fa-download"></i> Export All Data
+                        </button>
+                        <button class="btn btn-success" id="import-data">
+                            <i class="fas fa-upload"></i> Import Data
+                        </button>
+                        <button class="btn btn-danger" id="clear-data">
+                            <i class="fas fa-trash"></i> Clear All Data
+                        </button>
+                    </div>
+                    <input type="file" id="import-file" accept=".json" style="display: none;">
+                    <div id="import-status" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: #495057;">What gets exported/imported:</h4>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #6c757d;">
+                            <li>All job applications and their data</li>
+                            <li>All resumes and versions</li>
+                            <li>All cover letters</li>
+                            <li>AI chat history and logs</li>
+                            <li>Application settings and preferences</li>
+                            <li>API keys and configurations</li>
+                            <li>GitHub integration settings</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -732,6 +771,9 @@ class SettingsManager extends HTMLElement {
             case 'export-data':
                 this.exportData();
                 break;
+            case 'import-data':
+                this.triggerImport();
+                break;
             case 'clear-data':
                 this.clearData();
                 break;
@@ -744,7 +786,13 @@ class SettingsManager extends HTMLElement {
         if (target.dataset.provider && target.dataset.field) {
             this.updateProviderSetting(target.dataset.provider, target.dataset.field, target.value);
         }
+        
+        // Handle file import
+        if (target.id === 'import-file') {
+            this.handleFileImport(e);
+        }
     }
+
 
     handleToggle(toggle) {
         const isActive = toggle.classList.contains('active');
@@ -840,21 +888,186 @@ class SettingsManager extends HTMLElement {
     }
 
     exportData() {
-        const data = {
-            settings: this._settings,
-            jobs: getState('jobs'),
-            resumes: getState('resumes'),
-            logs: getState('logs'),
-            exportDate: new Date().toISOString()
-        };
+        try {
+            // Collect all localStorage data
+            const allData = {};
+            
+            // Get all localStorage keys and values
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                
+                try {
+                    // Try to parse as JSON, if it fails keep as string
+                    allData[key] = JSON.parse(value);
+                } catch (e) {
+                    allData[key] = value;
+                }
+            }
+            
+            // Also include store data
+            const storeData = getState();
+            if (storeData && typeof storeData === 'object') {
+                allData['_store_data'] = storeData;
+            }
+            
+            // Create export package with metadata
+            const exportPackage = {
+                metadata: {
+                    exportDate: new Date().toISOString(),
+                    appVersion: '1.0.0',
+                    dataVersion: '1.0',
+                    totalKeys: Object.keys(allData).length,
+                    exportedBy: 'Job Hunt Manager'
+                },
+                data: allData
+            };
+            
+            const blob = new Blob([JSON.stringify(exportPackage, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `job-hunt-manager-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            this.showImportStatus('Export completed successfully!', 'success');
+            
+        } catch (error) {
+            console.error('Export failed:', error);
+            this.showImportStatus('Export failed: ' + error.message, 'error');
+        }
+    }
+
+    triggerImport() {
+        const fileInput = this.shadowRoot.getElementById('import-file');
+        if (fileInput) {
+            fileInput.click();
+        }
+    }
+
+    async handleFileImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
         
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `job-hunt-data-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+        if (!file.name.endsWith('.json')) {
+            this.showImportStatus('Please select a valid JSON file.', 'error');
+            return;
+        }
+        
+        try {
+            const text = await file.text();
+            const importData = JSON.parse(text);
+            
+            this.showImportStatus('Processing import...', 'info');
+            
+            await this.processImport(importData);
+            
+        } catch (error) {
+            console.error('Import failed:', error);
+            this.showImportStatus('Import failed: ' + error.message, 'error');
+        } finally {
+            // Clear the file input
+            event.target.value = '';
+        }
+    }
+
+    async processImport(importData) {
+        // Check if this is our export format or older format
+        let dataToImport;
+        
+        if (importData.metadata && importData.data) {
+            // New format with metadata
+            dataToImport = importData.data;
+            console.log('Importing data exported on:', importData.metadata.exportDate);
+        } else {
+            // Legacy format or direct data
+            dataToImport = importData;
+        }
+        
+        if (!dataToImport || typeof dataToImport !== 'object') {
+            throw new Error('Invalid import data format');
+        }
+        
+        // Confirmation dialog
+        const confirmMessage = `This will replace ALL your current data with the imported data. This cannot be undone.\n\nFound ${Object.keys(dataToImport).length} data entries to import.\n\nDo you want to continue?`;
+        
+        if (!confirm(confirmMessage)) {
+            this.showImportStatus('Import cancelled by user.', 'info');
+            return;
+        }
+        
+        try {
+            // Clear existing localStorage
+            localStorage.clear();
+            
+            // Import all data
+            let importedCount = 0;
+            for (const [key, value] of Object.entries(dataToImport)) {
+                if (key === '_store_data') {
+                    // Handle store data specially
+                    if (value && typeof value === 'object') {
+                        for (const [storeKey, storeValue] of Object.entries(value)) {
+                            setState({ [storeKey]: storeValue }, 'data-import');
+                        }
+                    }
+                } else {
+                    // Regular localStorage data
+                    const valueToStore = typeof value === 'object' ? JSON.stringify(value) : value;
+                    localStorage.setItem(key, valueToStore);
+                    importedCount++;
+                }
+            }
+            
+            this.showImportStatus(`Import completed! ${importedCount} items imported. Reloading page...`, 'success');
+            
+            // Reload the page to refresh all components with new data
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Import processing failed:', error);
+            this.showImportStatus('Import failed during processing: ' + error.message, 'error');
+        }
+    }
+
+    showImportStatus(message, type = 'info') {
+        const statusDiv = this.shadowRoot.getElementById('import-status');
+        if (!statusDiv) return;
+        
+        statusDiv.style.display = 'block';
+        statusDiv.textContent = message;
+        
+        // Remove existing classes
+        statusDiv.classList.remove('success', 'error', 'info');
+        
+        // Apply styling based on type
+        switch (type) {
+            case 'success':
+                statusDiv.style.background = '#d4edda';
+                statusDiv.style.color = '#155724';
+                statusDiv.style.border = '1px solid #c3e6cb';
+                break;
+            case 'error':
+                statusDiv.style.background = '#f8d7da';
+                statusDiv.style.color = '#721c24';
+                statusDiv.style.border = '1px solid #f5c6cb';
+                break;
+            case 'info':
+            default:
+                statusDiv.style.background = '#d1ecf1';
+                statusDiv.style.color = '#0c5460';
+                statusDiv.style.border = '1px solid #bee5eb';
+                break;
+        }
+        
+        // Auto-hide success/info messages after a delay
+        if (type !== 'error') {
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
     }
 
     clearData() {

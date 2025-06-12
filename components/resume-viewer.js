@@ -5,10 +5,20 @@ class ResumeViewer extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         this._resumeData = null;
         this._template = 'basic';
+        this._hostedTheme = null;
+        this._jsonResumeThemes = [
+            'ace', 'actual', 'autumn', 'cora', 'cv', 'professional', 'elegant', 'full', 
+            'flat', 'el-santo', 'even', 'github', 'github2', 'jacrys', 'kards', 'kendall', 
+            'lucide', 'macchiato', 'mantra', 'mocha-responsive', 'minyma', 'msresume', 
+            'one', 'onepage', 'onepage-plus', 'onepageresume', 'orbit', 'paper', 'papirus', 
+            'paper-plus-plus', 'pumpkin', 'relaxed', 'rocketspacer', 'simple-red', 
+            'rickosborne', 'spartan', 'spartacus', 'standard', 'stackoverflow', 
+            'standard-resume', 'tan-responsive', 'techlead'
+        ];
     }
 
     static get observedAttributes() {
-        return ['template', 'data-url'];
+        return ['template', 'data-url', 'hosted-theme'];
     }
 
     connectedCallback() {
@@ -18,9 +28,14 @@ class ResumeViewer extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
         if (name === 'template') {
             this._template = newValue;
+            this._hostedTheme = null; // Clear hosted theme when using local template
             this.render();
         } else if (name === 'data-url') {
             this.loadDataFromUrl(newValue);
+        } else if (name === 'hosted-theme') {
+            this._hostedTheme = newValue;
+            this._template = null; // Clear local template when using hosted theme
+            this.render();
         }
     }
 
@@ -39,9 +54,148 @@ class ResumeViewer extends HTMLElement {
 
     setTemplate(templateName) {
         console.log('ResumeViewer.setTemplate called with:', templateName);
-        this._template = templateName;
-        this.setAttribute('template', templateName);
+        
+        // Check if this is a hosted JSON Resume theme
+        if (this._jsonResumeThemes.includes(templateName)) {
+            this._hostedTheme = templateName;
+            this._template = null;
+            this.setAttribute('hosted-theme', templateName);
+            this.removeAttribute('template');
+        } else {
+            this._template = templateName;
+            this._hostedTheme = null;
+            this.setAttribute('template', templateName);
+            this.removeAttribute('hosted-theme');
+        }
+        
         this.render();
+    }
+
+    getAvailableThemes() {
+        return {
+            local: ['basic', 'modern', 'compact', 'elegant'],
+            hosted: this._jsonResumeThemes
+        };
+    }
+
+    openInNewWindow() {
+        if (!this._resumeData) {
+            console.warn('No resume data available to open in new window');
+            return;
+        }
+
+        // Handle hosted themes differently
+        if (this._hostedTheme) {
+            const githubUsername = localStorage.getItem('github_username');
+            if (githubUsername) {
+                // Open the registry URL directly
+                const registryUrl = `https://registry.jsonresume.org/${githubUsername}?theme=${this._hostedTheme}`;
+                window.open(registryUrl, '_blank', 'width=800,height=1000,scrollbars=yes,resizable=yes');
+                return;
+            } else {
+                alert('GitHub username not configured for hosted themes. Please set up GitHub integration first.');
+                return;
+            }
+        }
+
+        // Handle local templates
+        const templateName = this._template || 'basic';
+        const templateHtml = this.getTemplate(templateName);
+        const processedHtml = this.processTemplate(templateHtml, this._resumeData);
+        const styles = this.getStyles(templateName);
+        
+        const fullHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${this._resumeData.basics?.name || 'Resume'}</title>
+    <style>
+        ${styles}
+        
+        /* Additional styles for standalone window */
+        body {
+            margin: 0;
+            padding: 20px;
+            background: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .print-controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .print-controls button {
+            margin: 0 5px;
+            padding: 8px 16px;
+            background: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .print-controls button:hover {
+            background: #3498db;
+        }
+        
+        @media print {
+            .print-controls {
+                display: none;
+            }
+            
+            body {
+                padding: 0;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-controls">
+        <button onclick="window.print()">Print</button>
+        <button onclick="window.close()">Close</button>
+    </div>
+    
+    ${processedHtml}
+    
+    <script>
+        // Auto-focus for keyboard shortcuts
+        window.focus();
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'p') {
+                    e.preventDefault();
+                    window.print();
+                } else if (e.key === 'w') {
+                    e.preventDefault();
+                    window.close();
+                }
+            }
+        });
+    </script>
+</body>
+</html>`;
+
+        const newWindow = window.open('', '_blank', 'width=800,height=1000,scrollbars=yes,resizable=yes');
+        if (newWindow) {
+            newWindow.document.write(fullHtml);
+            newWindow.document.close();
+        } else {
+            console.error('Failed to open new window - popup blocker may be active');
+            alert('Failed to open new window. Please check your popup blocker settings.');
+        }
     }
 
     async loadDataFromUrl(url) {
@@ -55,12 +209,20 @@ class ResumeViewer extends HTMLElement {
     }
 
     render() {
-        console.log('ResumeViewer.render called with template:', this._template);
+        console.log('ResumeViewer.render called with template:', this._template, 'hosted theme:', this._hostedTheme);
+        
         if (!this._resumeData) {
             this.shadowRoot.innerHTML = '<p style="padding: 20px; text-align: center; color: #999;">No resume data to display</p>';
             return;
         }
 
+        // Handle hosted JSON Resume themes
+        if (this._hostedTheme) {
+            this.renderHostedTheme();
+            return;
+        }
+
+        // Handle local templates
         const templateHtml = this.getTemplate(this._template);
         const processedHtml = this.processTemplate(templateHtml, this._resumeData);
         
@@ -69,6 +231,421 @@ class ResumeViewer extends HTMLElement {
             ${processedHtml}
         `;
         console.log('ResumeViewer.render completed for template:', this._template);
+    }
+
+    async renderHostedTheme() {
+        console.log('Rendering hosted theme:', this._hostedTheme);
+        
+        // Show loading state
+        this.shadowRoot.innerHTML = `
+            <div style="padding: 40px; text-align: center;">
+                <div style="margin-bottom: 20px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #3498db;"></i>
+                </div>
+                <div>Loading ${this._hostedTheme} theme...</div>
+                <div style="font-size: 12px; color: #666; margin-top: 10px;">
+                    Fetching from JSON Resume registry
+                </div>
+            </div>
+        `;
+
+        try {
+            // Check if user has provided their GitHub username for gist access
+            const githubUsername = localStorage.getItem('github_username');
+            const githubToken = localStorage.getItem('github_token');
+            
+            if (githubUsername && githubToken) {
+                // Try to update the user's resume.json gist and use the registry
+                await this.renderWithGistUpdate(githubUsername, githubToken);
+            } else {
+                // Show fallback with GitHub setup instructions
+                this.renderGithubSetupInstructions();
+            }
+            
+        } catch (error) {
+            console.error('Error loading hosted theme:', error);
+            this.renderError(error.message);
+        }
+    }
+
+    async renderWithGistUpdate(username, token) {
+        try {
+            // First, try to find existing resume.json gist
+            const gists = await this.fetchUserGists(username, token);
+            let resumeGist = gists.find(gist => 
+                gist.files && gist.files['resume.json']
+            );
+
+            // If no resume.json gist exists, create one
+            if (!resumeGist) {
+                resumeGist = await this.createResumeGist(token);
+            }
+
+            // Update the gist with current resume data
+            await this.updateResumeGist(resumeGist.id, token);
+
+            // Now render the iframe with the hosted theme
+            this.renderHostedIframe(username);
+
+        } catch (error) {
+            console.error('Error updating gist:', error);
+            this.renderGithubSetupInstructions(error.message);
+        }
+    }
+
+    async fetchUserGists(username, token) {
+        const response = await fetch(`https://api.github.com/users/${username}/gists`, {
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch gists: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json();
+    }
+
+    async createResumeGist(token) {
+        const response = await fetch('https://api.github.com/gists', {
+            method: 'POST',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                description: 'My Resume - JSON Resume format',
+                public: true,
+                files: {
+                    'resume.json': {
+                        content: JSON.stringify(this._resumeData, null, 2)
+                    }
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to create gist: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json();
+    }
+
+    async updateResumeGist(gistId, token) {
+        const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                files: {
+                    'resume.json': {
+                        content: JSON.stringify(this._resumeData, null, 2)
+                    }
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to update gist: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json();
+    }
+
+    renderHostedIframe(username) {
+        const registryUrl = `https://registry.jsonresume.org/${username}?theme=${this._hostedTheme}`;
+        
+        this.shadowRoot.innerHTML = `
+            <style>
+                :host {
+                    display: block;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                }
+                .hosted-container {
+                    position: relative;
+                    background: white;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                .hosted-header {
+                    background: #f8f9fa;
+                    padding: 15px 20px;
+                    border-bottom: 1px solid #dee2e6;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+                .theme-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .theme-badge {
+                    background: #007bff;
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 12px;
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+                .hosted-iframe {
+                    width: 100%;
+                    height: 800px;
+                    border: none;
+                    background: white;
+                }
+                .controls {
+                    display: flex;
+                    gap: 10px;
+                }
+                .btn {
+                    padding: 6px 12px;
+                    border: 1px solid #dee2e6;
+                    background: white;
+                    color: #495057;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    text-decoration: none;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                }
+                .btn:hover {
+                    background: #e9ecef;
+                }
+                .btn-primary {
+                    background: #007bff;
+                    color: white;
+                    border-color: #007bff;
+                }
+                .btn-primary:hover {
+                    background: #0056b3;
+                }
+            </style>
+            <div class="hosted-container">
+                <div class="hosted-header">
+                    <div class="theme-info">
+                        <i class="fas fa-palette" style="color: #6f42c1;"></i>
+                        <span>JSON Resume Theme</span>
+                        <span class="theme-badge">${this._hostedTheme}</span>
+                    </div>
+                    <div class="controls">
+                        <button class="btn" onclick="this.getRootNode().host.openInNewWindow()">
+                            <i class="fas fa-external-link-alt"></i> Open
+                        </button>
+                        <a href="${registryUrl}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-globe"></i> View on Registry
+                        </a>
+                    </div>
+                </div>
+                <iframe class="hosted-iframe" src="${registryUrl}" 
+                        title="Resume rendered with ${this._hostedTheme} theme">
+                </iframe>
+            </div>
+        `;
+    }
+
+    renderGithubSetupInstructions(errorMessage = null) {
+        const resumeJson = JSON.stringify(this._resumeData, null, 2);
+        
+        this.shadowRoot.innerHTML = `
+            <style>
+                :host {
+                    display: block;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                }
+                .setup-container {
+                    padding: 20px;
+                    background: white;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                .setup-header {
+                    background: #e3f2fd;
+                    border: 1px solid #bbdefb;
+                    border-radius: 5px;
+                    padding: 15px;
+                    margin-bottom: 20px;
+                }
+                .error-message {
+                    background: #ffebee;
+                    border: 1px solid #ffcdd2;
+                    border-radius: 5px;
+                    padding: 15px;
+                    margin-bottom: 20px;
+                    color: #c62828;
+                }
+                .form-group {
+                    margin-bottom: 15px;
+                }
+                .form-group label {
+                    display: block;
+                    margin-bottom: 5px;
+                    font-weight: 500;
+                    color: #333;
+                }
+                .form-group input {
+                    width: 100%;
+                    padding: 10px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    box-sizing: border-box;
+                }
+                .form-group small {
+                    color: #666;
+                    font-size: 12px;
+                    margin-top: 5px;
+                    display: block;
+                }
+                .btn {
+                    padding: 10px 15px;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    margin-right: 10px;
+                }
+                .btn-primary {
+                    background: #007bff;
+                    color: white;
+                }
+                .btn-secondary {
+                    background: #6c757d;
+                    color: white;
+                }
+                .preview-link {
+                    background: #28a745;
+                    color: white;
+                    text-decoration: none;
+                    padding: 10px 15px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+            </style>
+            <div class="setup-container">
+                ${errorMessage ? `
+                    <div class="error-message">
+                        <strong>Error:</strong> ${errorMessage}
+                    </div>
+                ` : ''}
+                
+                <div class="setup-header">
+                    <h3 style="margin: 0 0 10px 0; color: #1976d2;">
+                        <i class="fab fa-github"></i> GitHub Setup Required
+                    </h3>
+                    <p style="margin: 0; color: #1565c0; font-size: 14px;">
+                        To use hosted JSON Resume themes, we need to save your resume to a GitHub gist named 'resume.json'
+                    </p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="github-username">GitHub Username</label>
+                    <input type="text" id="github-username" placeholder="your-username" 
+                           value="${localStorage.getItem('github_username') || ''}">
+                    <small>Your GitHub username (case-sensitive)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="github-token">GitHub Personal Access Token</label>
+                    <input type="password" id="github-token" placeholder="ghp_..." 
+                           value="${localStorage.getItem('github_token') || ''}">
+                    <small>
+                        Create a token at <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings</a> 
+                        with 'gist' scope
+                    </small>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <button class="btn btn-primary" onclick="this.getRootNode().host.saveGithubCredentials()">
+                        <i class="fas fa-save"></i> Save & Render Theme
+                    </button>
+                    <button class="btn btn-secondary" onclick="this.getRootNode().host.showManualInstructions()">
+                        Manual Setup
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <a href="https://registry.jsonresume.org/thomasdavis?theme=${this._hostedTheme}" 
+                       target="_blank" class="preview-link">
+                        <i class="fas fa-eye"></i> Preview ${this._hostedTheme} Theme
+                    </a>
+                </div>
+                
+                <div id="manual-instructions" style="display: none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px;">
+                    <h4>Manual Setup Instructions:</h4>
+                    <ol>
+                        <li>Go to <a href="https://gist.github.com" target="_blank">gist.github.com</a></li>
+                        <li>Create a new gist named <code>resume.json</code></li>
+                        <li>Copy and paste your resume JSON below:</li>
+                    </ol>
+                    <textarea readonly style="width: 100%; height: 200px; font-family: monospace; font-size: 12px; border: 1px solid #ced4da; border-radius: 4px; padding: 10px; margin: 10px 0;">${resumeJson}</textarea>
+                    <p>
+                        <button class="btn btn-secondary" onclick="this.getRootNode().host.copyResumeJson()">
+                            <i class="fas fa-copy"></i> Copy Resume JSON
+                        </button>
+                    </p>
+                    <p>4. After saving the gist, visit: <code>https://registry.jsonresume.org/YOUR_USERNAME?theme=${this._hostedTheme}</code></p>
+                </div>
+            </div>
+        `;
+    }
+
+    renderError(message) {
+        this.shadowRoot.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: #dc3545;">
+                <div style="margin-bottom: 10px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 24px;"></i>
+                </div>
+                <div>Failed to load hosted theme: ${this._hostedTheme}</div>
+                <div style="font-size: 12px; margin-top: 10px;">${message}</div>
+            </div>
+        `;
+    }
+
+    // Methods for GitHub integration
+    saveGithubCredentials() {
+        const username = this.shadowRoot.getElementById('github-username').value.trim();
+        const token = this.shadowRoot.getElementById('github-token').value.trim();
+        
+        if (!username || !token) {
+            alert('Please enter both username and token');
+            return;
+        }
+        
+        localStorage.setItem('github_username', username);
+        localStorage.setItem('github_token', token);
+        
+        // Re-render with the new credentials
+        this.renderHostedTheme();
+    }
+
+    showManualInstructions() {
+        const instructions = this.shadowRoot.getElementById('manual-instructions');
+        instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+    }
+
+    copyResumeJson() {
+        const textarea = this.shadowRoot.querySelector('textarea');
+        textarea.select();
+        document.execCommand('copy');
+        
+        // Show feedback
+        const button = this.shadowRoot.querySelector('button[onclick*="copyResumeJson"]');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+        }, 2000);
     }
 
     processTemplate(template, data) {
@@ -113,6 +690,22 @@ class ResumeViewer extends HTMLElement {
         } else {
             // Hide the entire work section if no work experience
             html = this.hideSectionIfEmpty(html, 'work');
+        }
+        
+        // Process volunteer experience
+        if (data.volunteer && data.volunteer.length > 0) {
+            const volunteerHtml = data.volunteer.map(vol => `
+                <div class="volunteer-item">
+                    <h3>${vol.position} at ${vol.organization}</h3>
+                    <div class="date">${this.formatDate(vol.startDate)} - ${vol.endDate ? this.formatDate(vol.endDate) : 'Present'}</div>
+                    <p>${vol.summary || ''}</p>
+                    ${vol.highlights ? `<ul>${vol.highlights.map(h => `<li>${h}</li>`).join('')}</ul>` : ''}
+                </div>
+            `).join('');
+            html = html.replace('{{volunteer}}', volunteerHtml);
+        } else {
+            // Hide the entire volunteer section if no volunteer experience
+            html = this.hideSectionIfEmpty(html, 'volunteer');
         }
         
         // Process education
@@ -198,6 +791,11 @@ class ResumeViewer extends HTMLElement {
                         {{work}}
                     </section>
                     
+                    <section class="volunteer">
+                        <h2>Volunteer Work</h2>
+                        {{volunteer}}
+                    </section>
+                    
                     <section class="education">
                         <h2>Education</h2>
                         {{education}}
@@ -243,6 +841,11 @@ class ResumeViewer extends HTMLElement {
                             {{work}}
                         </section>
                         
+                        <section class="volunteer">
+                            <h2>Volunteer Work</h2>
+                            {{volunteer}}
+                        </section>
+                        
                         <section class="education">
                             <h2>Education</h2>
                             {{education}}
@@ -271,6 +874,11 @@ class ResumeViewer extends HTMLElement {
                             <section class="work">
                                 <h2>Experience</h2>
                                 {{work}}
+                            </section>
+                            
+                            <section class="volunteer">
+                                <h2>Volunteer Work</h2>
+                                {{volunteer}}
                             </section>
                         </div>
                         
@@ -310,6 +918,11 @@ class ResumeViewer extends HTMLElement {
                     <section class="work elegant-section">
                         <h2>Professional Experience</h2>
                         {{work}}
+                    </section>
+                    
+                    <section class="volunteer elegant-section">
+                        <h2>Volunteer Experience</h2>
+                        {{volunteer}}
                     </section>
                     
                     <section class="education elegant-section">

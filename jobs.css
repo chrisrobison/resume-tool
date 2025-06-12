@@ -935,3 +935,24 @@ body {
 #resume-editor-details {
     min-height: 500px;
 }
+
+/* Open in New Window Button */
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: 1px solid #6c757d;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    border-color: #545b62;
+}
+
+.resume-viewer-controls button {
+    vertical-align: middle;
+}

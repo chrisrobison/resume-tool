@@ -423,12 +423,44 @@
         </div>
     </div>
 
+    <!-- Export Resume Modal -->
+    <div class="modal-backdrop hidden" id="export-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Export Resume JSON</h3>
+                <button class="modal-close" id="export-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Resume JSON Data</label>
+                    <textarea class="form-input form-textarea" id="export-json-textarea" rows="20" readonly style="font-family: monospace; font-size: 12px; background: #f8f9fa;"></textarea>
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                        This JSON follows the <a href="https://jsonresume.org/schema/" target="_blank">JSON Resume Schema</a> standard.
+                    </div>
+                </div>
+                <div class="export-stats" id="export-stats" style="background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 10px; font-size: 14px;">
+                    <!-- Stats will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" id="export-cancel">Cancel</button>
+                <button type="button" class="btn btn-secondary" id="export-copy">
+                    <i class="fas fa-copy"></i> Copy to Clipboard
+                </button>
+                <button type="button" class="btn btn-primary" id="export-download">
+                    <i class="fas fa-download"></i> Download JSON File
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
     <!-- Resume Editor Component -->
     <script type="module" src="./components/resume-editor.js"></script>
     <script type="module" src="./components/resume-viewer.js"></script>
+    <script type="module" src="./components/resume-analytics.js"></script>
     <script type="module" src="./components/global-store.js"></script>
     <script type="module" src="./components/settings-manager.js"></script>
     <script type="module" src="./components/ai-assistant-worker.js"></script>
@@ -644,6 +676,12 @@
             document.getElementById('settings-modal-close').addEventListener('click', closeSettings);
             document.getElementById('settings-cancel').addEventListener('click', closeSettings);
             document.getElementById('settings-save').addEventListener('click', saveSettings);
+
+            // Export Modal
+            document.getElementById('export-modal-close').addEventListener('click', closeExportModal);
+            document.getElementById('export-cancel').addEventListener('click', closeExportModal);
+            document.getElementById('export-copy').addEventListener('click', copyResumeToClipboard);
+            document.getElementById('export-download').addEventListener('click', downloadResumeFile);
 
             // AI Modal
             document.getElementById('ai-modal-close').addEventListener('click', closeAIModal);
@@ -920,23 +958,76 @@
                             <div class="resume-tabs">
                                 <button type="button" class="tab-btn active" data-tab="preview">Preview</button>
                                 <button type="button" class="tab-btn" data-tab="edit">Edit</button>
+                                <button type="button" class="tab-btn" data-tab="analytics">Analytics</button>
                             </div>
                             <div class="tab-content">
                                 <div class="tab-panel active" id="preview-tab">
                                     <div class="resume-viewer-controls">
                                         <label>Template: 
                                             <select id="template-selector">
-                                                <option value="basic">Basic</option>
-                                                <option value="modern">Modern</option>
-                                                <option value="compact">Compact</option>
-                                                <option value="elegant">Elegant</option>
+                                                <optgroup label="Local Templates">
+                                                    <option value="basic">Basic</option>
+                                                    <option value="modern">Modern</option>
+                                                    <option value="compact">Compact</option>
+                                                    <option value="elegant">Elegant</option>
+                                                </optgroup>
+                                                <optgroup label="JSON Resume Hosted Themes">
+                                                    <option value="ace">Ace</option>
+                                                    <option value="actual">Actual</option>
+                                                    <option value="autumn">Autumn</option>
+                                                    <option value="cora">Cora</option>
+                                                    <option value="cv">CV</option>
+                                                    <option value="professional">Professional</option>
+                                                    <option value="elegant">Elegant (Hosted)</option>
+                                                    <option value="full">Full</option>
+                                                    <option value="flat">Flat</option>
+                                                    <option value="el-santo">El Santo</option>
+                                                    <option value="even">Even</option>
+                                                    <option value="github">GitHub</option>
+                                                    <option value="github2">GitHub 2</option>
+                                                    <option value="jacrys">Jacrys</option>
+                                                    <option value="kards">Kards</option>
+                                                    <option value="kendall">Kendall</option>
+                                                    <option value="lucide">Lucide</option>
+                                                    <option value="macchiato">Macchiato</option>
+                                                    <option value="mantra">Mantra</option>
+                                                    <option value="mocha-responsive">Mocha Responsive</option>
+                                                    <option value="minyma">Minyma</option>
+                                                    <option value="msresume">MS Resume</option>
+                                                    <option value="one">One</option>
+                                                    <option value="onepage">One Page</option>
+                                                    <option value="onepage-plus">One Page Plus</option>
+                                                    <option value="onepageresume">One Page Resume</option>
+                                                    <option value="orbit">Orbit</option>
+                                                    <option value="paper">Paper</option>
+                                                    <option value="papirus">Papirus</option>
+                                                    <option value="paper-plus-plus">Paper Plus Plus</option>
+                                                    <option value="pumpkin">Pumpkin</option>
+                                                    <option value="relaxed">Relaxed</option>
+                                                    <option value="rocketspacer">Rocket Spacer</option>
+                                                    <option value="simple-red">Simple Red</option>
+                                                    <option value="rickosborne">Rick Osborne</option>
+                                                    <option value="spartan">Spartan</option>
+                                                    <option value="spartacus">Spartacus</option>
+                                                    <option value="standard">Standard</option>
+                                                    <option value="stackoverflow">Stack Overflow</option>
+                                                    <option value="standard-resume">Standard Resume</option>
+                                                    <option value="tan-responsive">Tan Responsive</option>
+                                                    <option value="techlead">Tech Lead</option>
+                                                </optgroup>
                                             </select>
                                         </label>
+                                        <button type="button" id="open-in-window-btn" class="btn btn-secondary" style="margin-left: 15px;">
+                                            <i class="fas fa-external-link-alt"></i> Open in New Window
+                                        </button>
                                     </div>
                                     <resume-viewer id="resume-viewer-details" template="basic"></resume-viewer>
                                 </div>
                                 <div class="tab-panel" id="edit-tab">
                                     <resume-editor id="resume-editor-details"></resume-editor>
+                                </div>
+                                <div class="tab-panel" id="analytics-tab">
+                                    <resume-analytics id="resume-analytics-details"></resume-analytics>
                                 </div>
                             </div>
                         </div>
@@ -971,6 +1062,9 @@
                             <i class="fas fa-edit"></i> Edit
                         </button>
                         ${currentSection === 'resumes' ? `
+                            <button type="button" class="btn btn-info" onclick="exportCurrentResume()" style="background: #17a2b8;">
+                                <i class="fas fa-file-export"></i> Export JSON
+                            </button>
                             <button type="button" class="btn btn-success" onclick="generateResumePDF()" style="background: #e67e22;">
                                 <i class="fas fa-file-pdf"></i> Generate PDF
                             </button>
@@ -1001,11 +1095,12 @@
             html += '</div>';
             content.innerHTML = html;
             
-            // Initialize resume editor and viewer if present
+            // Initialize resume editor, viewer, and analytics if present
             if (currentSection === 'resumes' && item.content) {
                 setTimeout(() => {
                     const resumeEditor = document.querySelector('#resume-editor-details');
                     const resumeViewer = document.querySelector('#resume-viewer-details');
+                    const resumeAnalytics = document.querySelector('#resume-analytics-details');
                     const templateSelector = document.querySelector('#template-selector');
                     
                     try {
@@ -1017,6 +1112,16 @@
                         
                         if (resumeViewer) {
                             resumeViewer.setResumeData(resumeData);
+                        }
+                        
+                        if (resumeAnalytics) {
+                            resumeAnalytics.resumeData = resumeData;
+                            
+                            // If we have a selected job, pass its description for keyword analysis
+                            const currentJobFromStore = getState('currentJob');
+                            if (currentJobFromStore && currentJobFromStore.jobDetails) {
+                                resumeAnalytics.jobDescription = currentJobFromStore.jobDetails;
+                            }
                         }
                         
                         // Handle template selector
@@ -1033,6 +1138,14 @@
                             };
                             
                             templateSelector.addEventListener('change', window.handleTemplateChangeDetails);
+                        }
+                        
+                        // Handle open in new window button
+                        const openInWindowBtn = document.querySelector('#open-in-window-btn');
+                        if (openInWindowBtn && resumeViewer) {
+                            openInWindowBtn.addEventListener('click', () => {
+                                resumeViewer.openInNewWindow();
+                            });
                         }
                         
                         // Handle tab switching
@@ -1090,6 +1203,16 @@
             openFormModal('Edit ' + currentSection.slice(0, -1), currentItem, false);
         };
 
+        // Export current resume
+        window.exportCurrentResume = function() {
+            if (!currentItem || currentSection !== 'resumes') {
+                alert('Please select a resume first.');
+                return;
+            }
+            
+            openExportModal(currentItem);
+        };
+
         // Delete current item
         window.deleteCurrentItem = function() {
             if (!currentItem) return;
@@ -1144,23 +1267,76 @@
                                 <div class="resume-tabs">
                                     <button type="button" class="tab-btn active" data-tab="preview">Preview</button>
                                     <button type="button" class="tab-btn" data-tab="edit">Edit</button>
+                                    <button type="button" class="tab-btn" data-tab="analytics">Analytics</button>
                                 </div>
                                 <div class="tab-content">
                                     <div class="tab-panel active" id="preview-tab-modal">
                                         <div class="resume-viewer-controls">
                                             <label>Template: 
                                                 <select id="template-selector-modal">
-                                                    <option value="basic">Basic</option>
-                                                    <option value="modern">Modern</option>
-                                                    <option value="compact">Compact</option>
-                                                    <option value="elegant">Elegant</option>
+                                                    <optgroup label="Local Templates">
+                                                        <option value="basic">Basic</option>
+                                                        <option value="modern">Modern</option>
+                                                        <option value="compact">Compact</option>
+                                                        <option value="elegant">Elegant</option>
+                                                    </optgroup>
+                                                    <optgroup label="JSON Resume Hosted Themes">
+                                                        <option value="ace">Ace</option>
+                                                        <option value="actual">Actual</option>
+                                                        <option value="autumn">Autumn</option>
+                                                        <option value="cora">Cora</option>
+                                                        <option value="cv">CV</option>
+                                                        <option value="professional">Professional</option>
+                                                        <option value="elegant">Elegant (Hosted)</option>
+                                                        <option value="full">Full</option>
+                                                        <option value="flat">Flat</option>
+                                                        <option value="el-santo">El Santo</option>
+                                                        <option value="even">Even</option>
+                                                        <option value="github">GitHub</option>
+                                                        <option value="github2">GitHub 2</option>
+                                                        <option value="jacrys">Jacrys</option>
+                                                        <option value="kards">Kards</option>
+                                                        <option value="kendall">Kendall</option>
+                                                        <option value="lucide">Lucide</option>
+                                                        <option value="macchiato">Macchiato</option>
+                                                        <option value="mantra">Mantra</option>
+                                                        <option value="mocha-responsive">Mocha Responsive</option>
+                                                        <option value="minyma">Minyma</option>
+                                                        <option value="msresume">MS Resume</option>
+                                                        <option value="one">One</option>
+                                                        <option value="onepage">One Page</option>
+                                                        <option value="onepage-plus">One Page Plus</option>
+                                                        <option value="onepageresume">One Page Resume</option>
+                                                        <option value="orbit">Orbit</option>
+                                                        <option value="paper">Paper</option>
+                                                        <option value="papirus">Papirus</option>
+                                                        <option value="paper-plus-plus">Paper Plus Plus</option>
+                                                        <option value="pumpkin">Pumpkin</option>
+                                                        <option value="relaxed">Relaxed</option>
+                                                        <option value="rocketspacer">Rocket Spacer</option>
+                                                        <option value="simple-red">Simple Red</option>
+                                                        <option value="rickosborne">Rick Osborne</option>
+                                                        <option value="spartan">Spartan</option>
+                                                        <option value="spartacus">Spartacus</option>
+                                                        <option value="standard">Standard</option>
+                                                        <option value="stackoverflow">Stack Overflow</option>
+                                                        <option value="standard-resume">Standard Resume</option>
+                                                        <option value="tan-responsive">Tan Responsive</option>
+                                                        <option value="techlead">Tech Lead</option>
+                                                    </optgroup>
                                                 </select>
                                             </label>
+                                            <button type="button" id="open-in-window-modal-btn" class="btn btn-secondary" style="margin-left: 15px;">
+                                                <i class="fas fa-external-link-alt"></i> Open in New Window
+                                            </button>
                                         </div>
                                         <resume-viewer id="resume-viewer-modal" template="basic"></resume-viewer>
                                     </div>
                                     <div class="tab-panel" id="edit-tab-modal">
                                         <resume-editor id="resume-editor-modal"></resume-editor>
+                                    </div>
+                                    <div class="tab-panel" id="analytics-tab-modal">
+                                        <resume-analytics id="resume-analytics-modal"></resume-analytics>
                                     </div>
                                 </div>
                             </div>
@@ -1191,11 +1367,12 @@
             
             document.getElementById('form-modal').classList.remove('hidden');
             
-            // Initialize resume editor and viewer if present
+            // Initialize resume editor, viewer, and analytics if present
             if (currentSection === 'resumes' && item.content) {
                 setTimeout(() => {
                     const resumeEditor = document.querySelector('#resume-editor-modal');
                     const resumeViewer = document.querySelector('#resume-viewer-modal');
+                    const resumeAnalytics = document.querySelector('#resume-analytics-modal');
                     const templateSelector = document.querySelector('#template-selector-modal');
                     
                     try {
@@ -1207,6 +1384,16 @@
                         
                         if (resumeViewer) {
                             resumeViewer.setResumeData(resumeData);
+                        }
+                        
+                        if (resumeAnalytics) {
+                            resumeAnalytics.resumeData = resumeData;
+                            
+                            // If we have a selected job, pass its description for keyword analysis
+                            const currentJobFromStore = getState('currentJob');
+                            if (currentJobFromStore && currentJobFromStore.jobDetails) {
+                                resumeAnalytics.jobDescription = currentJobFromStore.jobDetails;
+                            }
                         }
                         
                         // Handle template selector
@@ -1223,6 +1410,14 @@
                             };
                             
                             templateSelector.addEventListener('change', window.handleTemplateChangeModal);
+                        }
+                        
+                        // Handle open in new window button for modal
+                        const openInWindowModalBtn = document.querySelector('#open-in-window-modal-btn');
+                        if (openInWindowModalBtn && resumeViewer) {
+                            openInWindowModalBtn.addEventListener('click', () => {
+                                resumeViewer.openInNewWindow();
+                            });
                         }
                         
                         // Handle tab switching in modal
@@ -1259,6 +1454,162 @@
             document.getElementById('form-modal').classList.add('hidden');
         }
 
+        // Export Modal Functions
+        function openExportModal(resume) {
+            const exportModal = document.getElementById('export-modal');
+            const exportTextarea = document.getElementById('export-json-textarea');
+            const exportStats = document.getElementById('export-stats');
+            
+            try {
+                // Get the resume content
+                let resumeContent = resume.content;
+                if (typeof resumeContent === 'string') {
+                    resumeContent = JSON.parse(resumeContent);
+                }
+                
+                // Add metadata if not present
+                if (!resumeContent.meta) {
+                    resumeContent.meta = {};
+                }
+                resumeContent.meta.lastModified = resume.dateModified || new Date().toISOString();
+                resumeContent.meta.version = "v1.0.0";
+                
+                // Format JSON with proper indentation
+                const formattedJson = JSON.stringify(resumeContent, null, 2);
+                exportTextarea.value = formattedJson;
+                
+                // Calculate stats
+                const stats = calculateResumeStats(resumeContent);
+                exportStats.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                        <div><strong>Resume Name:</strong> ${escapeHtml(resume.name || 'Untitled')}</div>
+                        <div><strong>File Size:</strong> ${(formattedJson.length / 1024).toFixed(1)} KB</div>
+                        <div><strong>Work Experience:</strong> ${stats.workCount} positions</div>
+                        <div><strong>Education:</strong> ${stats.educationCount} entries</div>
+                        <div><strong>Skills:</strong> ${stats.skillsCount} categories</div>
+                        <div><strong>Projects:</strong> ${stats.projectsCount} projects</div>
+                    </div>
+                `;
+                
+                // Store current resume for download
+                window.currentExportResume = {
+                    name: resume.name || 'resume',
+                    content: formattedJson
+                };
+                
+                exportModal.classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error preparing export:', error);
+                alert('Error preparing resume for export. Please check the resume data.');
+            }
+        }
+
+        function closeExportModal() {
+            document.getElementById('export-modal').classList.add('hidden');
+            window.currentExportResume = null;
+        }
+
+        function calculateResumeStats(resumeData) {
+            return {
+                workCount: (resumeData.work || []).length,
+                educationCount: (resumeData.education || []).length,
+                skillsCount: (resumeData.skills || []).length,
+                projectsCount: (resumeData.projects || []).length
+            };
+        }
+
+        function copyResumeToClipboard() {
+            const exportTextarea = document.getElementById('export-json-textarea');
+            const copyBtn = document.getElementById('export-copy');
+            
+            try {
+                exportTextarea.select();
+                exportTextarea.setSelectionRange(0, 99999); // For mobile
+                
+                // Try modern clipboard API first
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(exportTextarea.value).then(() => {
+                        showCopyFeedback(copyBtn, 'success');
+                    }).catch(() => {
+                        // Fallback to execCommand
+                        const success = document.execCommand('copy');
+                        showCopyFeedback(copyBtn, success ? 'success' : 'error');
+                    });
+                } else {
+                    // Fallback for older browsers
+                    const success = document.execCommand('copy');
+                    showCopyFeedback(copyBtn, success ? 'success' : 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error copying to clipboard:', error);
+                showCopyFeedback(copyBtn, 'error');
+            }
+        }
+
+        function showCopyFeedback(button, status) {
+            const originalText = button.innerHTML;
+            const originalStyle = button.style.background;
+            
+            if (status === 'success') {
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.style.background = '#28a745';
+            } else {
+                button.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed';
+                button.style.background = '#dc3545';
+            }
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.background = originalStyle;
+            }, 2000);
+        }
+
+        function downloadResumeFile() {
+            if (!window.currentExportResume) {
+                alert('No resume data available for download.');
+                return;
+            }
+            
+            try {
+                const { name, content } = window.currentExportResume;
+                
+                // Create filename with current date
+                const date = new Date().toISOString().split('T')[0];
+                const filename = `${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${date}.json`;
+                
+                // Create blob and download
+                const blob = new Blob([content], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                // Show success message
+                const downloadBtn = document.getElementById('export-download');
+                const originalText = downloadBtn.innerHTML;
+                downloadBtn.innerHTML = '<i class="fas fa-check"></i> Downloaded!';
+                downloadBtn.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    downloadBtn.innerHTML = originalText;
+                    downloadBtn.style.background = '#007bff';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error downloading file:', error);
+                alert('Error downloading file. Please try again.');
+            }
+        }
 
         // Settings functions
         function openSettings() {
