@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AI Assistant Buttons</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .log { background: #f8f9fa; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d1edff; }
+        .btn { padding: 8px 16px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+        .btn:disabled { background: #6c757d; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <h1>AI Assistant Button Test</h1>
+    
+    <div class="test-section">
+        <h3>Test Data Setup</h3>
+        <button class="btn" onclick="setupTestData()">Setup Test Data</button>
+        <button class="btn" onclick="clearTestData()">Clear Test Data</button>
+        <button class="btn" onclick="checkCurrentState()">Check Current State</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>AI Assistant Component</h3>
+        <ai-assistant-worker></ai-assistant-worker>
+    </div>
+    
+    <div id="logs"></div>
+
+    <script type="module">
+        import './components/global-store.js';
+        import './components/ai-assistant-worker.js';
+        import { getState, setState } from './js/store.js';
+        
+        window.getState = getState;
+        window.setState = setState;
+        
+        function log(message, type = 'log') {
+            const logs = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            logs.appendChild(div);
+            console.log(message);
+        }
+        
+        window.log = log;
+        
+        window.setupTestData = function() {
+            log('Setting up test data...');
+            
+            // Set API key
+            localStorage.setItem('api_key', 'test-api-key-12345');
+            localStorage.setItem('api_type', 'claude');
+            log('API key set', 'success');
+            
+            // Create test job
+            const testJob = {
+                id: 'test-job-1',
+                title: 'Senior Software Engineer',
+                company: 'Test Company',
+                description: 'Senior Software Engineer position',
+                jobDetails: 'We are looking for a senior software engineer with experience in JavaScript, React, and Node.js. Must have 5+ years of experience building web applications.',
+                status: 'saved',
+                dateCreated: new Date().toISOString()
+            };
+            
+            // Create test resume
+            const testResume = {
+                id: 'test-resume-1',
+                name: 'John Doe Resume',
+                data: {
+                    basics: {
+                        name: 'John Doe',
+                        email: 'john@example.com',
+                        summary: 'Experienced software engineer'
+                    },
+                    work: [{
+                        name: 'Previous Company',
+                        position: 'Software Engineer',
+                        highlights: ['Built web applications', 'Used React and Node.js']
+                    }],
+                    skills: [{
+                        name: 'JavaScript',
+                        level: 'Advanced'
+                    }]
+                }
+            };
+            
+            // Update state
+            setState({ 
+                jobs: [testJob],
+                resumes: [testResume],
+                currentJob: testJob,
+                currentResume: testResume
+            }, 'test-setup');
+            
+            log('Test job created: ' + testJob.title, 'success');
+            log('Test resume created: ' + testResume.name, 'success');
+            log('Current job and resume set', 'success');
+        };
+        
+        window.clearTestData = function() {
+            log('Clearing test data...');
+            localStorage.removeItem('api_key');
+            localStorage.removeItem('api_type');
+            setState({
+                jobs: [],
+                resumes: [],
+                currentJob: null,
+                currentResume: null
+            }, 'test-clear');
+            log('Test data cleared', 'success');
+        };
+        
+        window.checkCurrentState = function() {
+            log('Checking current state...');
+            
+            const state = getState();
+            log('Current state: ' + JSON.stringify(state, null, 2));
+            
+            const apiKey = localStorage.getItem('api_key');
+            const apiType = localStorage.getItem('api_type');
+            log(`API Key: ${apiKey ? 'Set (' + apiKey.length + ' chars)' : 'Not set'}`);
+            log(`API Type: ${apiType || 'Not set'}`);
+            
+            // Find the AI assistant component
+            const aiAssistant = document.querySelector('ai-assistant-worker');
+            if (aiAssistant) {
+                log('AI Assistant component found', 'success');
+                // Trigger a re-render
+                setTimeout(() => {
+                    log('Triggering component refresh...');
+                    // This should trigger a re-render
+                    aiAssistant.updateFromStore();
+                }, 100);
+            } else {
+                log('AI Assistant component not found', 'error');
+            }
+        };
+        
+        // Auto setup for testing
+        setTimeout(() => {
+            log('Auto-setting up test environment...');
+            setupTestData();
+            setTimeout(checkCurrentState, 500);
+        }, 1000);
+    </script>
+</body>
+</html>
