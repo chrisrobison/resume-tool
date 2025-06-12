@@ -38,10 +38,24 @@ class AIWorker {
         try {
             this.postProgress('Starting resume tailoring...', requestId);
             
+            // Debug logging
+            console.log('Worker handleTailorResume - Received data:', data);
+            
             const { resume, jobDescription, provider, apiKey, includeAnalysis = false } = data;
             
+            // Debug individual parameters
+            console.log('Worker - resume:', !!resume);
+            console.log('Worker - jobDescription:', !!jobDescription, jobDescription?.substring(0, 100));
+            console.log('Worker - provider:', provider);
+            console.log('Worker - apiKey:', !!apiKey, apiKey?.substring(0, 10) + '...');
+            
             if (!resume || !jobDescription || !provider || !apiKey) {
-                throw new Error('Missing required parameters for resume tailoring');
+                const missing = [];
+                if (!resume) missing.push('resume');
+                if (!jobDescription) missing.push('jobDescription');
+                if (!provider) missing.push('provider');
+                if (!apiKey) missing.push('apiKey');
+                throw new Error(`Missing required parameters for resume tailoring: ${missing.join(', ')}`);
             }
 
             let prompt = this.buildTailorResumePrompt(resume, jobDescription, includeAnalysis);

@@ -892,9 +892,18 @@ class AIAssistantWorker extends HTMLElement {
             
             console.log('AI Assistant - About to call aiService.tailorResume...'); // Debug log
             
+            const resumeData = this._currentResume.data;
+            const jobDesc = this._currentJob.description || this._currentJob.jobDetails;
+            
+            console.log('AI Assistant - Sending parameters:');
+            console.log('  - resume:', !!resumeData, resumeData);
+            console.log('  - jobDescription:', !!jobDesc, jobDesc?.substring(0, 100) + '...');
+            console.log('  - provider:', provider);
+            console.log('  - apiKey:', !!apiKey, apiKey?.substring(0, 10) + '...');
+            
             const result = await aiService.tailorResume({
-                resume: this._currentResume.data,
-                jobDescription: this._currentJob.description || this._currentJob.jobDetails,
+                resume: resumeData,
+                jobDescription: jobDesc,
                 provider,
                 apiKey,
                 includeAnalysis: true,
