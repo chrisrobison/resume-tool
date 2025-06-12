@@ -108,6 +108,7 @@ class ResumeEditor extends HTMLElement {
                 profiles: []
             },
             work: [],
+            volunteer: [],
             education: [],
             skills: [],
             projects: [],
@@ -273,6 +274,7 @@ class ResumeEditor extends HTMLElement {
                 <div class="tabs" role="tablist">
                     <div class="tab active" data-tab="basics" role="tab" aria-selected="true">Basics</div>
                     <div class="tab" data-tab="work" role="tab">Work</div>
+                    <div class="tab" data-tab="volunteer" role="tab">Volunteer</div>
                     <div class="tab" data-tab="education" role="tab">Education</div>
                     <div class="tab" data-tab="skills" role="tab">Skills</div>
                     <div class="tab" data-tab="projects" role="tab">Projects</div>
@@ -370,6 +372,21 @@ class ResumeEditor extends HTMLElement {
                             <div class="empty-state" id="work-empty">
                                 <i class="fa-solid fa-briefcase fa-2x"></i>
                                 <p>No work experience added yet. Click the "Add Work Experience" button to add your professional history.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="volunteer-panel" class="panel" role="tabpanel" aria-labelledby="volunteer-tab">
+                    <div class="resume-section">
+                        <div class="resume-section-header">
+                            <div class="resume-section-title">Volunteer Work</div>
+                            <button id="add-volunteer" class="small-button"><i class="fa-solid fa-plus"></i> Add Volunteer Work</button>
+                        </div>
+                        <div id="volunteer-container">
+                            <div class="empty-state" id="volunteer-empty">
+                                <i class="fa-solid fa-heart fa-2x"></i>
+                                <p>No volunteer work added yet. Click the "Add Volunteer Work" button to add your volunteer experience.</p>
                             </div>
                         </div>
                     </div>
@@ -546,6 +563,54 @@ class ResumeEditor extends HTMLElement {
                     </div>
                     <div class="button-group">
                         <button id="save-work" class="success"><i class="fa-solid fa-check"></i> Save</button>
+                        <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Volunteer Modal -->
+            <div id="volunteer-modal" class="modal-backdrop hidden">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Add Volunteer Work</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label for="volunteer-organization">Organization</label>
+                            <input type="text" id="volunteer-organization">
+                        </div>
+                        <div class="input-group">
+                            <label for="volunteer-position">Position</label>
+                            <input type="text" id="volunteer-position">
+                        </div>
+                        <div class="input-group">
+                            <label for="volunteer-startDate">Start Date</label>
+                            <input type="text" id="volunteer-startDate" placeholder="YYYY-MM-DD">
+                        </div>
+                        <div class="input-group">
+                            <label for="volunteer-endDate">End Date</label>
+                            <input type="text" id="volunteer-endDate" placeholder="YYYY-MM-DD or 'Present'">
+                        </div>
+                        <div class="input-group">
+                            <label for="volunteer-url">Organization Website</label>
+                            <input type="url" id="volunteer-url">
+                        </div>
+                        <div class="input-group">
+                            <label for="volunteer-location">Location</label>
+                            <input type="text" id="volunteer-location">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="volunteer-summary">Summary</label>
+                        <textarea id="volunteer-summary"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="volunteer-highlights">Highlights (one per line)</label>
+                        <textarea id="volunteer-highlights" placeholder="• Helped organize event that raised $X for charity"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="save-volunteer" class="success"><i class="fa-solid fa-check"></i> Save</button>
                         <button class="modal-cancel secondary"><i class="fa-solid fa-xmark"></i> Cancel</button>
                     </div>
                 </div>
@@ -1104,6 +1169,7 @@ class ResumeEditor extends HTMLElement {
         // Only set up modals for list sections
         this.setupProfileModal();
         this.setupWorkModal();
+        this.setupVolunteerModal();
         this.setupEducationModal();
         this.setupSkillsModal();
         this.setupProjectsModal();
@@ -1244,6 +1310,93 @@ class ResumeEditor extends HTMLElement {
                 if (confirm('Are you sure you want to delete this work experience?')) {
                     this.data.work.splice(index, 1);
                     this.renderWork();
+                    this.updateMetaLastModified();
+                    this.saveToLocalStorage();
+                }
+            }
+        });
+    }
+
+    setupVolunteerModal() {
+        const addBtn = this.querySelector('#add-volunteer');
+        const saveBtn = this.querySelector('#save-volunteer');
+        
+        addBtn?.addEventListener('click', () => {
+            this.state.currentEditIndex = -1;
+            this.clearModalFields('volunteer-modal');
+            this.showModal('volunteer-modal');
+        });
+        
+        saveBtn?.addEventListener('click', () => {
+            const organization = this.querySelector('#volunteer-organization').value.trim();
+            const position = this.querySelector('#volunteer-position').value.trim();
+            const startDate = this.querySelector('#volunteer-startDate').value.trim();
+            const endDate = this.querySelector('#volunteer-endDate').value.trim();
+            const url = this.querySelector('#volunteer-url').value.trim();
+            const location = this.querySelector('#volunteer-location').value.trim();
+            const summary = this.querySelector('#volunteer-summary').value.trim();
+            const highlightsText = this.querySelector('#volunteer-highlights').value.trim();
+            
+            if (!organization || !position) {
+                alert('Please fill in the organization and position fields');
+                return;
+            }
+            
+            const highlights = highlightsText
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            const volunteerData = {
+                organization,
+                position,
+                startDate,
+                endDate: endDate || null,
+                url: url || undefined,
+                location: location || undefined,
+                summary: summary || undefined,
+                highlights: highlights.length > 0 ? highlights : undefined
+            };
+            
+            if (this.state.currentEditIndex >= 0) {
+                this.data.volunteer[this.state.currentEditIndex] = volunteerData;
+            } else {
+                this.data.volunteer.push(volunteerData);
+            }
+            
+            this.renderVolunteer();
+            this.hideModal('volunteer-modal');
+            this.updateMetaLastModified();
+            this.saveToLocalStorage();
+        });
+        
+        // Edit/delete volunteer events
+        this.querySelector('#volunteer-container').addEventListener('click', (e) => {
+            if (e.target.closest('.edit-item')) {
+                const button = e.target.closest('.edit-item');
+                const index = parseInt(button.dataset.index);
+                const volunteer = this.data.volunteer[index];
+                
+                this.state.currentEditIndex = index;
+                this.querySelector('#volunteer-organization').value = volunteer.organization || '';
+                this.querySelector('#volunteer-position').value = volunteer.position || '';
+                this.querySelector('#volunteer-startDate').value = volunteer.startDate || '';
+                this.querySelector('#volunteer-endDate').value = volunteer.endDate || '';
+                this.querySelector('#volunteer-url').value = volunteer.url || '';
+                this.querySelector('#volunteer-location').value = volunteer.location || '';
+                this.querySelector('#volunteer-summary').value = volunteer.summary || '';
+                this.querySelector('#volunteer-highlights').value = volunteer.highlights ? volunteer.highlights.join('\n') : '';
+                
+                this.showModal('volunteer-modal');
+            }
+            
+            if (e.target.closest('.delete-item')) {
+                const button = e.target.closest('.delete-item');
+                const index = parseInt(button.dataset.index);
+                
+                if (confirm('Are you sure you want to delete this volunteer experience?')) {
+                    this.data.volunteer.splice(index, 1);
+                    this.renderVolunteer();
                     this.updateMetaLastModified();
                     this.saveToLocalStorage();
                 }
@@ -1572,6 +1725,10 @@ class ResumeEditor extends HTMLElement {
                 title = data.position || 'Untitled Position';
                 subtitle = data.name || 'Unnamed Company';
                 break;
+            case 'volunteer':
+                title = data.position || 'Untitled Position';
+                subtitle = data.organization || 'Unnamed Organization';
+                break;
             case 'education':
                 title = data.studyType || 'Untitled Degree';
                 subtitle = data.institution || 'Unnamed Institution';
@@ -1655,6 +1812,31 @@ class ResumeEditor extends HTMLElement {
         
         this.data.work.forEach((work, index) => {
             const item = this.createSectionItem(work, index, 'work');
+            container.appendChild(item);
+        });
+    }
+
+    renderVolunteer() {
+        const container = this.querySelector('#volunteer-container');
+        const emptyState = this.querySelector('#volunteer-empty');
+        
+        if (!container) return;
+        
+        Array.from(container.children).forEach(child => {
+            if (child !== emptyState) {
+                container.removeChild(child);
+            }
+        });
+        
+        if (this.data.volunteer.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+        } else {
+            emptyState.classList.add('hidden');
+        }
+        
+        this.data.volunteer.forEach((volunteer, index) => {
+            const item = this.createSectionItem(volunteer, index, 'volunteer');
             container.appendChild(item);
         });
     }
@@ -1955,6 +2137,7 @@ class ResumeEditor extends HTMLElement {
         // Render all section lists
         this.renderProfiles();
         this.renderWork();
+        this.renderVolunteer();
         this.renderEducation();
         this.renderSkills();
         this.renderProjects();

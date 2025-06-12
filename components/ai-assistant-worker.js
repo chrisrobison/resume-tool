@@ -670,7 +670,7 @@ class AIAssistantWorker extends HTMLElement {
     renderRequirements() {
         const hasJob = !!this._currentJob;
         const hasResume = !!this._currentResume;
-        const hasJobDescription = hasJob && this._currentJob.description;
+        const hasJobDescription = hasJob && (this._currentJob.description || this._currentJob.jobDetails);
         const hasApiKey = this.hasValidApiKey();
         
         return `
@@ -871,7 +871,15 @@ class AIAssistantWorker extends HTMLElement {
     }
 
     async handleTailorResume() {
-        if (!this.canTailorResume()) return;
+        console.log('AI Assistant handleTailorResume called'); // Debug log
+        console.log('Can tailor resume:', this.canTailorResume()); // Debug log
+        console.log('Current job:', this._currentJob); // Debug log
+        console.log('Current resume:', this._currentResume); // Debug log
+        
+        if (!this.canTailorResume()) {
+            console.log('Cannot tailor resume - requirements not met'); // Debug log
+            return;
+        }
         
         this._isProcessing = true;
         this._lastResult = null;
@@ -879,15 +887,21 @@ class AIAssistantWorker extends HTMLElement {
         
         try {
             const { provider, apiKey } = this.getApiConfig();
+            console.log('AI Assistant - Using provider:', provider); // Debug log
+            console.log('AI Assistant - API key length:', apiKey?.length); // Debug log
+            
+            console.log('AI Assistant - About to call aiService.tailorResume...'); // Debug log
             
             const result = await aiService.tailorResume({
                 resume: this._currentResume.data,
-                jobDescription: this._currentJob.description,
+                jobDescription: this._currentJob.description || this._currentJob.jobDetails,
                 provider,
                 apiKey,
                 includeAnalysis: true,
                 onProgress: this.handleProgress
             });
+            
+            console.log('AI Assistant - Received result:', result); // Debug log
             
             this._lastResult = { type: 'tailor-resume', data: result };
             
@@ -901,6 +915,7 @@ class AIAssistantWorker extends HTMLElement {
             }, 'ai-assistant-tailor');
             
         } catch (error) {
+            console.error('AI Assistant - Error in handleTailorResume:', error); // Debug log
             this.showError(`Failed to tailor resume: ${error.message}`);
         } finally {
             this._isProcessing = false;
@@ -920,7 +935,7 @@ class AIAssistantWorker extends HTMLElement {
             
             const result = await aiService.generateCoverLetter({
                 resume: this._currentResume.data,
-                jobDescription: this._currentJob.description,
+                jobDescription: this._currentJob.description || this._currentJob.jobDetails,
                 jobInfo: {
                     title: this._currentJob.title,
                     company: this._currentJob.company,
@@ -956,7 +971,7 @@ class AIAssistantWorker extends HTMLElement {
             
             const result = await aiService.analyzeMatch({
                 resume: this._currentResume.data,
-                jobDescription: this._currentJob.description,
+                jobDescription: this._currentJob.description || this._currentJob.jobDetails,
                 provider,
                 apiKey,
                 onProgress: this.handleProgress
@@ -1024,64 +1039,83 @@ class AIAssistantWorker extends HTMLElement {
     }
 
     canTailorResume() {
-        return this._currentJob && this._currentJob.description && 
+        return this._currentJob && (this._currentJob.description || this._currentJob.jobDetails) && 
                this._currentResume && this.hasValidApiKey() && 
                !this._isProcessing;
     }
 
     canGenerateCoverLetter() {
-        return this._currentJob && this._currentJob.description && 
+        return this._currentJob && (this._currentJob.description || this._currentJob.jobDetails) && 
                this._currentResume && this.hasValidApiKey() && 
                !this._isProcessing;
     }
 
     canAnalyzeMatch() {
-        return this._currentJob && this._currentJob.description && 
+        return this._currentJob && (this._currentJob.description || this._currentJob.jobDetails) && 
                this._currentResume && this.hasValidApiKey() && 
                !this._isProcessing;
     }
 
     hasValidApiKey() {
-        const settings = getState('settings');
-        console.log('AI Assistant hasValidApiKey - Full settings:', settings); // Debug log
+        // Check localStorage for API keys (current implementation in jobs.html)
+        const apiKey = localStorage.getItem('api_key');
+        const apiType = localStorage.getItem('api_type');
         
-        if (!settings) {
-            console.log('AI Assistant hasValidApiKey - No settings found'); // Debug log
-            return false;
+        console.log('AI Assistant hasValidApiKey - API Key exists:', !!apiKey); // Debug log
+        console.log('AI Assistant hasValidApiKey - API Type:', apiType); // Debug log
+        
+        const hasKey = apiKey && apiKey.trim().length > 0;
+        
+        // Also check newer settings structure for future compatibility
+        const settings = getState('settings');
+        if (settings && settings.apiProviders) {
+            const providers = settings.apiProviders;
+            const claudeValid = providers.claude && providers.claude.apiKey && providers.claude.apiKey.trim().length > 0;
+            const openaiValid = providers.openai && providers.openai.apiKey && providers.openai.apiKey.trim().length > 0;
+            
+            console.log('AI Assistant hasValidApiKey - Settings structure found - Claude valid:', claudeValid); // Debug log
+            console.log('AI Assistant hasValidApiKey - Settings structure found - OpenAI valid:', openaiValid); // Debug log
+            
+            return hasKey || claudeValid || openaiValid;
         }
         
-        const providers = settings.apiProviders || {};
-        console.log('AI Assistant hasValidApiKey - Providers:', providers); // Debug log
-        
-        const claudeValid = providers.claude && providers.claude.apiKey && providers.claude.apiKey.trim().length > 0;
-        const openaiValid = providers.openai && providers.openai.apiKey && providers.openai.apiKey.trim().length > 0;
-        
-        console.log('AI Assistant hasValidApiKey - Claude valid:', claudeValid); // Debug log
-        console.log('AI Assistant hasValidApiKey - OpenAI valid:', openaiValid); // Debug log
-        
-        return claudeValid || openaiValid;
+        console.log('AI Assistant hasValidApiKey - Final result:', hasKey); // Debug log
+        return hasKey;
     }
 
     getApiConfig() {
+        // Check localStorage first (current implementation in jobs.html)
+        const apiKey = localStorage.getItem('api_key');
+        const apiType = localStorage.getItem('api_type') || 'claude';
+        
+        console.log('AI Assistant getApiConfig - localStorage API Key exists:', !!apiKey); // Debug log
+        console.log('AI Assistant getApiConfig - localStorage API Type:', apiType); // Debug log
+        
+        if (apiKey && apiKey.trim().length > 0) {
+            console.log('AI Assistant getApiConfig - Using localStorage config'); // Debug log
+            return { 
+                provider: apiType === 'chatgpt' ? 'openai' : apiType,
+                apiKey: apiKey.trim() 
+            };
+        }
+        
+        // Check newer settings structure for future compatibility
         const settings = getState('settings');
-        console.log('AI Assistant getApiConfig - Full settings:', settings); // Debug log
-        
-        if (!settings) {
-            throw new Error('No settings found in store');
+        if (settings && settings.apiProviders) {
+            const providers = settings.apiProviders;
+            console.log('AI Assistant getApiConfig - Checking settings structure - Providers:', providers); // Debug log
+            
+            if (providers.claude && providers.claude.apiKey && providers.claude.apiKey.trim().length > 0) {
+                console.log('AI Assistant getApiConfig - Using Claude from settings'); // Debug log
+                return { provider: 'claude', apiKey: providers.claude.apiKey.trim() };
+            } else if (providers.openai && providers.openai.apiKey && providers.openai.apiKey.trim().length > 0) {
+                console.log('AI Assistant getApiConfig - Using OpenAI from settings'); // Debug log
+                return { provider: 'openai', apiKey: providers.openai.apiKey.trim() };
+            }
         }
         
-        const providers = settings.apiProviders || {};
-        console.log('AI Assistant getApiConfig - Providers:', providers); // Debug log
-        
-        if (providers.claude && providers.claude.apiKey && providers.claude.apiKey.trim().length > 0) {
-            console.log('AI Assistant getApiConfig - Using Claude'); // Debug log
-            return { provider: 'claude', apiKey: providers.claude.apiKey.trim() };
-        } else if (providers.openai && providers.openai.apiKey && providers.openai.apiKey.trim().length > 0) {
-            console.log('AI Assistant getApiConfig - Using OpenAI'); // Debug log
-            return { provider: 'openai', apiKey: providers.openai.apiKey.trim() };
-        }
-        
-        throw new Error('No valid API key configured');
+        console.log('AI Assistant getApiConfig - No valid API key found'); // Debug log
+        throw new Error('No valid API key configured. Please set your API key in Settings.');
     }
 
     // Helper methods for enhanced match analysis display
