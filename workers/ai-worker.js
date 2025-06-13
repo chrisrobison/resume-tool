@@ -433,7 +433,7 @@ Provide honest, constructive analysis that will help the candidate understand th
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: 'claude-3-sonnet-20240229',
+                model: 'claude-3-5-sonnet-20241022',
                 max_tokens: 4000,
                 messages: [{
                     role: 'user',
@@ -464,7 +464,7 @@ Provide honest, constructive analysis that will help the candidate understand th
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: 'gpt-4',
+                model: 'gpt-4o',
                 messages: [{
                     role: 'user',
                     content: prompt
