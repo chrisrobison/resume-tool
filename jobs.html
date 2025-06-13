@@ -43,12 +43,14 @@
                     <i class="fas fa-question-circle"></i>
                     <span>Help</span>
                 </a>
+                <a href="#" class="nav-item" data-section="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
             </nav>
             
             <div class="sidebar-footer">
-                <button class="settings-btn" id="settings-btn">
-                    <i class="fas fa-cog"></i> Settings
-                </button>
+                <!-- Settings moved to navigation -->
             </div>
         </div>
 
@@ -671,11 +673,7 @@
             document.getElementById('form-cancel').addEventListener('click', closeModal);
             document.getElementById('form-save').addEventListener('click', saveItem);
 
-            // Settings
-            document.getElementById('settings-btn').addEventListener('click', openSettings);
-            document.getElementById('settings-modal-close').addEventListener('click', closeSettings);
-            document.getElementById('settings-cancel').addEventListener('click', closeSettings);
-            document.getElementById('settings-save').addEventListener('click', saveSettings);
+            // Settings - now handled through navigation
 
             // Export Modal
             document.getElementById('export-modal-close').addEventListener('click', closeExportModal);
@@ -1611,45 +1609,7 @@
             }
         }
 
-        // Settings functions
-        function openSettings() {
-            switchSection('settings');
-        }
-
-        function closeSettings() {
-            document.getElementById('settings-modal').classList.add('hidden');
-        }
-
-        function saveSettings() {
-            const apiKey = document.getElementById('api-key').value;
-            const apiType = document.getElementById('api-type').value;
-            const useDirectApi = document.getElementById('use-direct-api').checked;
-            
-            localStorage.setItem('api_key', apiKey);
-            localStorage.setItem('api_type', apiType);
-            localStorage.setItem('use_direct_api', useDirectApi);
-            
-            closeSettings();
-            
-            // Show success message
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #27ae60;
-                color: white;
-                padding: 10px 20px;
-                border-radius: 5px;
-                z-index: 1001;
-            `;
-            toast.textContent = 'Settings saved successfully';
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                document.body.removeChild(toast);
-            }, 3000);
-        }
+        // Settings functions (now handled through web component)
 
         // AI Generation Functions
         window.generateAIContent = function() {

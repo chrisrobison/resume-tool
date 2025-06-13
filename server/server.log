@@ -1,0 +1,20 @@
+
+> resume-tool-server@1.0.0 start
+> node index.js
+
+HTTPS Server running on port 3443
+Serving static files from: /home/cdr/domains/cdr2.com/www/job-tool/
+Index file path: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+Verified: index.html exists at /home/cdr/domains/cdr2.com/www/job-tool/index.html
+HTTP Server running on port 3000
+Serving static files from: /home/cdr/domains/cdr2.com/www/job-tool/
+Index file path: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+Verified: index.html exists at /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-06-13T05:02:53.096Z] GET /favicon.ico | IP: ::ffff:65.49.1.132
+[2025-06-13T05:02:53.131Z] Serving index.html for path: /favicon.ico
+[2025-06-13T05:02:53.132Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-06-13T05:02:53.217Z] GET /favicon.ico | Status: 200 | Duration: 121ms
+[2025-06-13T05:23:20.360Z] GET /favicon.ico | IP: ::ffff:91.196.152.114
+[2025-06-13T05:23:20.370Z] Serving index.html for path: /favicon.ico
+[2025-06-13T05:23:20.371Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-06-13T05:23:20.490Z] GET /favicon.ico | Status: 200 | Duration: 130ms
