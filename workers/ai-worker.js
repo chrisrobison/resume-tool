@@ -43,6 +43,10 @@ class AIWorker {
             
             const { resume, jobDescription, provider, apiKey, includeAnalysis = false } = data;
             
+            // Set metadata for logging
+            this.currentOperation = 'tailor_resume';
+            this.currentRequestData = { resume, jobDescription, includeAnalysis };
+            
             // Debug individual parameters
             console.log('Worker - resume:', !!resume);
             console.log('Worker - jobDescription:', !!jobDescription, jobDescription?.substring(0, 100));
@@ -182,10 +186,18 @@ class AIWorker {
             try {
                 attempt++;
                 
+                // Pass metadata to API methods
+                const apiMetadata = {
+                    operation: this.currentOperation || 'unknown',
+                    resume: this.currentRequestData?.resume,
+                    jobDescription: this.currentRequestData?.jobDescription,
+                    includeAnalysis: this.currentRequestData?.includeAnalysis
+                };
+
                 if (provider === 'claude') {
-                    return await this.callClaudeAPI(apiKey, prompt, requestId);
+                    return await this.callClaudeAPI(apiKey, prompt, requestId, apiMetadata);
                 } else if (provider === 'openai') {
-                    return await this.callOpenAIAPI(apiKey, prompt, requestId);
+                    return await this.callOpenAIAPI(apiKey, prompt, requestId, apiMetadata);
                 } else {
                     throw new Error(`Unsupported AI provider: ${provider}`);
                 }
@@ -438,66 +450,250 @@ Provide honest, constructive analysis that will help the candidate understand th
         });
     }
 
-    async callClaudeAPI(apiKey, prompt, requestId) {
-        this.postProgress('Connecting to Claude API...', requestId);
-        
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify({
-                model: 'claude-3-5-sonnet-20241022',
-                max_tokens: 4000,
-                messages: [
-                    {
-                        role: 'user',
-                        content: prompt
-                    }
-                ]
-            })
+    // Send logging data to main thread
+    postLog(logData) {
+        self.postMessage({
+            type: 'log',
+            logData,
+            timestamp: new Date().toISOString()
         });
-
-        if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`Claude API error (${response.status}): ${errorData}`);
-        }
-
-        const data = await response.json();
-        return data.content[0].text;
     }
 
-    async callOpenAIAPI(apiKey, prompt, requestId) {
-        this.postProgress('Connecting to OpenAI API...', requestId);
+    async callClaudeAPI(apiKey, prompt, requestId, metadata = {}) {
+        const startTime = Date.now();
+        this.postProgress('Connecting to Claude API...', requestId);
         
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+        const requestBody = {
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 4000,
+            messages: [
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ]
+        };
+
+        // Log the request
+        this.postLog({
+            type: 'api_request',
+            apiType: 'claude',
+            operation: metadata.operation || 'unknown',
+            requestData: {
+                prompt,
+                model: requestBody.model,
+                max_tokens: requestBody.max_tokens,
+                apiUrl: 'https://api.anthropic.com/v1/messages',
+                resume: metadata.resume,
+                jobDescription: metadata.jobDescription,
+                includeAnalysis: metadata.includeAnalysis
             },
-            body: JSON.stringify({
-                model: 'gpt-4',
-                messages: [
-                    {
-                        role: 'user',
-                        content: prompt
-                    }
-                ],
-                max_tokens: 4000,
-                temperature: 0.7
-            })
+            metadata: {
+                requestId,
+                ...metadata
+            }
         });
 
-        if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`OpenAI API error (${response.status}): ${errorData}`);
-        }
+        try {
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01'
+                },
+                body: JSON.stringify(requestBody)
+            });
 
-        const data = await response.json();
-        return data.choices[0].message.content;
+            const processingTime = Date.now() - startTime;
+
+            if (!response.ok) {
+                const errorData = await response.text();
+                const error = new Error(`Claude API error (${response.status}): ${errorData}`);
+                error.statusCode = response.status;
+                error.apiErrorDetails = errorData;
+                
+                // Log the error
+                this.postLog({
+                    type: 'api_error',
+                    apiType: 'claude',
+                    operation: metadata.operation || 'unknown',
+                    error: {
+                        message: error.message,
+                        statusCode: error.statusCode,
+                        apiErrorDetails: errorData
+                    },
+                    processingTime,
+                    metadata: {
+                        requestId,
+                        ...metadata
+                    }
+                });
+                
+                throw error;
+            }
+
+            const data = await response.json();
+            const responseText = data.content[0].text;
+
+            // Log the successful response
+            this.postLog({
+                type: 'api_response',
+                apiType: 'claude',
+                operation: metadata.operation || 'unknown',
+                response: responseText,
+                processingTime,
+                tokenUsage: data.usage || null,
+                metadata: {
+                    requestId,
+                    responseLength: responseText.length,
+                    ...metadata
+                }
+            });
+
+            return responseText;
+            
+        } catch (error) {
+            const processingTime = Date.now() - startTime;
+            
+            // Log network or other errors
+            this.postLog({
+                type: 'api_error',
+                apiType: 'claude',
+                operation: metadata.operation || 'unknown',
+                error: {
+                    message: error.message,
+                    stack: error.stack,
+                    type: error.constructor.name
+                },
+                processingTime,
+                metadata: {
+                    requestId,
+                    ...metadata
+                }
+            });
+            
+            throw error;
+        }
+    }
+
+    async callOpenAIAPI(apiKey, prompt, requestId, metadata = {}) {
+        const startTime = Date.now();
+        this.postProgress('Connecting to OpenAI API...', requestId);
+        
+        const requestBody = {
+            model: 'gpt-4',
+            messages: [
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            max_tokens: 4000,
+            temperature: 0.7
+        };
+
+        // Log the request
+        this.postLog({
+            type: 'api_request',
+            apiType: 'openai',
+            operation: metadata.operation || 'unknown',
+            requestData: {
+                prompt,
+                model: requestBody.model,
+                max_tokens: requestBody.max_tokens,
+                temperature: requestBody.temperature,
+                apiUrl: 'https://api.openai.com/v1/chat/completions',
+                resume: metadata.resume,
+                jobDescription: metadata.jobDescription,
+                includeAnalysis: metadata.includeAnalysis
+            },
+            metadata: {
+                requestId,
+                ...metadata
+            }
+        });
+
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            const processingTime = Date.now() - startTime;
+
+            if (!response.ok) {
+                const errorData = await response.text();
+                const error = new Error(`OpenAI API error (${response.status}): ${errorData}`);
+                error.statusCode = response.status;
+                error.apiErrorDetails = errorData;
+                
+                // Log the error
+                this.postLog({
+                    type: 'api_error',
+                    apiType: 'openai',
+                    operation: metadata.operation || 'unknown',
+                    error: {
+                        message: error.message,
+                        statusCode: error.statusCode,
+                        apiErrorDetails: errorData
+                    },
+                    processingTime,
+                    metadata: {
+                        requestId,
+                        ...metadata
+                    }
+                });
+                
+                throw error;
+            }
+
+            const data = await response.json();
+            const responseText = data.choices[0].message.content;
+
+            // Log the successful response
+            this.postLog({
+                type: 'api_response',
+                apiType: 'openai',
+                operation: metadata.operation || 'unknown',
+                response: responseText,
+                processingTime,
+                tokenUsage: data.usage || null,
+                metadata: {
+                    requestId,
+                    responseLength: responseText.length,
+                    ...metadata
+                }
+            });
+
+            return responseText;
+            
+        } catch (error) {
+            const processingTime = Date.now() - startTime;
+            
+            // Log network or other errors
+            this.postLog({
+                type: 'api_error',
+                apiType: 'openai',
+                operation: metadata.operation || 'unknown',
+                error: {
+                    message: error.message,
+                    stack: error.stack,
+                    type: error.constructor.name
+                },
+                processingTime,
+                metadata: {
+                    requestId,
+                    ...metadata
+                }
+            });
+            
+            throw error;
+        }
     }
 }
 
