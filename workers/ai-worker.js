@@ -213,69 +213,6 @@ class AIWorker {
         }
     }
 
-    async callClaudeAPI(apiKey, prompt, requestId) {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify({
-                model: 'claude-3-sonnet-20240229',
-                max_tokens: 4000,
-                messages: [{
-                    role: 'user',
-                    content: prompt
-                }]
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`Claude API error (${response.status}): ${errorData}`);
-        }
-
-        const data = await response.json();
-        
-        if (!data.content || !data.content[0] || !data.content[0].text) {
-            throw new Error('Invalid response format from Claude API');
-        }
-
-        return data.content[0].text;
-    }
-
-    async callOpenAIAPI(apiKey, prompt, requestId) {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-4',
-                messages: [{
-                    role: 'user',
-                    content: prompt
-                }],
-                max_tokens: 4000,
-                temperature: 0.7
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(`OpenAI API error (${response.status}): ${errorData}`);
-        }
-
-        const data = await response.json();
-        
-        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-            throw new Error('Invalid response format from OpenAI API');
-        }
-
-        return data.choices[0].message.content;
-    }
 
     buildTailorResumePrompt(resume, jobDescription, includeAnalysis) {
         return `
@@ -460,36 +397,101 @@ Provide honest, constructive analysis that will help the candidate understand th
     }
 
     async callClaudeAPI(apiKey, prompt, requestId, metadata = {}) {
-        return this.callServerAPI('claude', apiKey, prompt, requestId, metadata);
+        // Try direct API call first, fallback to server if CORS fails
+        try {
+            this.postProgress('Connecting directly to Claude API...', requestId);
+            return await this.callClaudeAPIDirect(apiKey, prompt);
+        } catch (error) {
+            if (error.message.includes('CORS') || error.message.includes('network')) {
+                this.postProgress('Direct connection failed, trying server proxy...', requestId);
+                return await this.callServerAPI('claude', apiKey, prompt, requestId, metadata);
+            }
+            throw error;
+        }
     }
 
     async callOpenAIAPI(apiKey, prompt, requestId, metadata = {}) {
-        return this.callServerAPI('chatgpt', apiKey, prompt, requestId, metadata);
+        // Try direct API call first, fallback to server if CORS fails
+        try {
+            this.postProgress('Connecting directly to OpenAI API...', requestId);
+            return await this.callOpenAIAPIDirect(apiKey, prompt);
+        } catch (error) {
+            if (error.message.includes('CORS') || error.message.includes('network')) {
+                this.postProgress('Direct connection failed, trying server proxy...', requestId);
+                return await this.callServerAPI('openai', apiKey, prompt, requestId, metadata);
+            }
+            throw error;
+        }
+    }
+
+    async callClaudeAPIDirect(apiKey, prompt) {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+                model: 'claude-3-sonnet-20240229',
+                max_tokens: 4000,
+                messages: [{
+                    role: 'user',
+                    content: prompt
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.text();
+            throw new Error(`Claude API error (${response.status}): ${errorData}`);
+        }
+
+        const data = await response.json();
+        
+        if (!data.content || !data.content[0] || !data.content[0].text) {
+            throw new Error('Invalid response format from Claude API');
+        }
+
+        return data.content[0].text;
+    }
+
+    async callOpenAIAPIDirect(apiKey, prompt) {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4',
+                messages: [{
+                    role: 'user',
+                    content: prompt
+                }],
+                max_tokens: 4000,
+                temperature: 0.7
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.text();
+            throw new Error(`OpenAI API error (${response.status}): ${errorData}`);
+        }
+
+        const data = await response.json();
+        
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            throw new Error('Invalid response format from OpenAI API');
+        }
+
+        return data.choices[0].message.content;
     }
 
     async callServerAPI(apiType, apiKey, prompt, requestId, metadata = {}) {
         const startTime = Date.now();
         this.postProgress(`Connecting to ${apiType} via server...`, requestId);
         
-        // Log the request
-        this.postLog({
-            type: 'api_request',
-            apiType: apiType,
-            operation: metadata.operation || 'unknown',
-            requestData: {
-                prompt,
-                apiType,
-                apiUrl: '/api/tailor-resume',
-                resume: metadata.resume,
-                jobDescription: metadata.jobDescription,
-                includeAnalysis: metadata.includeAnalysis
-            },
-            metadata: {
-                requestId,
-                ...metadata
-            }
-        });
-
         try {
             // Try different server endpoints
             const endpoints = [
@@ -531,8 +533,6 @@ Provide honest, constructive analysis that will help the candidate understand th
                 throw new Error(`All API endpoints failed. Last error: ${lastError.message}`);
             }
 
-            const processingTime = Date.now() - startTime;
-
             if (!response.ok) {
                 const errorData = await response.text();
                 let errorJson;
@@ -542,84 +542,27 @@ Provide honest, constructive analysis that will help the candidate understand th
                     errorJson = { error: errorData };
                 }
                 
-                const error = new Error(`Server API error (${response.status}): ${errorJson.error || errorData}`);
-                error.statusCode = response.status;
-                error.apiErrorDetails = errorJson;
-                
-                // Log the error
-                this.postLog({
-                    type: 'api_error',
-                    apiType: apiType,
-                    operation: metadata.operation || 'unknown',
-                    error: {
-                        message: error.message,
-                        statusCode: error.statusCode,
-                        apiErrorDetails: errorJson
-                    },
-                    processingTime,
-                    metadata: {
-                        requestId,
-                        ...metadata
-                    }
-                });
-                
-                throw error;
+                throw new Error(`Server API error (${response.status}): ${errorJson.error || errorData}`);
             }
 
             const data = await response.json();
-            let responseText;
             
             // Handle different response formats from server
             if (typeof data === 'string') {
-                responseText = data;
+                return data;
             } else if (data.result) {
-                responseText = data.result;
+                return data.result;
             } else if (data.response) {
-                responseText = data.response;
+                return data.response;
             } else {
-                responseText = JSON.stringify(data);
+                return JSON.stringify(data);
             }
-
-            // Log the successful response
-            this.postLog({
-                type: 'api_response',
-                apiType: apiType,
-                operation: metadata.operation || 'unknown',
-                response: responseText,
-                processingTime,
-                tokenUsage: data.usage || null,
-                metadata: {
-                    requestId,
-                    responseLength: responseText.length,
-                    ...metadata
-                }
-            });
-
-            return responseText;
             
         } catch (error) {
-            const processingTime = Date.now() - startTime;
-            
-            // Log network or other errors
-            this.postLog({
-                type: 'api_error',
-                apiType: apiType,
-                operation: metadata.operation || 'unknown',
-                error: {
-                    message: error.message,
-                    stack: error.stack,
-                    type: error.constructor.name
-                },
-                processingTime,
-                metadata: {
-                    requestId,
-                    ...metadata
-                }
-            });
-            
             throw error;
         }
     }
+
 }
 
 // Initialize the worker
