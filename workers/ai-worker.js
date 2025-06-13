@@ -460,150 +460,26 @@ Provide honest, constructive analysis that will help the candidate understand th
     }
 
     async callClaudeAPI(apiKey, prompt, requestId, metadata = {}) {
-        const startTime = Date.now();
-        this.postProgress('Connecting to Claude API...', requestId);
-        
-        const requestBody = {
-            model: 'claude-3-5-sonnet-20241022',
-            max_tokens: 4000,
-            messages: [
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ]
-        };
-
-        // Log the request
-        this.postLog({
-            type: 'api_request',
-            apiType: 'claude',
-            operation: metadata.operation || 'unknown',
-            requestData: {
-                prompt,
-                model: requestBody.model,
-                max_tokens: requestBody.max_tokens,
-                apiUrl: 'https://api.anthropic.com/v1/messages',
-                resume: metadata.resume,
-                jobDescription: metadata.jobDescription,
-                includeAnalysis: metadata.includeAnalysis
-            },
-            metadata: {
-                requestId,
-                ...metadata
-            }
-        });
-
-        try {
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
-                    'anthropic-version': '2023-06-01'
-                },
-                body: JSON.stringify(requestBody)
-            });
-
-            const processingTime = Date.now() - startTime;
-
-            if (!response.ok) {
-                const errorData = await response.text();
-                const error = new Error(`Claude API error (${response.status}): ${errorData}`);
-                error.statusCode = response.status;
-                error.apiErrorDetails = errorData;
-                
-                // Log the error
-                this.postLog({
-                    type: 'api_error',
-                    apiType: 'claude',
-                    operation: metadata.operation || 'unknown',
-                    error: {
-                        message: error.message,
-                        statusCode: error.statusCode,
-                        apiErrorDetails: errorData
-                    },
-                    processingTime,
-                    metadata: {
-                        requestId,
-                        ...metadata
-                    }
-                });
-                
-                throw error;
-            }
-
-            const data = await response.json();
-            const responseText = data.content[0].text;
-
-            // Log the successful response
-            this.postLog({
-                type: 'api_response',
-                apiType: 'claude',
-                operation: metadata.operation || 'unknown',
-                response: responseText,
-                processingTime,
-                tokenUsage: data.usage || null,
-                metadata: {
-                    requestId,
-                    responseLength: responseText.length,
-                    ...metadata
-                }
-            });
-
-            return responseText;
-            
-        } catch (error) {
-            const processingTime = Date.now() - startTime;
-            
-            // Log network or other errors
-            this.postLog({
-                type: 'api_error',
-                apiType: 'claude',
-                operation: metadata.operation || 'unknown',
-                error: {
-                    message: error.message,
-                    stack: error.stack,
-                    type: error.constructor.name
-                },
-                processingTime,
-                metadata: {
-                    requestId,
-                    ...metadata
-                }
-            });
-            
-            throw error;
-        }
+        return this.callServerAPI('claude', apiKey, prompt, requestId, metadata);
     }
 
     async callOpenAIAPI(apiKey, prompt, requestId, metadata = {}) {
-        const startTime = Date.now();
-        this.postProgress('Connecting to OpenAI API...', requestId);
-        
-        const requestBody = {
-            model: 'gpt-4',
-            messages: [
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            max_tokens: 4000,
-            temperature: 0.7
-        };
+        return this.callServerAPI('chatgpt', apiKey, prompt, requestId, metadata);
+    }
 
+    async callServerAPI(apiType, apiKey, prompt, requestId, metadata = {}) {
+        const startTime = Date.now();
+        this.postProgress(`Connecting to ${apiType} via server...`, requestId);
+        
         // Log the request
         this.postLog({
             type: 'api_request',
-            apiType: 'openai',
+            apiType: apiType,
             operation: metadata.operation || 'unknown',
             requestData: {
                 prompt,
-                model: requestBody.model,
-                max_tokens: requestBody.max_tokens,
-                temperature: requestBody.temperature,
-                apiUrl: 'https://api.openai.com/v1/chat/completions',
+                apiType,
+                apiUrl: '/api/tailor-resume',
                 resume: metadata.resume,
                 jobDescription: metadata.jobDescription,
                 includeAnalysis: metadata.includeAnalysis
@@ -615,32 +491,70 @@ Provide honest, constructive analysis that will help the candidate understand th
         });
 
         try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify(requestBody)
-            });
+            // Try different server endpoints
+            const endpoints = [
+                '/api/tailor-resume',  // Direct proxy (if configured)
+                'http://localhost:3000/api/tailor-resume',  // Local server
+                'https://cdr2.com:3000/api/tailor-resume'   // Remote server
+            ];
+            
+            let response;
+            let lastError;
+            
+            for (const endpoint of endpoints) {
+                try {
+                    response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            prompt,
+                            apiType,
+                            apiKey,
+                            resume: metadata.resume,
+                            operation: metadata.operation
+                        })
+                    });
+                    
+                    // If we get here without error, break out of the loop
+                    break;
+                } catch (error) {
+                    lastError = error;
+                    console.log(`Failed to connect to ${endpoint}:`, error.message);
+                    continue;
+                }
+            }
+            
+            // If all endpoints failed, throw the last error
+            if (!response) {
+                throw new Error(`All API endpoints failed. Last error: ${lastError.message}`);
+            }
 
             const processingTime = Date.now() - startTime;
 
             if (!response.ok) {
                 const errorData = await response.text();
-                const error = new Error(`OpenAI API error (${response.status}): ${errorData}`);
+                let errorJson;
+                try {
+                    errorJson = JSON.parse(errorData);
+                } catch {
+                    errorJson = { error: errorData };
+                }
+                
+                const error = new Error(`Server API error (${response.status}): ${errorJson.error || errorData}`);
                 error.statusCode = response.status;
-                error.apiErrorDetails = errorData;
+                error.apiErrorDetails = errorJson;
                 
                 // Log the error
                 this.postLog({
                     type: 'api_error',
-                    apiType: 'openai',
+                    apiType: apiType,
                     operation: metadata.operation || 'unknown',
                     error: {
                         message: error.message,
                         statusCode: error.statusCode,
-                        apiErrorDetails: errorData
+                        apiErrorDetails: errorJson
                     },
                     processingTime,
                     metadata: {
@@ -653,12 +567,23 @@ Provide honest, constructive analysis that will help the candidate understand th
             }
 
             const data = await response.json();
-            const responseText = data.choices[0].message.content;
+            let responseText;
+            
+            // Handle different response formats from server
+            if (typeof data === 'string') {
+                responseText = data;
+            } else if (data.result) {
+                responseText = data.result;
+            } else if (data.response) {
+                responseText = data.response;
+            } else {
+                responseText = JSON.stringify(data);
+            }
 
             // Log the successful response
             this.postLog({
                 type: 'api_response',
-                apiType: 'openai',
+                apiType: apiType,
                 operation: metadata.operation || 'unknown',
                 response: responseText,
                 processingTime,
@@ -678,7 +603,7 @@ Provide honest, constructive analysis that will help the candidate understand th
             // Log network or other errors
             this.postLog({
                 type: 'api_error',
-                apiType: 'openai',
+                apiType: apiType,
                 operation: metadata.operation || 'unknown',
                 error: {
                     message: error.message,

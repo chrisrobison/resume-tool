@@ -76,6 +76,43 @@ app.post('/api/tailor-resume', async (req, res) => {
   }
 });
 
+// Generic AI API endpoint for all operations
+app.post('/api/ai-request', async (req, res) => {
+  try {
+    const { prompt, apiType, apiKey, resume, operation } = req.body;
+    
+    if (!prompt || !apiType || !apiKey) {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
+    
+    let result;
+    
+    // For now, use the same service functions but we can expand later
+    if (apiType === 'claude') {
+      result = await tailorResumeWithClaude(resume, prompt, apiKey);
+    } else if (apiType === 'chatgpt') {
+      result = await tailorResumeWithChatGPT(resume, prompt, apiKey);
+    } else {
+      return res.status(400).json({ error: 'Invalid API type' });
+    }
+    
+    // Return the raw result for the worker to parse
+    if (typeof result === 'object' && result.resume) {
+      // For tailor-resume operations, return the resume content
+      res.json(result.resume);
+    } else if (typeof result === 'string') {
+      // For other operations, return the string result
+      res.json(result);
+    } else {
+      res.json(result);
+    }
+    
+  } catch (error) {
+    console.error(`Error in AI request (${req.body.operation}):`, error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Catch-all route to serve the main app
 app.get('*', (req, res) => {
   console.log(`[${new Date().toISOString()}] Serving index.html for path: ${req.url}`);
