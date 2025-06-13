@@ -31,7 +31,7 @@ class AIService {
     }
 
     handleWorkerMessage(data) {
-        const { type, requestId, message, data: responseData, error } = data;
+        const { type, requestId, message, data: responseData, error, logData } = data;
         
         switch (type) {
             case 'ready':
@@ -51,8 +51,46 @@ class AIService {
                 this.handleError(requestId, error);
                 break;
                 
+            case 'log':
+                this.handleLog(logData);
+                break;
+                
             default:
                 console.warn('Unknown message type from AI Worker:', type);
+        }
+    }
+
+    async handleLog(logData) {
+        try {
+            // Import logging function dynamically to avoid circular dependencies
+            const { logApiCall } = await import('./logs.js');
+            
+            // Convert worker log data to the format expected by logApiCall
+            if (logData.type === 'api_request' || logData.type === 'api_response' || logData.type === 'api_error') {
+                const operation = logData.operation;
+                const apiType = logData.apiType;
+                const requestData = logData.requestData || {};
+                const response = logData.response || null;
+                const error = logData.error || null;
+                const metadata = {
+                    processingTime: logData.processingTime,
+                    tokenUsage: logData.tokenUsage,
+                    ...logData.metadata
+                };
+                
+                // Log comprehensive API data
+                logApiCall(apiType, operation, requestData, response, error, metadata);
+                
+                console.log(`[AI ${logData.type.toUpperCase()}]`, {
+                    operation,
+                    apiType,
+                    success: !error,
+                    processingTime: logData.processingTime,
+                    responseLength: response?.length || 0
+                });
+            }
+        } catch (err) {
+            console.warn('Failed to log API data:', err);
         }
     }
 

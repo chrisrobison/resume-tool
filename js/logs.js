@@ -49,16 +49,81 @@ export function getLogsByType(type) {
     return logs.filter(log => log.type === type);
 }
 
-// Log an API call
-export function logApiCall(apiType, prompt, response, jobId = null, error = null) {
-    return addLog(LOG_TYPES.API_CALL, 'api_request', {
+// Log an API call with comprehensive details
+export function logApiCall(apiType, operation, requestData, response = null, error = null, metadata = {}) {
+    const logDetails = {
         apiType,
-        prompt,
-        response: error ? null : response,
-        error: error ? (error.message || String(error)) : null,
+        operation, // e.g., 'tailor_resume', 'generate_cover_letter', 'analyze_match'
+        timestamp: new Date().toISOString(),
         success: !error,
-        jobId
-    });
+        
+        // Request details
+        request: {
+            model: requestData.model || (apiType === 'claude' ? 'claude-3-5-sonnet-20241022' : 'gpt-4'),
+            prompt: requestData.prompt ? {
+                length: requestData.prompt.length,
+                preview: requestData.prompt.substring(0, 200) + (requestData.prompt.length > 200 ? '...' : ''),
+                fullPrompt: requestData.prompt // Store full prompt for debugging
+            } : null,
+            parameters: {
+                maxTokens: requestData.max_tokens || requestData.maxTokens || 4000,
+                temperature: requestData.temperature || 0.7,
+                includeAnalysis: requestData.includeAnalysis || false
+            },
+            inputData: {
+                hasResume: !!requestData.resume,
+                resumeBasics: requestData.resume?.basics ? {
+                    name: requestData.resume.basics.name,
+                    email: requestData.resume.basics.email
+                } : null,
+                hasJobDescription: !!requestData.jobDescription,
+                jobDescriptionLength: requestData.jobDescription?.length || 0,
+                jobDescriptionPreview: requestData.jobDescription ? 
+                    requestData.jobDescription.substring(0, 100) + (requestData.jobDescription.length > 100 ? '...' : '') : null
+            }
+        },
+        
+        // Response details
+        response: response ? {
+            success: true,
+            content: response ? {
+                length: (typeof response === 'string' ? response : JSON.stringify(response)).length,
+                preview: (typeof response === 'string' ? response : JSON.stringify(response)).substring(0, 200) + '...',
+                fullResponse: response // Store full response for debugging
+            } : null,
+            processingTime: metadata.processingTime || null,
+            tokenUsage: metadata.tokenUsage || null
+        } : null,
+        
+        // Error details
+        error: error ? {
+            message: error.message || String(error),
+            stack: error.stack || null,
+            code: error.code || null,
+            statusCode: error.statusCode || null,
+            apiErrorDetails: error.apiErrorDetails || null
+        } : null,
+        
+        // Context metadata
+        metadata: {
+            jobId: metadata.jobId || null,
+            resumeId: metadata.resumeId || null,
+            sessionId: metadata.sessionId || null,
+            userAgent: navigator.userAgent,
+            requestId: metadata.requestId || null,
+            ...metadata
+        }
+    };
+    
+    return addLog(LOG_TYPES.API_CALL, operation, logDetails);
+}
+
+// Legacy function for backward compatibility
+export function logApiCallLegacy(apiType, prompt, response, jobId = null, error = null) {
+    return logApiCall(apiType, 'legacy_api_call', {
+        prompt,
+        apiType
+    }, response, error, { jobId });
 }
 
 // Log a job action
