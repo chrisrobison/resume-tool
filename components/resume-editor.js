@@ -552,14 +552,14 @@ class ResumeEditor extends HTMLElement {
                             <label for="work-location">Location</label>
                             <input type="text" id="work-location">
                         </div>
-                    </div>
-                    <div class="input-group">
-                        <label for="work-summary">Summary</label>
-                        <textarea id="work-summary"></textarea>
-                    </div>
-                    <div class="input-group">
-                        <label for="work-highlights">Highlights (one per line)</label>
-                        <textarea id="work-highlights" placeholder="• Accomplished X by implementing Y which led to Z"></textarea>
+                        <div class="input-group">
+                            <label for="work-summary">Summary</label>
+                            <textarea id="work-summary"></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="work-highlights">Highlights (one per line)</label>
+                            <textarea id="work-highlights" placeholder="• Accomplished X by implementing Y which led to Z"></textarea>
+                        </div>
                     </div>
                     <div class="button-group">
                         <button id="save-work" class="success"><i class="fa-solid fa-check"></i> Save</button>
@@ -885,8 +885,18 @@ class ResumeEditor extends HTMLElement {
         
         let html = '';
         registry.forEach(resume => {
-            const savedDate = new Date(resume.savedDate);
-            const formattedDate = savedDate.toLocaleDateString() + ' ' + savedDate.toLocaleTimeString();
+            let formattedDate = 'Unknown date';
+            try {
+                const savedDate = new Date(resume.savedDate);
+                if (isNaN(savedDate.getTime())) {
+                    formattedDate = 'Invalid date';
+                } else {
+                    formattedDate = savedDate.toLocaleDateString() + ' ' + savedDate.toLocaleTimeString();
+                }
+            } catch (e) {
+                console.warn('Error parsing saved date:', e);
+                formattedDate = 'Invalid date';
+            }
             
             html += `
                 <div class="resume-item-card" data-id="${resume.id}">
@@ -1957,7 +1967,7 @@ class ResumeEditor extends HTMLElement {
                     ${work.map(job => `
                         <div class="work-item">
                             <h4>${this.escapeHtml(job.position || 'Position')}</h4>
-                            <h5>${this.escapeHtml(job.name || 'Company')} ${job.startDate || job.endDate ? `(${job.startDate || ''} - ${job.endDate || 'Present'})` : ''}</h5>
+                            <h5>${this.escapeHtml(job.name || 'Company')} ${job.startDate ? `(${job.startDate || ''} - ${job.endDate || 'Present'})` : ''}</h5>
                             ${job.summary ? `<p>${this.escapeHtml(job.summary)}</p>` : ''}
                             ${job.highlights && job.highlights.length > 0 ? `
                                 <ul>
@@ -1977,7 +1987,7 @@ class ResumeEditor extends HTMLElement {
                     ${education.map(edu => `
                         <div class="education-item">
                             <h4>${this.escapeHtml(edu.studyType || 'Degree')} ${edu.area ? `in ${this.escapeHtml(edu.area)}` : ''}</h4>
-                            <h5>${this.escapeHtml(edu.institution || 'Institution')} ${edu.startDate || edu.endDate ? `(${edu.startDate || ''} - ${edu.endDate || 'Present'})` : ''}</h5>
+                            <h5>${this.escapeHtml(edu.institution || 'Institution')} ${edu.startDate ? `(${edu.startDate || ''} - ${edu.endDate || 'Present'})` : ''}</h5>
                             ${edu.gpa ? `<p>GPA: ${this.escapeHtml(edu.gpa)}</p>` : ''}
                         </div>
                     `).join('')}
@@ -2131,7 +2141,17 @@ class ResumeEditor extends HTMLElement {
         // Update lastModified
         const lastModifiedEl = this.querySelector('#lastModified');
         if (lastModifiedEl) {
-            lastModifiedEl.value = new Date(this.data.meta.lastModified).toISOString().split('T')[0];
+            try {
+                const date = new Date(this.data.meta.lastModified);
+                if (isNaN(date.getTime())) {
+                    lastModifiedEl.value = new Date().toISOString().split('T')[0];
+                } else {
+                    lastModifiedEl.value = date.toISOString().split('T')[0];
+                }
+            } catch (e) {
+                console.warn('Error parsing lastModified date:', e);
+                lastModifiedEl.value = new Date().toISOString().split('T')[0];
+            }
         }
         
         // Render all section lists
@@ -2145,10 +2165,15 @@ class ResumeEditor extends HTMLElement {
 
     updateMetaLastModified() {
         if (!this.state.loaded) return;
-        this.data.meta.lastModified = new Date().toISOString();
-        const lastModifiedEl = this.querySelector('#lastModified');
-        if (lastModifiedEl) {
-            lastModifiedEl.value = this.data.meta.lastModified.split('T')[0];
+        try {
+            this.data.meta.lastModified = new Date().toISOString();
+            const lastModifiedEl = this.querySelector('#lastModified');
+            if (lastModifiedEl) {
+                lastModifiedEl.value = this.data.meta.lastModified.split('T')[0];
+            }
+        } catch (e) {
+            console.warn('Error updating lastModified date:', e);
+            this.data.meta.lastModified = new Date().toISOString();
         }
         
         // Emit custom event for real-time updates
@@ -2163,7 +2188,21 @@ class ResumeEditor extends HTMLElement {
         const registry = this.getSavedResumes();
         if (registry.length > 0) {
             // Load the most recently saved resume
-            const latestResume = registry.sort((a, b) => new Date(b.savedDate) - new Date(a.savedDate))[0];
+            const latestResume = registry.sort((a, b) => {
+                try {
+                    const dateA = new Date(a.savedDate);
+                    const dateB = new Date(b.savedDate);
+                    
+                    // Handle invalid dates by treating them as very old
+                    const timeA = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
+                    const timeB = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
+                    
+                    return timeB - timeA;
+                } catch (e) {
+                    console.warn('Error comparing saved dates:', e);
+                    return 0;
+                }
+            })[0];
             const resumeData = localStorage.getItem(`resume_${latestResume.id}`);
             if (resumeData) {
                 try {
