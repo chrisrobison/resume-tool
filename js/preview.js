@@ -185,8 +185,8 @@ function generateModernTheme(resumeData) {
                         </div>
                         <div class="work-date">
                             ${work.startDate ? escapeHtml(formatDate(work.startDate)) : ''} 
-                            ${work.startDate && work.endDate ? ' - ' : ''}
-                            ${work.endDate ? escapeHtml(formatDate(work.endDate)) : ''}
+                            ${work.startDate ? ' - ' : ''}
+                            ${work.endDate ? escapeHtml(formatDate(work.endDate)) : 'Present'}
                         </div>
                     </div>
                     ${work.location ? `<div class="work-location"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(work.location)}</div>` : ''}
@@ -212,8 +212,8 @@ function generateModernTheme(resumeData) {
                         </div>
                         <div class="education-date">
                             ${edu.startDate ? escapeHtml(formatDate(edu.startDate)) : ''} 
-                            ${edu.startDate && edu.endDate ? ' - ' : ''}
-                            ${edu.endDate ? escapeHtml(formatDate(edu.endDate)) : ''}
+                            ${edu.startDate ? ' - ' : ''}
+                            ${edu.endDate ? escapeHtml(formatDate(edu.endDate)) : 'Present'}
                         </div>
                     </div>
                     ${edu.gpa ? `<div class="education-gpa">GPA: ${escapeHtml(edu.gpa)}</div>` : ''}
@@ -261,8 +261,8 @@ function generateModernTheme(resumeData) {
                         </div>
                         <div class="project-date">
                             ${project.startDate ? escapeHtml(formatDate(project.startDate)) : ''} 
-                            ${project.startDate && project.endDate ? ' - ' : ''}
-                            ${project.endDate ? escapeHtml(formatDate(project.endDate)) : ''}
+                            ${project.startDate ? ' - ' : ''}
+                            ${project.endDate ? escapeHtml(formatDate(project.endDate)) : 'Present'}
                         </div>
                     </div>
                     ${project.description ? `<div class="project-description">${escapeHtml(project.description)}</div>` : ''}
@@ -341,8 +341,8 @@ function generateClassicTheme(resumeData) {
                         <div class="classic-work-company">${escapeHtml(work.name || '')}</div>
                         <div class="classic-work-date">
                             ${work.startDate ? escapeHtml(formatDate(work.startDate)) : ''} 
-                            ${work.startDate && work.endDate ? ' - ' : ''}
-                            ${work.endDate ? escapeHtml(formatDate(work.endDate)) : ''}
+                            ${work.startDate ? ' - ' : ''}
+                            ${work.endDate ? escapeHtml(formatDate(work.endDate)) : 'Present'}
                         </div>
                     </div>
                     <div class="classic-work-position">${escapeHtml(work.position || '')}</div>
@@ -367,8 +367,8 @@ function generateClassicTheme(resumeData) {
                         <div class="classic-education-institution">${escapeHtml(edu.institution || '')}</div>
                         <div class="classic-education-date">
                             ${edu.startDate ? escapeHtml(formatDate(edu.startDate)) : ''} 
-                            ${edu.startDate && edu.endDate ? ' - ' : ''}
-                            ${edu.endDate ? escapeHtml(formatDate(edu.endDate)) : ''}
+                            ${edu.startDate ? ' - ' : ''}
+                            ${edu.endDate ? escapeHtml(formatDate(edu.endDate)) : 'Present'}
                         </div>
                     </div>
                     <div class="classic-education-degree">${escapeHtml(edu.studyType || '')}${edu.area ? ` in ${escapeHtml(edu.area)}` : ''}</div>
@@ -407,8 +407,8 @@ function generateClassicTheme(resumeData) {
                         <div class="classic-project-name">${escapeHtml(project.name || '')}</div>
                         <div class="classic-project-date">
                             ${project.startDate ? escapeHtml(formatDate(project.startDate)) : ''} 
-                            ${project.startDate && project.endDate ? ' - ' : ''}
-                            ${project.endDate ? escapeHtml(formatDate(project.endDate)) : ''}
+                            ${project.startDate ? ' - ' : ''}
+                            ${project.endDate ? escapeHtml(formatDate(project.endDate)) : 'Present'}
                         </div>
                     </div>
                     ${project.url ? `<div class="classic-project-url">${escapeHtml(project.url)}</div>` : ''}
@@ -486,8 +486,8 @@ function generateMinimalTheme(resumeData) {
                             <span class="minimal-company">${escapeHtml(work.name || '')}</span>
                             <span class="minimal-date">
                                 ${work.startDate ? escapeHtml(formatDate(work.startDate, 'MMM YYYY')) : ''} 
-                                ${work.startDate && work.endDate ? '–' : ''}
-                                ${work.endDate ? escapeHtml(formatDate(work.endDate, 'MMM YYYY')) : ''}
+                                ${work.startDate ? '–' : ''}
+                                ${work.endDate ? escapeHtml(formatDate(work.endDate, 'MMM YYYY')) : 'Present'}
                             </span>
                         </div>
                     </div>
@@ -511,8 +511,8 @@ function generateMinimalTheme(resumeData) {
                         <span class="minimal-institution">${escapeHtml(edu.institution || '')}</span>
                         <span class="minimal-date">
                             ${edu.startDate ? escapeHtml(formatDate(edu.startDate, 'YYYY')) : ''} 
-                            ${edu.startDate && edu.endDate ? '–' : ''}
-                            ${edu.endDate ? escapeHtml(formatDate(edu.endDate, 'YYYY')) : ''}
+                            ${edu.startDate ? '–' : ''}
+                            ${edu.endDate ? escapeHtml(formatDate(edu.endDate, 'YYYY')) : 'Present'}
                         </span>
                     </div>
                 </div>
@@ -546,8 +546,8 @@ function generateMinimalTheme(resumeData) {
                         ${project.url ? `<a href="${escapeHtml(project.url)}" class="minimal-url">${escapeHtml(project.url)}</a>` : ''}
                         <span class="minimal-date">
                             ${project.startDate ? escapeHtml(formatDate(project.startDate, 'MMM YYYY')) : ''} 
-                            ${project.startDate && project.endDate ? '–' : ''}
-                            ${project.endDate ? escapeHtml(formatDate(project.endDate, 'MMM YYYY')) : ''}
+                            ${project.startDate ? '–' : ''}
+                            ${project.endDate ? escapeHtml(formatDate(project.endDate, 'MMM YYYY')) : 'Present'}
                         </span>
                     </div>
                     ${project.description ? `<p class="minimal-description">${escapeHtml(project.description)}</p>` : ''}

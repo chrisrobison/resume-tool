@@ -5,7 +5,12 @@ import { hideModal, showModal } from './modals.js';
 // Export resume to JSON
 export function exportResumeToJson(resumeData) {
     // Update lastModified date
-    resumeData.meta.lastModified = new Date().toISOString();
+    try {
+        resumeData.meta.lastModified = new Date().toISOString();
+    } catch (e) {
+        console.warn('Error updating lastModified date during export:', e);
+        resumeData.meta.lastModified = new Date().toISOString();
+    }
     
     try {
         const jsonData = JSON.stringify(resumeData, null, 2);
@@ -52,6 +57,140 @@ export function importResumeFromJson(jsonString, app) {
                         : [];
             }
         });
+        
+        // Validate and fix date fields in meta section
+        if (importedData.meta && importedData.meta.lastModified) {
+            try {
+                const testDate = new Date(importedData.meta.lastModified);
+                if (isNaN(testDate.getTime())) {
+                    console.warn('Invalid lastModified date found, using current date');
+                    importedData.meta.lastModified = new Date().toISOString();
+                }
+            } catch (e) {
+                console.warn('Error parsing lastModified date:', e);
+                importedData.meta.lastModified = new Date().toISOString();
+            }
+        }
+        
+        // Validate and fix date fields in work experience
+        if (importedData.work && Array.isArray(importedData.work)) {
+            importedData.work.forEach((workItem, index) => {
+                ['startDate', 'endDate'].forEach(dateField => {
+                    if (workItem[dateField]) {
+                        const dateValue = workItem[dateField].toString().toLowerCase();
+                        
+                        // Remove fields that contain 'present'
+                        if (dateValue.includes('present')) {
+                            console.log(`Removing ${dateField} containing 'Present' from work item ${index}`);
+                            delete workItem[dateField];
+                            return;
+                        }
+                        
+                        // Validate remaining date fields
+                        try {
+                            const testDate = new Date(workItem[dateField]);
+                            if (isNaN(testDate.getTime()) && workItem[dateField].trim() !== '') {
+                                console.warn(`Invalid ${dateField} in work item ${index}, clearing field`);
+                                delete workItem[dateField];
+                            }
+                        } catch (e) {
+                            console.warn(`Error parsing ${dateField} in work item ${index}:`, e);
+                            delete workItem[dateField];
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Validate and fix date fields in education
+        if (importedData.education && Array.isArray(importedData.education)) {
+            importedData.education.forEach((eduItem, index) => {
+                ['startDate', 'endDate'].forEach(dateField => {
+                    if (eduItem[dateField]) {
+                        const dateValue = eduItem[dateField].toString().toLowerCase();
+                        
+                        // Remove fields that contain 'present'
+                        if (dateValue.includes('present')) {
+                            console.log(`Removing ${dateField} containing 'Present' from education item ${index}`);
+                            delete eduItem[dateField];
+                            return;
+                        }
+                        
+                        // Validate remaining date fields
+                        try {
+                            const testDate = new Date(eduItem[dateField]);
+                            if (isNaN(testDate.getTime()) && eduItem[dateField].trim() !== '') {
+                                console.warn(`Invalid ${dateField} in education item ${index}, clearing field`);
+                                delete eduItem[dateField];
+                            }
+                        } catch (e) {
+                            console.warn(`Error parsing ${dateField} in education item ${index}:`, e);
+                            delete eduItem[dateField];
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Validate and fix date fields in projects
+        if (importedData.projects && Array.isArray(importedData.projects)) {
+            importedData.projects.forEach((projectItem, index) => {
+                ['startDate', 'endDate'].forEach(dateField => {
+                    if (projectItem[dateField]) {
+                        const dateValue = projectItem[dateField].toString().toLowerCase();
+                        
+                        // Remove fields that contain 'present'
+                        if (dateValue.includes('present')) {
+                            console.log(`Removing ${dateField} containing 'Present' from project item ${index}`);
+                            delete projectItem[dateField];
+                            return;
+                        }
+                        
+                        // Validate remaining date fields
+                        try {
+                            const testDate = new Date(projectItem[dateField]);
+                            if (isNaN(testDate.getTime()) && projectItem[dateField].trim() !== '') {
+                                console.warn(`Invalid ${dateField} in project item ${index}, clearing field`);
+                                delete projectItem[dateField];
+                            }
+                        } catch (e) {
+                            console.warn(`Error parsing ${dateField} in project item ${index}:`, e);
+                            delete projectItem[dateField];
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Validate and fix date fields in volunteer work
+        if (importedData.volunteer && Array.isArray(importedData.volunteer)) {
+            importedData.volunteer.forEach((volunteerItem, index) => {
+                ['startDate', 'endDate'].forEach(dateField => {
+                    if (volunteerItem[dateField]) {
+                        const dateValue = volunteerItem[dateField].toString().toLowerCase();
+                        
+                        // Remove fields that contain 'present'
+                        if (dateValue.includes('present')) {
+                            console.log(`Removing ${dateField} containing 'Present' from volunteer item ${index}`);
+                            delete volunteerItem[dateField];
+                            return;
+                        }
+                        
+                        // Validate remaining date fields
+                        try {
+                            const testDate = new Date(volunteerItem[dateField]);
+                            if (isNaN(testDate.getTime()) && volunteerItem[dateField].trim() !== '') {
+                                console.warn(`Invalid ${dateField} in volunteer item ${index}, clearing field`);
+                                delete volunteerItem[dateField];
+                            }
+                        } catch (e) {
+                            console.warn(`Error parsing ${dateField} in volunteer item ${index}:`, e);
+                            delete volunteerItem[dateField];
+                        }
+                    }
+                });
+            });
+        }
         
         // Ensure basics.location exists
         if (!importedData.basics.location) {
