@@ -1102,6 +1102,12 @@ class ResumeEditor extends HTMLElement {
                     this.data.basics[field] = e.target.value;
                     this.updateMetaLastModified();
                     this.saveToLocalStorage();
+                    
+                    // Emit change event for real-time updates
+                    this.dispatchEvent(new CustomEvent('resume-change', {
+                        detail: { resumeData: this.data },
+                        bubbles: true
+                    }));
                 });
             }
         });
@@ -1116,6 +1122,12 @@ class ResumeEditor extends HTMLElement {
                     this.data.basics.location[field] = e.target.value;
                     this.updateMetaLastModified();
                     this.saveToLocalStorage();
+                    
+                    // Emit change event for real-time updates
+                    this.dispatchEvent(new CustomEvent('resume-change', {
+                        detail: { resumeData: this.data },
+                        bubbles: true
+                    }));
                 });
             }
         });
@@ -1130,6 +1142,12 @@ class ResumeEditor extends HTMLElement {
                     this.data.meta[field] = e.target.value;
                     this.updateMetaLastModified();
                     this.saveToLocalStorage();
+                    
+                    // Emit change event for real-time updates
+                    this.dispatchEvent(new CustomEvent('resume-change', {
+                        detail: { resumeData: this.data },
+                        bubbles: true
+                    }));
                 });
             }
         });
@@ -1155,6 +1173,12 @@ class ResumeEditor extends HTMLElement {
                 
                 this.updateMetaLastModified();
                 this.saveToLocalStorage();
+                
+                // Emit change event for real-time updates
+                this.dispatchEvent(new CustomEvent('resume-change', {
+                    detail: { resumeData: this.data },
+                    bubbles: true
+                }));
             });
         }
     }
@@ -1218,6 +1242,15 @@ class ResumeEditor extends HTMLElement {
             this.hideModal('profile-modal');
             this.updateMetaLastModified();
             this.saveToLocalStorage();
+            
+            // Emit change event for real-time updates
+            this.dispatchEvent(new CustomEvent('resume-change', {
+                detail: { resumeData: this.data },
+                bubbles: true
+            }));
+            
+            // Show success feedback
+            this.showToast('Profile saved successfully', 'success');
         });
         
         // Edit/delete profile events
@@ -1242,6 +1275,14 @@ class ResumeEditor extends HTMLElement {
                     this.renderProfiles();
                     this.updateMetaLastModified();
                     this.saveToLocalStorage();
+                    
+                    // Emit change event for real-time updates
+                    this.dispatchEvent(new CustomEvent('resume-change', {
+                        detail: { resumeData: this.data },
+                        bubbles: true
+                    }));
+                    
+                    this.showToast('Profile deleted successfully', 'success');
                 }
             }
         });
@@ -1293,6 +1334,15 @@ class ResumeEditor extends HTMLElement {
             this.hideModal('work-modal');
             this.updateMetaLastModified();
             this.saveToLocalStorage();
+            
+            // Emit change event for real-time updates
+            this.dispatchEvent(new CustomEvent('resume-change', {
+                detail: { resumeData: this.data },
+                bubbles: true
+            }));
+            
+            // Show success feedback
+            this.showToast('Work experience saved successfully', 'success');
         });
         
         // Edit/delete work events
@@ -1322,6 +1372,14 @@ class ResumeEditor extends HTMLElement {
                     this.renderWork();
                     this.updateMetaLastModified();
                     this.saveToLocalStorage();
+                    
+                    // Emit change event for real-time updates
+                    this.dispatchEvent(new CustomEvent('resume-change', {
+                        detail: { resumeData: this.data },
+                        bubbles: true
+                    }));
+                    
+                    this.showToast('Work experience deleted successfully', 'success');
                 }
             }
         });
@@ -1378,6 +1436,15 @@ class ResumeEditor extends HTMLElement {
             this.hideModal('volunteer-modal');
             this.updateMetaLastModified();
             this.saveToLocalStorage();
+            
+            // Emit change event for real-time updates
+            this.dispatchEvent(new CustomEvent('resume-change', {
+                detail: { resumeData: this.data },
+                bubbles: true
+            }));
+            
+            // Show success feedback
+            this.showToast('Volunteer experience saved successfully', 'success');
         });
         
         // Edit/delete volunteer events
@@ -1409,6 +1476,14 @@ class ResumeEditor extends HTMLElement {
                     this.renderVolunteer();
                     this.updateMetaLastModified();
                     this.saveToLocalStorage();
+                    
+                    // Emit change event for real-time updates
+                    this.dispatchEvent(new CustomEvent('resume-change', {
+                        detail: { resumeData: this.data },
+                        bubbles: true
+                    }));
+                    
+                    this.showToast('Volunteer experience deleted successfully', 'success');
                 }
             }
         });
@@ -1458,6 +1533,15 @@ class ResumeEditor extends HTMLElement {
             this.hideModal('education-modal');
             this.updateMetaLastModified();
             this.saveToLocalStorage();
+            
+            // Emit change event for real-time updates
+            this.dispatchEvent(new CustomEvent('resume-change', {
+                detail: { resumeData: this.data },
+                bubbles: true
+            }));
+            
+            // Show success feedback
+            this.showToast('Education saved successfully', 'success');
         });
         
         // Edit/delete education events
@@ -1486,6 +1570,14 @@ class ResumeEditor extends HTMLElement {
                     this.renderEducation();
                     this.updateMetaLastModified();
                     this.saveToLocalStorage();
+                    
+                    // Emit change event for real-time updates
+                    this.dispatchEvent(new CustomEvent('resume-change', {
+                        detail: { resumeData: this.data },
+                        bubbles: true
+                    }));
+                    
+                    this.showToast('Education deleted successfully', 'success');
                 }
             }
         });
@@ -1529,6 +1621,15 @@ class ResumeEditor extends HTMLElement {
             this.hideModal('skills-modal');
             this.updateMetaLastModified();
             this.saveToLocalStorage();
+            
+            // Emit change event for real-time updates
+            this.dispatchEvent(new CustomEvent('resume-change', {
+                detail: { resumeData: this.data },
+                bubbles: true
+            }));
+            
+            // Show success feedback
+            this.showToast('Skill saved successfully', 'success');
         });
         
         // Edit/delete skills events
@@ -1553,6 +1654,14 @@ class ResumeEditor extends HTMLElement {
                     this.renderSkills();
                     this.updateMetaLastModified();
                     this.saveToLocalStorage();
+                    
+                    // Emit change event for real-time updates
+                    this.dispatchEvent(new CustomEvent('resume-change', {
+                        detail: { resumeData: this.data },
+                        bubbles: true
+                    }));
+                    
+                    this.showToast('Skill deleted successfully', 'success');
                 }
             }
         });
@@ -1608,6 +1717,15 @@ class ResumeEditor extends HTMLElement {
             this.hideModal('projects-modal');
             this.updateMetaLastModified();
             this.saveToLocalStorage();
+            
+            // Emit change event for real-time updates
+            this.dispatchEvent(new CustomEvent('resume-change', {
+                detail: { resumeData: this.data },
+                bubbles: true
+            }));
+            
+            // Show success feedback
+            this.showToast('Project saved successfully', 'success');
         });
         
         // Edit/delete projects events
@@ -1636,6 +1754,14 @@ class ResumeEditor extends HTMLElement {
                     this.renderProjects();
                     this.updateMetaLastModified();
                     this.saveToLocalStorage();
+                    
+                    // Emit change event for real-time updates
+                    this.dispatchEvent(new CustomEvent('resume-change', {
+                        detail: { resumeData: this.data },
+                        bubbles: true
+                    }));
+                    
+                    this.showToast('Project deleted successfully', 'success');
                 }
             }
         });
@@ -2232,10 +2358,23 @@ class ResumeEditor extends HTMLElement {
             // Save to both storage systems for compatibility
             localStorage.setItem('resumeJson', JSON.stringify(this.data));
             
-            // Also save to the new storage system if we have a name
-            if (this.data.meta.name) {
-                this.saveResumeToStorage(this.data.meta.name);
+            // Try to save to the registry system with intelligent naming
+            let resumeName = this.data.meta.name;
+            
+            // If no name is set, create a default one based on the user's name
+            if (!resumeName && this.data.basics.name) {
+                resumeName = `${this.data.basics.name}'s Resume`;
+                this.data.meta.name = resumeName;
             }
+            
+            // If we still don't have a name, use a generic one
+            if (!resumeName) {
+                resumeName = 'My Resume';
+                this.data.meta.name = resumeName;
+            }
+            
+            // Save to the registry system
+            this.saveResumeToStorage(resumeName);
         } catch (e) {
             console.error('Error saving resume data:', e);
         }
