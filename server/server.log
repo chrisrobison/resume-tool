@@ -141,3 +141,11 @@ Verified: index.html exists at /home/cdr/domains/cdr2.com/www/job-tool/index.htm
 [2025-06-15T13:13:55.808Z] Serving index.html for path: /pdown
 [2025-06-15T13:13:55.809Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
 [2025-06-15T13:13:55.962Z] GET /pdown | Status: 200 | Duration: 178ms
+[2025-06-15T17:44:09.735Z] GET /favicon.ico | IP: ::ffff:103.210.22.240
+[2025-06-15T17:44:09.756Z] Serving index.html for path: /favicon.ico
+[2025-06-15T17:44:09.757Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-06-15T17:44:10.550Z] GET /favicon.ico | Status: 200 | Duration: 815ms
+[2025-06-15T17:44:11.344Z] GET /favicon.ico | IP: ::ffff:103.210.22.240
+[2025-06-15T17:44:11.344Z] Serving index.html for path: /favicon.ico
+[2025-06-15T17:44:11.345Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-06-15T17:44:12.139Z] GET /favicon.ico | Status: 200 | Duration: 795ms
