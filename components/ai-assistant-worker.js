@@ -1112,14 +1112,32 @@ class AIAssistantWorker extends HTMLElement {
         const settings = getState('settings');
         if (settings && settings.apiProviders) {
             const providers = settings.apiProviders;
-            console.log('AI Assistant getApiConfig - Checking settings structure - Providers:', providers); // Debug log
+            const defaultProvider = settings.preferences?.defaultProvider || 'claude';
             
-            if (providers.claude && providers.claude.apiKey && providers.claude.apiKey.trim().length > 0) {
-                console.log('AI Assistant getApiConfig - Using Claude from settings'); // Debug log
-                return { provider: 'claude', apiKey: providers.claude.apiKey.trim() };
-            } else if (providers.openai && providers.openai.apiKey && providers.openai.apiKey.trim().length > 0) {
-                console.log('AI Assistant getApiConfig - Using OpenAI from settings'); // Debug log
-                return { provider: 'openai', apiKey: providers.openai.apiKey.trim() };
+            console.log('AI Assistant getApiConfig - Default provider:', defaultProvider); // Debug log
+            console.log('AI Assistant getApiConfig - Providers:', providers); // Debug log
+            
+            // First try the default provider if it's enabled and has a key
+            if (providers[defaultProvider] && 
+                providers[defaultProvider].enabled && 
+                providers[defaultProvider].apiKey && 
+                providers[defaultProvider].apiKey.trim().length > 0) {
+                console.log(`AI Assistant getApiConfig - Using default provider: ${defaultProvider}`); // Debug log
+                return { 
+                    provider: defaultProvider, 
+                    apiKey: providers[defaultProvider].apiKey.trim() 
+                };
+            }
+            
+            // Fallback: try any enabled provider with a key
+            for (const [providerName, config] of Object.entries(providers)) {
+                if (config && config.enabled && config.apiKey && config.apiKey.trim().length > 0) {
+                    console.log(`AI Assistant getApiConfig - Using fallback provider: ${providerName}`); // Debug log
+                    return { 
+                        provider: providerName, 
+                        apiKey: config.apiKey.trim() 
+                    };
+                }
             }
         }
         

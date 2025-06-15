@@ -43,7 +43,7 @@
             log('Testing direct worker creation...');
             
             const workerPaths = [
-                './workers/ai-worker.js',
+                '../workers/ai-worker.js',
                 '/job-tool/workers/ai-worker.js',
                 'workers/ai-worker.js'
             ];
@@ -77,7 +77,7 @@
             
             // Test if worker file exists at different paths
             const paths = [
-                './workers/ai-worker.js',
+                '../workers/ai-worker.js',
                 '/job-tool/workers/ai-worker.js', 
                 'workers/ai-worker.js',
                 '../workers/ai-worker.js'
@@ -100,7 +100,7 @@
     </script>
     
     <script type="module">
-        import aiService from './js/ai-service.js';
+        import aiService from '../js/ai-service.js';
         
         window.testAIService = function() {
             log('Testing AI Service...');

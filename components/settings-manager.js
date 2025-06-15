@@ -47,8 +47,31 @@ class SettingsManager extends HTMLElement {
     }
 
     loadSettings() {
-        this._settings = getState('settings') || this.getDefaultSettings();
+        const storedSettings = getState('settings');
+        const defaultSettings = this.getDefaultSettings();
+        
+        // Deep merge stored settings with defaults to ensure all properties exist
+        this._settings = this.mergeSettings(defaultSettings, storedSettings);
         this.render();
+    }
+
+    mergeSettings(defaults, stored) {
+        if (!stored || typeof stored !== 'object') {
+            return defaults;
+        }
+        
+        const merged = { ...defaults };
+        
+        // Merge each top-level section
+        Object.keys(defaults).forEach(key => {
+            if (stored[key] && typeof stored[key] === 'object' && typeof defaults[key] === 'object') {
+                merged[key] = { ...defaults[key], ...stored[key] };
+            } else if (stored[key] !== undefined) {
+                merged[key] = stored[key];
+            }
+        });
+        
+        return merged;
     }
 
     getDefaultSettings() {
@@ -150,6 +173,8 @@ class SettingsManager extends HTMLElement {
                 
                 .settings-content {
                     padding: 30px;
+                    max-height: 60vh;
+                    overflow-y: auto;
                 }
                 
                 .tab-panel {
@@ -794,6 +819,26 @@ class SettingsManager extends HTMLElement {
             this.updateProviderSetting(target.dataset.provider, target.dataset.field, target.value);
         }
         
+        // Handle default provider selection
+        if (target.id === 'default-provider') {
+            this.updatePreferenceSetting('defaultProvider', target.value);
+        }
+        
+        // Handle theme selection
+        if (target.id === 'theme-select') {
+            this.updatePreferenceSetting('theme', target.value);
+        }
+        
+        // Handle resume default template
+        if (target.id === 'default-template') {
+            this.updateResumeSetting('defaultTemplate', target.value);
+        }
+        
+        // Handle max versions
+        if (target.id === 'max-versions') {
+            this.updateResumeSetting('maxVersions', parseInt(target.value));
+        }
+        
         // Handle file import
         if (target.id === 'import-file') {
             this.handleFileImport(e);
@@ -814,15 +859,32 @@ class SettingsManager extends HTMLElement {
 
     updateProviderSetting(provider, field, value) {
         const updatedSettings = { ...this._settings };
+        
+        // Ensure apiProviders object exists
+        if (!updatedSettings.apiProviders) {
+            updatedSettings.apiProviders = {};
+        }
         if (!updatedSettings.apiProviders[provider]) {
             updatedSettings.apiProviders[provider] = {};
         }
+        
         updatedSettings.apiProviders[provider][field] = value;
         this._settings = updatedSettings;
     }
 
     updatePreferenceSetting(setting, value) {
         const updatedSettings = { ...this._settings };
+        
+        // Ensure nested objects exist
+        if (!updatedSettings.preferences) {
+            updatedSettings.preferences = {};
+        }
+        if (!updatedSettings.resume) {
+            updatedSettings.resume = {};
+        }
+        if (!updatedSettings.privacy) {
+            updatedSettings.privacy = {};
+        }
         
         // Determine which section this setting belongs to
         if (['theme', 'defaultProvider', 'autoSave', 'showProgressDetails', 'includeAnalysisInRequests'].includes(setting)) {
@@ -833,6 +895,15 @@ class SettingsManager extends HTMLElement {
             updatedSettings.privacy[setting] = value;
         }
         
+        this._settings = updatedSettings;
+    }
+
+    updateResumeSetting(setting, value) {
+        const updatedSettings = { ...this._settings };
+        if (!updatedSettings.resume) {
+            updatedSettings.resume = {};
+        }
+        updatedSettings.resume[setting] = value;
         this._settings = updatedSettings;
     }
 
