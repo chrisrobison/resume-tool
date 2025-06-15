@@ -8,6 +8,7 @@ import * as modalManager from './modal-manager.js';
 import * as importExportManager from './import-export-manager.js';
 import * as cardRenderer from './card-renderer.js';
 import { schemas } from './schema-definitions.js';
+import { ComponentBase } from './component-base.js';
 
 /**
  * Main Application Manager
@@ -360,17 +361,89 @@ class AppManager {
 
     /**
      * Register a component with the app manager
+     * @param {string} componentId - Unique component identifier
+     * @param {ComponentBase} component - Component instance
      */
-    registerComponent(name, component) {
-        this.components.set(name, component);
-        console.log(`AppManager: Registered component: ${name}`);
+    registerComponent(componentId, component) {
+        this.components.set(componentId, component);
+        console.log(`AppManager: Registered component: ${componentId}`);
+        
+        // Emit component registration event
+        this.emitEvent('component-registered', {
+            componentId: componentId,
+            componentName: component.constructor.name,
+            metadata: component.getMetadata ? component.getMetadata() : {}
+        });
+    }
+
+    /**
+     * Unregister a component from the app manager
+     * @param {string} componentId - Component identifier
+     */
+    unregisterComponent(componentId) {
+        const component = this.components.get(componentId);
+        if (component) {
+            this.components.delete(componentId);
+            console.log(`AppManager: Unregistered component: ${componentId}`);
+            
+            // Emit component unregistration event
+            this.emitEvent('component-unregistered', {
+                componentId: componentId
+            });
+        }
     }
 
     /**
      * Get registered component
+     * @param {string} componentId - Component identifier
+     * @returns {ComponentBase|null} Component instance
      */
-    getComponent(name) {
-        return this.components.get(name);
+    getComponent(componentId) {
+        return this.components.get(componentId) || null;
+    }
+
+    /**
+     * Get all registered components
+     * @returns {Map} All registered components
+     */
+    getAllComponents() {
+        return new Map(this.components);
+    }
+
+    /**
+     * Find components by type/name
+     * @param {string} componentName - Component class name
+     * @returns {Array} Array of matching components
+     */
+    getComponentsByType(componentName) {
+        const matches = [];
+        this.components.forEach((component, componentId) => {
+            if (component.constructor.name === componentName) {
+                matches.push({ componentId, component });
+            }
+        });
+        return matches;
+    }
+
+    /**
+     * Handle component errors
+     * @param {string} componentId - Component identifier
+     * @param {Error} error - Error object
+     * @param {string} context - Error context
+     */
+    handleComponentError(componentId, error, context) {
+        console.error(`AppManager: Component error [${componentId}] in ${context}:`, error);
+        
+        // Show user-friendly error message
+        this.showToast(`Component error: ${context}`, 'error');
+        
+        // Could add error reporting/logging here
+        this.emitEvent('component-error', {
+            componentId: componentId,
+            error: error.message || String(error),
+            context: context,
+            timestamp: new Date().toISOString()
+        });
     }
 
     /**
@@ -386,11 +459,67 @@ class AppManager {
     }
 
     /**
+     * Show modal via modal manager
+     * @param {string} modalId - Modal identifier
+     * @param {object} data - Modal data
+     */
+    async showModal(modalId, data = null) {
+        try {
+            const modalManager = await import('./modal-manager.js');
+            return modalManager.showModal(modalId);
+        } catch (error) {
+            console.error(`AppManager: Failed to show modal ${modalId}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * Close modal via modal manager
+     * @param {string} modalId - Modal identifier
+     */
+    async closeModal(modalId) {
+        try {
+            const modalManager = await import('./modal-manager.js');
+            return modalManager.closeModal(modalId);
+        } catch (error) {
+            console.error(`AppManager: Failed to close modal ${modalId}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * Emit custom event
+     * @param {string} eventName - Event name
+     * @param {any} detail - Event detail data
+     */
+    emitEvent(eventName, detail = null) {
+        try {
+            const event = new CustomEvent(eventName, {
+                detail: detail,
+                bubbles: true,
+                composed: true
+            });
+            
+            document.dispatchEvent(event);
+            
+        } catch (error) {
+            console.error(`AppManager: Failed to emit event ${eventName}:`, error);
+        }
+    }
+
+    /**
      * Show toast notification
      */
     showToast(message, type = 'info') {
-        // TODO: Implement toast notification system
+        // TODO: Implement proper toast notification system
         console.log(`Toast (${type}): ${message}`);
+        
+        // Emit toast event for components that want to listen
+        this.emitEvent('toast-message', {
+            message: message,
+            type: type,
+            timestamp: new Date().toISOString()
+        });
     }
 
     /**
