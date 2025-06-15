@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Migration Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .test-header {
+            background: #007bff;
+            color: white;
+            padding: 20px;
+        }
+        
+        .test-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .test-header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .test-content {
+            padding: 20px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        
+        .test-section h2 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .component-container {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 200px;
+        }
+        
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        
+        .original-component {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .migrated-component {
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🧪 Component Migration Test</h1>
+            <p>Testing the migration from old HTMLElement pattern to ComponentBase standardized interface</p>
+        </div>
+        
+        <div class="test-content">
+            <!-- App Manager Status -->
+            <div class="test-section">
+                <h2>🏗️ App Manager Status</h2>
+                <div id="app-manager-status" class="status status-info">
+                    Initializing app manager...
+                </div>
+                <div class="test-controls">
+                    <button class="btn btn-primary" onclick="checkAppManager()">Check App Manager</button>
+                    <button class="btn btn-secondary" onclick="listComponents()">List Components</button>
+                </div>
+                <div id="app-manager-log" class="log"></div>
+            </div>
+
+            <!-- Example Component Test -->
+            <div class="test-section">
+                <h2>📝 Example ComponentBase Test</h2>
+                <div class="test-controls">
+                    <button class="btn btn-primary" onclick="createExampleComponent()">Create Example Component</button>
+                    <button class="btn btn-success" onclick="testExampleComponent()">Test Component Methods</button>
+                    <button class="btn btn-warning" onclick="validateExampleComponent()">Validate Component</button>
+                    <button class="btn btn-secondary" onclick="removeExampleComponent()">Remove Component</button>
+                </div>
+                <div class="component-container" id="example-component-container">
+                    <p style="color: #666; text-align: center;">Click "Create Example Component" to test ComponentBase</p>
+                </div>
+            </div>
+
+            <!-- Settings Manager Comparison -->
+            <div class="test-section">
+                <h2>⚖️ Settings Manager Comparison</h2>
+                <div class="test-controls">
+                    <button class="btn btn-primary" onclick="createOriginalSettings()">Create Original Settings</button>
+                    <button class="btn btn-success" onclick="createMigratedSettings()">Create Migrated Settings</button>
+                    <button class="btn btn-warning" onclick="compareComponents()">Compare Components</button>
+                    <button class="btn btn-secondary" onclick="clearSettingsTest()">Clear Test</button>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                    <div>
+                        <h3>Original Settings Manager</h3>
+                        <div class="component-container original-component" id="original-settings-container">
+                            <p style="color: #666; text-align: center;">Original component will appear here</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Migrated Settings Manager</h3>
+                        <div class="component-container migrated-component" id="migrated-settings-container">
+                            <p style="color: #666; text-align: center;">Migrated component will appear here</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="comparison-results" class="log" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- Migration Utilities Test -->
+            <div class="test-section">
+                <h2>🔧 Migration Utilities Test</h2>
+                <div class="test-controls">
+                    <button class="btn btn-primary" onclick="testMigrationUtils()">Test Migration Utils</button>
+                    <button class="btn btn-secondary" onclick="generateMigrationReport()">Generate Report</button>
+                </div>
+                <div id="migration-utils-log" class="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Web Components and Global Store -->
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./js/store.js"></script>
+    
+    <!-- Include the migrated and original components -->
+    <script type="module" src="./components/settings-manager.js"></script>
+    <script type="module" src="./components/settings-manager-migrated.js"></script>
+    <script type="module" src="./components/example-modernized-component.js"></script>
+    
+    <!-- Include app manager and utilities -->
+    <script type="module" src="./js/app-manager.js"></script>
+    <script type="module" src="./js/component-migration-utils.js"></script>
+
+    <!-- Global Store Instance -->
+    <global-store></global-store>
+
+    <!-- Test JavaScript -->
+    <script type="module">
+        import appManager from './js/app-manager.js';
+        import { 
+            analyzeComponent, 
+            generateMigrationTemplate, 
+            getMigrationInstructions, 
+            validateMigration 
+        } from './js/component-migration-utils.js';
+        
+        let originalSettingsComponent = null;
+        let migratedSettingsComponent = null;
+        let exampleComponent = null;
+
+        // Make functions available globally for button clicks
+        window.checkAppManager = checkAppManager;
+        window.listComponents = listComponents;
+        window.createExampleComponent = createExampleComponent;
+        window.testExampleComponent = testExampleComponent;
+        window.validateExampleComponent = validateExampleComponent;
+        window.removeExampleComponent = removeExampleComponent;
+        window.createOriginalSettings = createOriginalSettings;
+        window.createMigratedSettings = createMigratedSettings;
+        window.compareComponents = compareComponents;
+        window.clearSettingsTest = clearSettingsTest;
+        window.testMigrationUtils = testMigrationUtils;
+        window.generateMigrationReport = generateMigrationReport;
+
+        // Initialize the test
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                log('app-manager-log', '🚀 Initializing test environment...');
+                
+                // Initialize app manager
+                await appManager.init();
+                
+                updateStatus('app-manager-status', 'App Manager initialized successfully!', 'success');
+                log('app-manager-log', '✅ App Manager initialized');
+                log('app-manager-log', `📊 Component registry: ${appManager.getAllComponents().size} components`);
+                
+            } catch (error) {
+                updateStatus('app-manager-status', `Failed to initialize: ${error.message}`, 'error');
+                log('app-manager-log', `❌ Initialization failed: ${error.message}`);
+            }
+        });
+
+        function checkAppManager() {
+            const status = document.getElementById('app-manager-status');
+            const logEl = document.getElementById('app-manager-log');
+            
+            log('app-manager-log', '\n🔍 Checking App Manager status...');
+            
+            if (window.appManager) {
+                const components = appManager.getAllComponents();
+                const state = appManager.getCurrentState();
+                
+                updateStatus('app-manager-status', `App Manager is running with ${components.size} registered components`, 'success');
+                log('app-manager-log', `✅ App Manager instance: ${appManager.constructor.name}`);
+                log('app-manager-log', `📊 Registered components: ${components.size}`);
+                log('app-manager-log', `📋 Current section: ${state.section}`);
+                log('app-manager-log', `💾 Data sections: ${Object.keys(state.data).join(', ')}`);
+            } else {
+                updateStatus('app-manager-status', 'App Manager not found!', 'error');
+                log('app-manager-log', '❌ window.appManager is not available');
+            }
+        }
+
+        function listComponents() {
+            log('app-manager-log', '\n📋 Listing registered components...');
+            
+            const components = appManager.getAllComponents();
+            if (components.size === 0) {
+                log('app-manager-log', '📭 No components registered yet');
+                return;
+            }
+            
+            components.forEach((component, id) => {
+                const metadata = component.getMetadata ? component.getMetadata() : { componentName: 'Unknown' };
+                log('app-manager-log', `🧩 ${id}: ${metadata.componentName} (${metadata.isInitialized ? 'Ready' : 'Not Ready'})`);
+            });
+        }
+
+        function createExampleComponent() {
+            const container = document.getElementById('example-component-container');
+            
+            if (exampleComponent) {
+                container.removeChild(exampleComponent);
+            }
+            
+            exampleComponent = document.createElement('example-modernized-component');
+            container.innerHTML = '';
+            container.appendChild(exampleComponent);
+            
+            log('app-manager-log', '\n🔧 Created example component');
+        }
+
+        function testExampleComponent() {
+            if (!exampleComponent) {
+                log('app-manager-log', '❌ No example component to test');
+                return;
+            }
+            
+            log('app-manager-log', '\n🧪 Testing example component methods...');
+            
+            // Test data methods
+            const testData = { message: 'Hello from test!', timestamp: new Date().toISOString() };
+            exampleComponent.setData(testData, 'test');
+            
+            const retrievedData = exampleComponent.getData();
+            log('app-manager-log', `📥 Set data: ${JSON.stringify(testData)}`);
+            log('app-manager-log', `📤 Got data: ${JSON.stringify(retrievedData)}`);
+            
+            // Test validation
+            const validation = exampleComponent.validate();
+            log('app-manager-log', `✅ Validation: ${validation.valid ? 'PASSED' : 'FAILED'}`);
+            if (!validation.valid) {
+                log('app-manager-log', `❌ Errors: ${validation.errors.join(', ')}`);
+            }
+            
+            // Test refresh
+            exampleComponent.refresh();
+            log('app-manager-log', '🔄 Component refreshed');
+            
+            // Test metadata
+            const metadata = exampleComponent.getMetadata();
+            log('app-manager-log', `📊 Metadata: ${JSON.stringify(metadata, null, 2)}`);
+        }
+
+        function validateExampleComponent() {
+            if (!exampleComponent) {
+                log('app-manager-log', '❌ No example component to validate');
+                return;
+            }
+            
+            log('app-manager-log', '\n🔍 Validating component migration...');
+            
+            const validation = validateMigration(exampleComponent);
+            log('app-manager-log', `📊 Migration validation score: ${validation.score}/100`);
+            log('app-manager-log', `✅ Valid migration: ${validation.valid}`);
+            
+            if (validation.issues.length > 0) {
+                log('app-manager-log', '❌ Issues:');
+                validation.issues.forEach(issue => log('app-manager-log', `   - ${issue}`));
+            }
+            
+            if (validation.warnings.length > 0) {
+                log('app-manager-log', '⚠️  Warnings:');
+                validation.warnings.forEach(warning => log('app-manager-log', `   - ${warning}`));
+            }
+            
+            if (validation.valid && validation.issues.length === 0) {
+                log('app-manager-log', '🎉 Component migration is SUCCESSFUL!');
+            }
+        }
+
+        function removeExampleComponent() {
+            if (exampleComponent) {
+                const container = document.getElementById('example-component-container');
+                container.removeChild(exampleComponent);
+                exampleComponent = null;
+                container.innerHTML = '<p style="color: #666; text-align: center;">Component removed</p>';
+                log('app-manager-log', '🗑️  Example component removed');
+            }
+        }
+
+        function createOriginalSettings() {
+            const container = document.getElementById('original-settings-container');
+            
+            if (originalSettingsComponent) {
+                container.removeChild(originalSettingsComponent);
+            }
+            
+            originalSettingsComponent = document.createElement('settings-manager');
+            container.innerHTML = '';
+            container.appendChild(originalSettingsComponent);
+            
+            log('comparison-results', '📊 Created original settings manager');
+        }
+
+        function createMigratedSettings() {
+            const container = document.getElementById('migrated-settings-container');
+            
+            if (migratedSettingsComponent) {
+                container.removeChild(migratedSettingsComponent);
+            }
+            
+            migratedSettingsComponent = document.createElement('settings-manager-migrated');
+            container.innerHTML = '';
+            container.appendChild(migratedSettingsComponent);
+            
+            log('comparison-results', '🔧 Created migrated settings manager');
+        }
+
+        function compareComponents() {
+            log('comparison-results', '\n⚖️  Comparing original vs migrated components...');
+            
+            if (!originalSettingsComponent) {
+                log('comparison-results', '❌ Original component not created');
+                return;
+            }
+            
+            if (!migratedSettingsComponent) {
+                log('comparison-results', '❌ Migrated component not created');
+                return;
+            }
+            
+            // Compare basic properties
+            log('comparison-results', '\n📊 Basic Comparison:');
+            log('comparison-results', `Original extends: ${originalSettingsComponent.constructor.__proto__.name}`);
+            log('comparison-results', `Migrated extends: ${migratedSettingsComponent.constructor.__proto__.name}`);
+            
+            // Check ComponentBase methods
+            const componentBaseMethods = ['setData', 'getData', 'refresh', 'validate', 'isReady', 'getMetadata'];
+            log('comparison-results', '\n🔧 ComponentBase Methods:');
+            componentBaseMethods.forEach(method => {
+                const originalHas = typeof originalSettingsComponent[method] === 'function';
+                const migratedHas = typeof migratedSettingsComponent[method] === 'function';
+                log('comparison-results', `${method}: Original(${originalHas ? '✅' : '❌'}) Migrated(${migratedHas ? '✅' : '❌'})`);
+            });
+            
+            // Test migrated component specifically
+            if (migratedSettingsComponent.isReady && migratedSettingsComponent.isReady()) {
+                const validation = migratedSettingsComponent.validate();
+                log('comparison-results', `\n✅ Migrated component validation: ${validation.valid ? 'PASSED' : 'FAILED'}`);
+                
+                const metadata = migratedSettingsComponent.getMetadata();
+                log('comparison-results', `📊 Migrated component ready: ${metadata.isInitialized}`);
+            }
+            
+            log('comparison-results', '\n🎉 Migration comparison complete!');
+        }
+
+        function clearSettingsTest() {
+            const originalContainer = document.getElementById('original-settings-container');
+            const migratedContainer = document.getElementById('migrated-settings-container');
+            
+            originalContainer.innerHTML = '<p style="color: #666; text-align: center;">Original component will appear here</p>';
+            migratedContainer.innerHTML = '<p style="color: #666; text-align: center;">Migrated component will appear here</p>';
+            
+            originalSettingsComponent = null;
+            migratedSettingsComponent = null;
+            
+            log('comparison-results', '🧹 Settings test cleared');
+        }
+
+        function testMigrationUtils() {
+            log('migration-utils-log', '\n🔧 Testing migration utilities...');
+            
+            // Test component analysis
+            if (originalSettingsComponent) {
+                const analysis = analyzeComponent(originalSettingsComponent);
+                log('migration-utils-log', `📊 Component analysis for ${analysis.componentName}:`);
+                log('migration-utils-log', `   Needs migration: ${analysis.needsMigration}`);
+                log('migration-utils-log', `   Complexity: ${analysis.complexity}`);
+                log('migration-utils-log', `   Issues: ${analysis.issues.length}`);
+                analysis.issues.forEach(issue => log('migration-utils-log', `     - ${issue}`));
+            }
+            
+            // Test migration instructions
+            const instructions = getMigrationInstructions('settings-manager');
+            log('migration-utils-log', `\n📋 Migration instructions for ${instructions.componentName}:`);
+            log('migration-utils-log', `   Difficulty: ${instructions.difficulty}`);
+            log('migration-utils-log', `   Estimated time: ${instructions.estimatedTime}`);
+            log('migration-utils-log', `   Steps: ${instructions.steps.length}`);
+            
+            // Test template generation
+            const template = generateMigrationTemplate('ExampleComponent', {
+                usesShadowDOM: true,
+                hasFormValidation: true
+            });
+            log('migration-utils-log', '\n📝 Generated migration template (first 200 chars):');
+            log('migration-utils-log', template.substring(0, 200) + '...');
+            
+            log('migration-utils-log', '\n✅ Migration utilities test complete!');
+        }
+
+        function generateMigrationReport() {
+            log('migration-utils-log', '\n📊 Generating migration report...');
+            
+            const components = [
+                'settings-manager',
+                'global-store', 
+                'resume-viewer',
+                'resume-editor',
+                'ai-assistant-worker',
+                'job-manager'
+            ];
+            
+            components.forEach(component => {
+                const instructions = getMigrationInstructions(component);
+                log('migration-utils-log', `\n📦 ${component}:`);
+                log('migration-utils-log', `   Priority: ${instructions.difficulty}`);
+                log('migration-utils-log', `   Time: ${instructions.estimatedTime}`);
+                instructions.specificNotes.forEach(note => {
+                    log('migration-utils-log', `   Note: ${note}`);
+                });
+            });
+            
+            log('migration-utils-log', '\n🎯 Recommended migration order:');
+            log('migration-utils-log', '1. settings-manager (Low complexity)');
+            log('migration-utils-log', '2. global-store (Low complexity)');
+            log('migration-utils-log', '3. resume-viewer (Medium complexity)');
+            log('migration-utils-log', '4. ai-assistant-worker (Medium complexity)');
+            log('migration-utils-log', '5. resume-editor (High complexity)');
+            log('migration-utils-log', '6. job-manager (High complexity)');
+        }
+
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status status-${type}`;
+        }
+
+        function log(elementId, message) {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.textContent += `[${timestamp}] ${message}\n`;
+            element.scrollTop = element.scrollHeight;
+        }
+    </script>
+</body>
+</html>
