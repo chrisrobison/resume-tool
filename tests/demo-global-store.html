@@ -61,9 +61,9 @@
         <button onclick="clearEventLog()">Clear Log</button>
     </div>
 
-    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="../components/global-store.js"></script>
     <script type="module">
-        import { getState, setState, subscribe, addJob as storeAddJob, addResume as storeAddResume, setCurrentJob as storeSetCurrentJob, setCurrentResume as storeSetCurrentResume, updateSettings, setLoading } from './js/store.js';
+        import { getState, setState, subscribe, addJob as storeAddJob, addResume as storeAddResume, setCurrentJob as storeSetCurrentJob, setCurrentResume as storeSetCurrentResume, updateSettings, setLoading } from '../js/store.js';
         
         let eventLogCounter = 0;
         

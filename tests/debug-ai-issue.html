@@ -25,7 +25,7 @@
     <div id="logs"></div>
 
     <script type="module">
-        import aiService from './js/ai-service.js';
+        import aiService from '../js/ai-service.js';
         window.aiService = aiService;
         
         window.log = function(message, type = 'log') {
@@ -41,7 +41,7 @@
             log('Testing worker loading...');
             
             try {
-                const worker = new Worker('./workers/ai-worker.js');
+                const worker = new Worker('../workers/ai-worker.js');
                 log('Worker created successfully', 'success');
                 
                 worker.onmessage = function(e) {

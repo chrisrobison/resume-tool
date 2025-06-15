@@ -87,12 +87,12 @@ Ready to test API key functionality...
     <ai-assistant-worker style="display: none;"></ai-assistant-worker>
     <settings-manager style="display: none;"></settings-manager>
 
-    <script type="module" src="./components/global-store.js"></script>
-    <script type="module" src="./components/ai-assistant-worker.js"></script>
-    <script type="module" src="./components/settings-manager.js"></script>
-    <script type="module" src="./js/store.js"></script>
+    <script type="module" src="../components/global-store.js"></script>
+    <script type="module" src="../components/ai-assistant-worker.js"></script>
+    <script type="module" src="../components/settings-manager.js"></script>
+    <script type="module" src="../js/store.js"></script>
     <script type="module">
-        import { setState, getState, subscribe } from './js/store.js';
+        import { setState, getState, subscribe } from '../js/store.js';
         
         function log(message, type = 'info') {
             const output = document.getElementById('output');

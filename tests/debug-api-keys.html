@@ -65,11 +65,11 @@
         <p>The AI Assistant should show API key status here:</p>
     </div>
 
-    <script type="module" src="./components/global-store.js"></script>
-    <script type="module" src="./components/ai-assistant-worker.js"></script>
-    <script type="module" src="./js/store.js"></script>
+    <script type="module" src="../components/global-store.js"></script>
+    <script type="module" src="../components/ai-assistant-worker.js"></script>
+    <script type="module" src="../js/store.js"></script>
     <script type="module">
-        import { setState, getState, debugStore as storeDebug } from './js/store.js';
+        import { setState, getState, debugStore as storeDebug } from '../js/store.js';
         
         function log(message, type = 'info') {
             const output = document.getElementById('debug-output');
