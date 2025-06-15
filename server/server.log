@@ -121,3 +121,23 @@ Verified: index.html exists at /home/cdr/domains/cdr2.com/www/job-tool/index.htm
 [2025-06-15T03:57:42.450Z] Serving index.html for path: /favicon.ico
 [2025-06-15T03:57:42.451Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
 [2025-06-15T03:57:42.533Z] GET /favicon.ico | Status: 200 | Duration: 86ms
+[2025-06-15T06:29:19.398Z] GET /favicon.ico | IP: ::ffff:167.94.138.171
+[2025-06-15T06:29:19.416Z] Serving index.html for path: /favicon.ico
+[2025-06-15T06:29:19.416Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-06-15T06:29:19.440Z] GET /favicon.ico | Status: 200 | Duration: 42ms
+[2025-06-15T06:29:38.682Z] GET /favicon.ico | IP: ::ffff:167.94.138.171
+[2025-06-15T06:29:38.683Z] Serving index.html for path: /favicon.ico
+[2025-06-15T06:29:38.684Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-06-15T06:29:38.705Z] GET /favicon.ico | Status: 200 | Duration: 23ms
+[2025-06-15T06:30:12.096Z] GET /login | IP: ::ffff:167.94.138.171
+[2025-06-15T06:30:12.097Z] Serving index.html for path: /login
+[2025-06-15T06:30:12.098Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-06-15T06:30:13.720Z] GET /login | Status: 200 | Duration: 1624ms
+[2025-06-15T06:30:21.537Z] GET /favicon.ico | IP: ::ffff:167.94.138.171
+[2025-06-15T06:30:21.539Z] Serving index.html for path: /favicon.ico
+[2025-06-15T06:30:21.540Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-06-15T06:30:21.605Z] GET /favicon.ico | Status: 200 | Duration: 68ms
+[2025-06-15T13:13:55.785Z] GET /pdown | IP: ::ffff:34.34.66.159
+[2025-06-15T13:13:55.808Z] Serving index.html for path: /pdown
+[2025-06-15T13:13:55.809Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-06-15T13:13:55.962Z] GET /pdown | Status: 200 | Duration: 178ms
