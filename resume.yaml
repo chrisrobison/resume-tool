@@ -1,0 +1,379 @@
+basics:
+  name: Christopher Robison
+  label: Turning ideas into reality.
+  summary: Engineering leader with a deep passion for mission-driven work and universal
+    access to knowledge. A proven track record building scalable, production-grade
+    systems and tools across petabyte-scale data, mobile platforms, and real-time
+    environments. Adept at managing distributed teams, mentoring engineers, and directly
+    contributing code. Excels in Linux system administration, Python development,
+    infrastructure automation, and agile software lifecycle. Committed to open source
+    collaboration and cultural preservation through technology.
+  location:
+    city: San Francisco
+    region: CA
+  email: cdr@cdr2.com
+  phone: (415) 810-6991
+  picture: https://cdr2.com/cdr-business.jpg
+  website: https://www.cdr2.com/
+  profiles:
+    - network: LinkedIn
+      username: crobison
+      url: https://www.linkedin.com/in/crobison
+    - network: Twitter
+      username: thechrisrobison
+      url: https://twitter.com/thechrisrobison
+    - network: GitHub
+      username: chrisrobison
+      url: https://github.com/chrisrobison
+  image: https://cdr2.com/cdr-business.jpg
+  url: https://cdr2.com
+work:
+  - period: March, 2020 - Present
+    company: D. Harris Tours, Inc.
+    name: D. Harris Tours, Inc.
+    position: CTO
+    website: https://dharristours.com/
+    city: San Francisco
+    region: CA
+    location: San Francisco, CA
+    summary: "Designed and implemented an end-to-end transportation management system\
+      \ including: CRM,  scheduling, automated notifications, GPS tracking of assets,\
+      \ invoicing / payment collection, customer portal. \n\nLed the technological\
+      \ transformation and streamlined business operations, expanding the fleet from\
+      \ 2 to 14 buses and growing yearly revenue from $500k / yr to $3M+ / yr. Enhanced\
+      \ systems for real-time data on buses, automated maintenance, and trip confirmations\
+      \ via email and SMS. Implemented AI driven trip and route optimization, increasing\
+      \ bus and driver utilization and boosting daily revenue by 30% without any additional\
+      \ overhead."
+    startDate: '2020-03-01'
+    media:
+      url: assets/dharristours.png
+      thumbnail: assets/logos/dharristours.png
+      caption: ''
+      credit: © Copyright 2020, All Rights Reserved
+    highlights:
+      - Redefined processes for quoting, fulfilling, and invoicing trips
+      - Automated email/SMS notifications for trips, driver confirmations, and maintenance
+      - Increased daily revenue by 30% with better trip optimization
+      - Acted as both hands-on developer and strategic leader to scale services from
+        2 to 14 buses while maintaining operational uptime.
+      - Implemented full-stack solution across GPS, SMS/email integrations, scheduling,
+        and customer CRM.
+    description: ''
+  - period: July, 2010 - March, 2020
+    company: Conversant, Inc.
+    name: Conversant, Inc.
+    position: Manager, Software Engineering
+    website: https://conversantmedia.com
+    location: San Francisco, CA
+    summary: Designed, developed, and maintained the infrastructure and code-base
+      that served many millions of mobile and rich media ads each day. Led the Rich
+      Media effort and helped modernize the ad serving infrastructure and metric collection.
+      Designed and implemented a RESTful API for serving rich media ads and built
+      out scalable backend services to handle integration with existing servers and
+      infrastructure.
+    startDate: '2010-07-16'
+    endDate: '2020-03-01'
+    highlights:
+      - Contributed to IAB MRAID 2.0 standard
+      - Implemented MRAID SDKs on iOS and Android platforms
+      - Developed and deployed mobile ad solutions for multiple platforms, reaching
+        over 20 million users daily.
+      - Designed and deployed 'Rich Media' ad delivery and reporting infrastructure,
+        increasing ad viewability by 25%.
+      - Architected and deployed RESTful API for ad serving, tracking metrics and
+        reporting, reducing API response times by 35%.
+      - Developed client-side Javascript 'ad controller' for mobile and web
+      - Developed flexible metrics tracking with non-blocking endpoints, reducing
+        server load by 15%.
+      - Managed high-throughput ad infrastructure serving 20M+ users/day, ensuring
+        SLA adherence and operational resiliency.
+      - Led a remote team of engineers delivering cross-platform SDKs and rich media
+        APIs.
+  - period: Sept, 2007 - July, 2010
+    company: Mindjet
+    name: Mindjet
+    position: Web Architect
+    website: https://www.mindjet.com
+    location: San Francisco, CA
+    summary: Led Mindjet's initial Software as a Service (SaaS) product, Mindjet Catalyst.
+      Transformed Mindjet's business model with the new service, nearly doubling monthly
+      revenue.
+    startDate: '2007-09-02'
+    endDate: '2010-07-15'
+    highlights:
+      - Ported PHP website to ASP.NET, improving site load times by 40%.
+      - Ported Catalyst Flash client to standards-based HTML5/canvas, reducing cross-platform
+        compatibility issues by 90%.
+      - Architected and led the team that implemented Mindjet Catalyst, increasing
+        monthly subscriptions by 80%.
+  - period: April, 2006 - Sept, 2007
+    company: Simple Software, Inc.
+    name: Simple Software, Inc.
+    position: CEO / Founder
+    location: San Francisco, CA
+    website: http://simplesoftwaresf.com
+    summary: Founded Simple Software to provide software development and consulting
+      services. Developed the Simple Software Application Platform that provided content
+      management systems and business process management applications to small to
+      mid-sized businesses.
+    startDate: '2006-04-01'
+    endDate: '2007-09-01'
+    highlights:
+      - Developed contractor document management system, reducing document processing
+        time by 30%.
+      - Created custom content management systems for clients, leading to a 20% reduction
+        in content management costs.
+      - Led various software development projects for small businesses, increasing
+        client satisfaction by 25%.
+  - period: June, 2004 - April, 2006
+    company: Genetic Savings & Clone
+    name: Genetic Savings & Clone
+    position: VP Engineering
+    location: Sausalito, CA
+    summary: Architected and developed Clonesoft, a bespoke business process automation
+      software that ran every aspect of the company including employee and customer
+      management, order tracking, and clone progress tracking. Also developed the
+      CatBank database, a feline DNA identification website integrated with gene analysis
+      hardware.
+    startDate: '2004-06-01'
+    endDate: '2006-04-01'
+    highlights:
+      - Cloned a cat and delivered it to customer, increasing company visibility and
+        leading to a 15% increase in genetic banking inquiries.
+      - Developed business process automation software for gene banking and cloning,
+        reducing manual processing time by 50%.
+      - Created a pet genotyping database identifying unique genetic markers, streamlining
+        gene analysis by 20%.
+      - Architected and managed core services supporting bioinformatics workflows
+        and private customer portals.
+      - Oversaw systems uptime and staff management across engineering operations.
+  - period: December, 2001 - June, 2004
+    company: Inter@ctivate, Inc.
+    name: Inter@ctivate, Inc.
+    position: Technical Director
+    location: San Diego, CA
+    summary: Managed and maintained IT resources, developed network management tools,
+      and led the growth of the company from 10 to 65 employees. Built and maintained
+      customer websites and web applications, including email marketing tools that
+      handled millions of messages daily.
+    startDate: '2001-12-01'
+    endDate: '2004-06-01'
+    highlights:
+      - Designed network infrastructure using Windows and Unix servers, reducing system
+        downtime by 25%.
+      - Developed web-based network management tools, improving IT team's response
+        time by 30%.
+      - Created an email marketing application handling millions of messages daily,
+        increasing client engagement by 40%.
+      - Built and scaled infrastructure across Windows/Unix systems, including custom
+        monitoring and automation tools.
+  - period: August 2000 - December, 2001
+    company: The Financial Cafe
+    name: The Financial Cafe
+    position: VP Engineering
+    location: San Francisco, CA
+    summary: Created web app for performing the first zero cost online stock trading.
+      Grew company from 0 customers to over 20,000 active customers.
+    startDate: '2000-08-01'
+    endDate: '2001-12-01'
+    highlights: []
+  - period: April 1998 - August, 2000
+    company: Food.com
+    name: Food.com
+    position: Web Architect
+    location: San Francisco, CA
+    summary: Designed and led team that implemented the worlds first online food ordering
+      service. Required buildout of end-to-end communication system between restaurants,
+      delivery services and our servers. Developed multiple order communication channels
+      including phone (IVR), fax, hardware terminal or web app.
+    startDate: '1998-04-01'
+    endDate: '2000-08-01'
+    highlights:
+      - Created communication system to deliver orders to restaurants and delivery
+        services
+      - Created the 'Food.com Dining Guide', a curated list of restaurants with reviews
+        and menus
+      - Developed web app for browsing restaurants and menus and placing orders for
+        delivery
+      - Developed restaurant portal for restaurant owners to manage their menus and
+        profile
+education:
+  - institution: City College of San Francisco
+    studyType: Coursework
+    area: Japanese, Business
+    startDate: '2009-01-01'
+    endDate: '2010-01-01'
+    gpa: ''
+    courses: []
+  - institution: California State University-Chico
+    studyType: Coursework
+    area: Computer Science
+    startDate: '1988-01-01'
+    endDate: '1991-01-01'
+    gpa: ''
+    courses: []
+  - institution: Butte Community College
+    studyType: Coursework
+    area: Computer Science, General Education
+    startDate: '1988-01-01'
+    endDate: '1990-01-01'
+    gpa: ''
+    courses: []
+skills:
+  - name: Programming Languages
+    level: Expert
+    keywords:
+      - Python
+      - JavaScript (Node / ES6)
+      - Swift
+      - Kotlin
+      - Rust
+      - Go
+      - C
+      - C++
+      - Java
+      - Objective-C
+      - PHP
+      - Perl
+      - C#
+      - Bash
+      - SQL
+      - Typescript
+  - name: Leadership
+    level: ''
+    keywords:
+      - Strategic Planning
+      - Team Building
+      - Team Leadership
+      - Procedure Development
+      - Process Improvement
+      - Product Development
+      - Entrepreneurship
+      - Budgeting
+      - Financial Planning
+  - name: Software Engineering
+    level: ''
+    keywords:
+      - Best Practices
+      - Microservices Architecture
+      - Software Development
+      - Scrum / Agile
+      - Mobile Application Development
+      - Cloud Services
+      - Service Integration
+      - Entrepreneurship
+  - name: Infrastructure & Ops
+    level: Advanced
+    keywords:
+      - Linux System Administration
+      - Unix Shell Scripting
+      - Python
+      - Ansible
+      - PostgreSQL
+      - Elasticsearch
+      - Monitoring & Metrics
+      - 24x7 Uptime Engineering
+projects:
+  - name: The Give Hub
+    description: "\"The Give Hub\" is a crowdfunding platform for social causes with\
+      \ a focus on remote regions of Latin America and Africa. We manage all donations\
+      \ and dispersals via the Stellar blockchain and Soroban smart contracts. \n\n\
+      Our goal is to provide a platform that specializes in helping people who live\
+      \ in very remote regions that, until recently, were effectively cutoff from\
+      \ the rest of the world. Smartphones and their ever expanding network coverage\
+      \ allows us to connect these regions and give them access to charity on a global\
+      \ scale."
+    startDate: '2024-08-01'
+    url: https://thegivehub.com
+    highlights:
+      - Funds managed on Stellar blockchain providing easy, affordable and accessible
+        transfer of donations across borders with transparency and accountability
+      - 'Impact metrics are defined for each project campaign (eg: "x people fed",
+        "homes powered", "gallons pumped", etc.)'
+      - On-the-ground "Digital Nomads" help spread the word and assist people setup
+        and run campaigns. They also verify milestones attached to fund dispersal
+      - 'Automated donation funds release: Milestones are a requirement for every
+        project and are defined when you create a campaign.'
+  - name: JSON Resume Editor
+    description: A helpful tool for customizing JSON Resume resume.json files and
+      applying to jobs. All client-side. Integrated with AI providers (you must provide
+      your own API key) which allows you to paste a job description and receive back
+      a custom resume.json file, tailored for that job description
+    startDate: '2025-05-01'
+    url: https://github.com/chrisrobison/resume-tool
+    highlights:
+      - Based on JSON Resume schema
+      - Works/Looks great on mobile + desktop
+      - Stores resume data locally
+      - 'No server required: standalone client-side app'
+      - 'AI Integrations: allows you to use AI to tailor or refine your resume'
+      - Tracks jobs applied to.
+      - Utilizes JavaScript modules and modern UI elements
+  - name: Legacy-Free Infrastructure Suite
+    description: A suite of infrastructure tools designed to deploy and manage high-availability
+      services without reliance on cloud providers. Designed for self-hosted, physical
+      datacenter environments.
+    startDate: '2023-01-01'
+    endDate: '2024-06-01'
+    highlights:
+      - Built Ansible-driven deployment framework for app + service stacks
+      - Integrated monitoring/logging stack with Grafana and Prometheus
+      - Managed Elasticsearch/Postgres clusters with automated snapshotting
+      - Optimized system load distribution across physical nodes
+meta:
+  version: v1.0.0
+  lastModified: '2025-06-11T02:35:11.650Z'
+  name: Christopher Robison's Resume
+  id: resume_1750109047500
+volunteer:
+  - organization: 'San Francisco Elks Lodge #3'
+    position: VP Operations / Esteemed Lecturing/Loyal/Leading Knight
+    summary: Managed day-to-day operations of the Lodge restaurant and bar while organizing
+      events to raise funds for underprivileged children. Raised over $34,000 in one
+      year and facilitated the assembly and donation of 100 bicycles for children.
+    startDate: '2010-04-01'
+    endDate: '2014-04-01'
+  - organization: SF / Marin Food Bank
+    position: Volunteer
+    url: https://www.sfmfoodbank.org/
+    startDate: '2020-04-01'
+    endDate: Present
+    summary: Twice monthly volunteer to help hand out food in the Tenderloin.
+    highlights: []
+awards:
+  - title: Computer Science Award
+    date: '1988-06-01'
+    awarder: Paradise High School
+    summary: First recipient of the Paradise High School 'Computer Science Award'
+      for developing a data application to track school resources that ran on an Apple
+      IIe.
+languages:
+  - language: English
+    fluency: Native or bilingual
+interests:
+  - name: Hobbies
+    keywords:
+      - 3D Printing
+      - Prototyping hardware solutions with Raspberry Pi and Arduino
+      - Laser engraving
+      - Building robots
+      - Electronics tinkering
+  - name: Recreation
+    keywords:
+      - Golf
+      - Recreational Programming
+      - Karaoke
+references:
+  - name: Kevin Ready (Software Developer and Consultant)
+    reference: Chris has a broad understanding of Internet technologies and is generous
+      with knowledge sharing. Equally at home working with Web Services, XMPP, and
+      server-side applications as he is working with CSS, JavaScript, and the most
+      recent HTML5 for devices. He brings a lot to a Web dev team and can pinch-hit
+      in a number of chairs.
+  - name: Thomas Weaver (Network Provisioner at Twitch)
+    reference: This guy has some seriously mad coding skills.
+  - name: Benoit Marsot (Senior Developer R&D at Medsphere Systems Corporation)
+    reference: His system is well-oiled; all my web services are working with no downtime.
+      He offers all the greatest gadgets, ideal environment for a programmer like
+      me.
