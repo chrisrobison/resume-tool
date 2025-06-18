@@ -28,7 +28,7 @@ async function runTests() {
     
     try {
         // Load the demo.html file
-        const filePath = `file://${path.join(__dirname, 'demo.html')}`;
+        const filePath = `file://${path.join(__dirname, '..', 'demo.html')}`;
         console.log('Loading:', filePath);
         
         await page.goto(filePath, { waitUntil: 'networkidle0' });

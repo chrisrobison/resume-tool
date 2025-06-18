@@ -118,7 +118,7 @@ class AppManager {
                     const section = item.dataset.section;
                     if (section) {
                         e.preventDefault();
-                        this.switchSection(section);
+                        this.handleSectionSwitch(section);
                     }
                 });
             });
@@ -165,6 +165,14 @@ class AppManager {
             console.error(`AppManager: Failed to switch to section ${section}:`, error);
             this.handleError(error, `Failed to switch to ${section} section`);
         }
+    }
+
+    /**
+     * Handle section switch events from UI elements
+     * @param {string} section - Section identifier
+     */
+    handleSectionSwitch(section) {
+        this.switchSection(section);
     }
 
     /**
