@@ -1590,3 +1590,255 @@ Verified: index.html exists at /home/cdr/domains/cdr2.com/www/job-tool/index.htm
 [2025-07-01T16:04:05.178Z] Serving index.html for path: /config.json
 [2025-07-01T16:04:05.178Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
 [2025-07-01T16:04:05.335Z] GET /config.json | Status: 200 | Duration: 158ms
+[2025-07-01T21:22:19.156Z] GET /favicon.ico | IP: ::ffff:164.92.69.189
+[2025-07-01T21:22:19.157Z] Serving index.html for path: /favicon.ico
+[2025-07-01T21:22:19.158Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-01T21:22:19.235Z] GET /favicon.ico | Status: 200 | Duration: 79ms
+[2025-07-02T00:46:24.987Z] GET /+CSCOE+/logon.html?fcadbadd=1 | IP: ::ffff:89.248.165.146
+[2025-07-02T00:46:24.989Z] Serving index.html for path: /+CSCOE+/logon.html?fcadbadd=1
+[2025-07-02T00:46:24.989Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T00:46:25.076Z] GET /+CSCOE+/logon.html?fcadbadd=1 | Status: 200 | Duration: 89ms
+[2025-07-02T00:46:25.343Z] GET /+webvpn+/index.html | IP: ::ffff:89.248.165.146
+[2025-07-02T00:46:25.343Z] Serving index.html for path: /+webvpn+/index.html
+[2025-07-02T00:46:25.343Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T00:46:25.346Z] GET /+webvpn+/index.html | Status: 200 | Duration: 3ms
+[2025-07-02T00:46:25.433Z] GET /+CSCOE+/portal.html | IP: ::ffff:89.248.165.146
+[2025-07-02T00:46:25.434Z] Serving index.html for path: /+CSCOE+/portal.html
+[2025-07-02T00:46:25.434Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T00:46:25.441Z] GET /+CSCOE+/portal.html | Status: 200 | Duration: 8ms
+[2025-07-02T00:46:25.529Z] GET /+CSCOE+/logon.html | IP: ::ffff:89.248.165.146
+[2025-07-02T00:46:25.529Z] Serving index.html for path: /+CSCOE+/logon.html
+[2025-07-02T00:46:25.529Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T00:46:25.533Z] GET /+CSCOE+/logon.html | Status: 200 | Duration: 4ms
+[2025-07-02T00:46:25.619Z] GET /webvpn/index.html | IP: ::ffff:89.248.165.146
+[2025-07-02T00:46:25.619Z] Serving index.html for path: /webvpn/index.html
+[2025-07-02T00:46:25.619Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T00:46:25.623Z] GET /webvpn/index.html | Status: 200 | Duration: 4ms
+[2025-07-02T00:46:25.711Z] GET /portal.html | IP: ::ffff:89.248.165.146
+[2025-07-02T00:46:25.711Z] Serving index.html for path: /portal.html
+[2025-07-02T00:46:25.711Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T00:46:25.714Z] GET /portal.html | Status: 200 | Duration: 3ms
+[2025-07-02T01:16:38.597Z] GET /remote/login?lang=en | IP: ::ffff:89.248.165.154
+[2025-07-02T01:16:38.598Z] Serving index.html for path: /remote/login?lang=en
+[2025-07-02T01:16:38.598Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T01:16:38.686Z] GET /remote/login?lang=en | Status: 200 | Duration: 89ms
+[2025-07-02T01:16:38.976Z] GET /+CSCOE+/logon.html?fcadbadd=1 | IP: ::ffff:89.248.165.154
+[2025-07-02T01:16:38.976Z] Serving index.html for path: /+CSCOE+/logon.html?fcadbadd=1
+[2025-07-02T01:16:38.977Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T01:16:39.063Z] GET /+CSCOE+/logon.html?fcadbadd=1 | Status: 200 | Duration: 87ms
+[2025-07-02T01:16:39.323Z] GET /+webvpn+/index.html | IP: ::ffff:89.248.165.154
+[2025-07-02T01:16:39.323Z] Serving index.html for path: /+webvpn+/index.html
+[2025-07-02T01:16:39.323Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T01:16:39.327Z] GET /+webvpn+/index.html | Status: 200 | Duration: 4ms
+[2025-07-02T01:16:39.413Z] GET /+CSCOE+/portal.html | IP: ::ffff:89.248.165.154
+[2025-07-02T01:16:39.414Z] Serving index.html for path: /+CSCOE+/portal.html
+[2025-07-02T01:16:39.414Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T01:16:39.424Z] GET /+CSCOE+/portal.html | Status: 200 | Duration: 11ms
+[2025-07-02T01:16:39.511Z] GET /+CSCOE+/logon.html | IP: ::ffff:89.248.165.154
+[2025-07-02T01:16:39.512Z] Serving index.html for path: /+CSCOE+/logon.html
+[2025-07-02T01:16:39.512Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T01:16:39.522Z] GET /+CSCOE+/logon.html | Status: 200 | Duration: 11ms
+[2025-07-02T01:16:39.610Z] GET /webvpn/index.html | IP: ::ffff:89.248.165.154
+[2025-07-02T01:16:39.610Z] Serving index.html for path: /webvpn/index.html
+[2025-07-02T01:16:39.611Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T01:16:39.613Z] GET /webvpn/index.html | Status: 200 | Duration: 3ms
+[2025-07-02T01:16:39.700Z] GET /portal.html | IP: ::ffff:89.248.165.154
+[2025-07-02T01:16:39.701Z] Serving index.html for path: /portal.html
+[2025-07-02T01:16:39.701Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T01:16:39.704Z] GET /portal.html | Status: 200 | Duration: 4ms
+[2025-07-02T03:05:15.284Z] GET /api/v1/users/search | IP: ::ffff:94.102.49.155
+[2025-07-02T03:05:15.285Z] Serving index.html for path: /api/v1/users/search
+[2025-07-02T03:05:15.285Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T03:05:15.377Z] GET /api/v1/users/search | Status: 200 | Duration: 93ms
+[2025-07-02T03:05:45.256Z] GET /api/v1/users/search | IP: ::ffff:94.102.49.155
+[2025-07-02T03:05:45.261Z] Serving index.html for path: /api/v1/users/search
+[2025-07-02T03:05:45.261Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T03:05:45.349Z] GET /api/v1/users/search | Status: 200 | Duration: 93ms
+[2025-07-02T04:14:16.310Z] GET /favicon.ico | IP: ::ffff:64.62.156.114
+[2025-07-02T04:14:16.312Z] Serving index.html for path: /favicon.ico
+[2025-07-02T04:14:16.312Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T04:14:16.458Z] GET /favicon.ico | Status: 200 | Duration: 148ms
+[2025-07-02T11:03:29.003Z] GET /favicon.ico | IP: ::ffff:167.94.138.164
+[2025-07-02T11:03:29.003Z] Serving index.html for path: /favicon.ico
+[2025-07-02T11:03:29.004Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T11:03:29.026Z] GET /favicon.ico | Status: 200 | Duration: 24ms
+[2025-07-02T11:03:38.764Z] GET /favicon.ico | IP: ::ffff:167.94.138.164
+[2025-07-02T11:03:38.764Z] Serving index.html for path: /favicon.ico
+[2025-07-02T11:03:38.764Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T11:03:38.786Z] GET /favicon.ico | Status: 200 | Duration: 22ms
+[2025-07-02T11:03:48.551Z] GET /.well-known/security.txt | IP: ::ffff:167.94.138.164
+[2025-07-02T11:03:48.552Z] Serving index.html for path: /.well-known/security.txt
+[2025-07-02T11:03:48.552Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T11:03:48.566Z] GET /.well-known/security.txt | Status: 200 | Duration: 15ms
+[2025-07-02T11:05:56.159Z] GET /favicon.ico | IP: ::ffff:167.94.138.164
+[2025-07-02T11:05:56.162Z] Serving index.html for path: /favicon.ico
+[2025-07-02T11:05:56.162Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T11:05:56.204Z] GET /favicon.ico | Status: 200 | Duration: 45ms
+[2025-07-02T11:06:12.357Z] GET /favicon.ico | IP: ::ffff:167.94.138.164
+[2025-07-02T11:06:12.358Z] Serving index.html for path: /favicon.ico
+[2025-07-02T11:06:12.358Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T11:06:12.382Z] GET /favicon.ico | Status: 200 | Duration: 25ms
+[2025-07-02T11:06:26.062Z] GET /wiki | IP: ::ffff:167.94.138.164
+[2025-07-02T11:06:26.063Z] Serving index.html for path: /wiki
+[2025-07-02T11:06:26.063Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T11:06:26.078Z] GET /wiki | Status: 200 | Duration: 16ms
+[2025-07-02T12:40:12.936Z] GET /favicon.ico | IP: ::ffff:47.236.36.9
+[2025-07-02T12:40:12.936Z] Serving index.html for path: /favicon.ico
+[2025-07-02T12:40:12.936Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T12:40:13.423Z] GET /favicon.ico | Status: 200 | Duration: 488ms
+[2025-07-02T12:40:42.391Z] GET /favicon.ico | IP: ::ffff:123.160.223.72
+[2025-07-02T12:40:42.392Z] Serving index.html for path: /favicon.ico
+[2025-07-02T12:40:42.392Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T12:40:43.540Z] GET /favicon.ico | Status: 200 | Duration: 1149ms
+[2025-07-02T12:40:49.190Z] GET /favicon.ico | IP: ::ffff:123.160.223.75
+[2025-07-02T12:40:49.190Z] Serving index.html for path: /favicon.ico
+[2025-07-02T12:40:49.190Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T12:40:49.887Z] GET /favicon.ico | Status: 200 | Duration: 697ms
+[2025-07-02T12:41:03.308Z] GET /favicon.ico | IP: ::ffff:123.160.223.73
+[2025-07-02T12:41:03.308Z] Serving index.html for path: /favicon.ico
+[2025-07-02T12:41:03.308Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T12:41:05.156Z] GET /favicon.ico | Status: 200 | Duration: 1848ms
+[2025-07-02T13:15:03.774Z] GET /pdown | IP: ::ffff:34.65.150.148
+[2025-07-02T13:15:03.775Z] Serving index.html for path: /pdown
+[2025-07-02T13:15:03.775Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T13:15:03.892Z] GET /pdown | Status: 200 | Duration: 118ms
+[2025-07-02T17:18:18.196Z] GET /.env | IP: ::ffff:195.178.110.146
+[2025-07-02T17:18:18.199Z] Serving index.html for path: /.env
+[2025-07-02T17:18:18.200Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-02T17:18:18.294Z] GET /.env | Status: 200 | Duration: 98ms
+[2025-07-03T03:01:35.023Z] GET /.git/objects/aa/288e8173d3eba728cebdb0a017fb90ac1b6bc4 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:35.024Z] Serving index.html for path: /.git/objects/aa/288e8173d3eba728cebdb0a017fb90ac1b6bc4
+[2025-07-03T03:01:35.024Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:35.154Z] GET /.git/objects/aa/288e8173d3eba728cebdb0a017fb90ac1b6bc4 | Status: 200 | Duration: 131ms
+[2025-07-03T03:01:36.119Z] GET /.git/objects/91/c722f111181c439272808289a57acbb0aeca3e | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:36.119Z] Serving index.html for path: /.git/objects/91/c722f111181c439272808289a57acbb0aeca3e
+[2025-07-03T03:01:36.119Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:36.122Z] GET /.git/objects/91/c722f111181c439272808289a57acbb0aeca3e | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:37.188Z] GET /.git/objects/6d/0654780135b690ef0102330c89fdb69f901964 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:37.189Z] Serving index.html for path: /.git/objects/6d/0654780135b690ef0102330c89fdb69f901964
+[2025-07-03T03:01:37.189Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:37.191Z] GET /.git/objects/6d/0654780135b690ef0102330c89fdb69f901964 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:37.450Z] GET /.git/objects/97/88980f34680d7c889db47b274f9985f977acf1 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:37.451Z] Serving index.html for path: /.git/objects/97/88980f34680d7c889db47b274f9985f977acf1
+[2025-07-03T03:01:37.451Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:37.453Z] GET /.git/objects/97/88980f34680d7c889db47b274f9985f977acf1 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:37.582Z] GET /.git/objects/f4/630ea725ca40ee795ef51c75cfdcea7711abca | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:37.582Z] Serving index.html for path: /.git/objects/f4/630ea725ca40ee795ef51c75cfdcea7711abca
+[2025-07-03T03:01:37.583Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:37.586Z] GET /.git/objects/f4/630ea725ca40ee795ef51c75cfdcea7711abca | Status: 200 | Duration: 4ms
+[2025-07-03T03:01:38.267Z] GET /.git/objects/3f/421b29e25420572ffd0a7ee1edafb4ca4bcf2a | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:38.267Z] Serving index.html for path: /.git/objects/3f/421b29e25420572ffd0a7ee1edafb4ca4bcf2a
+[2025-07-03T03:01:38.267Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:38.271Z] GET /.git/objects/3f/421b29e25420572ffd0a7ee1edafb4ca4bcf2a | Status: 200 | Duration: 4ms
+[2025-07-03T03:01:38.399Z] GET /.git/objects/c0/40caa19d761754884627902f8c1b4171ac8c98 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:38.399Z] Serving index.html for path: /.git/objects/c0/40caa19d761754884627902f8c1b4171ac8c98
+[2025-07-03T03:01:38.399Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:38.403Z] GET /.git/objects/c0/40caa19d761754884627902f8c1b4171ac8c98 | Status: 200 | Duration: 4ms
+[2025-07-03T03:01:39.402Z] GET /.git/objects/3f/b95b0e8fa50b5ef6db7e8499666ad058059147 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:39.403Z] Serving index.html for path: /.git/objects/3f/b95b0e8fa50b5ef6db7e8499666ad058059147
+[2025-07-03T03:01:39.403Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:39.406Z] GET /.git/objects/3f/b95b0e8fa50b5ef6db7e8499666ad058059147 | Status: 200 | Duration: 4ms
+[2025-07-03T03:01:39.543Z] GET /.git/objects/90/805e6b8586df979929e320ad71dafbc5c9da2c | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:39.543Z] Serving index.html for path: /.git/objects/90/805e6b8586df979929e320ad71dafbc5c9da2c
+[2025-07-03T03:01:39.543Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:39.547Z] GET /.git/objects/90/805e6b8586df979929e320ad71dafbc5c9da2c | Status: 200 | Duration: 4ms
+[2025-07-03T03:01:39.675Z] GET /.git/objects/ad/07489b2fe9ab4b609ca06ed3de1d2a8c7f6bd5 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:39.676Z] Serving index.html for path: /.git/objects/ad/07489b2fe9ab4b609ca06ed3de1d2a8c7f6bd5
+[2025-07-03T03:01:39.676Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:39.679Z] GET /.git/objects/ad/07489b2fe9ab4b609ca06ed3de1d2a8c7f6bd5 | Status: 200 | Duration: 4ms
+[2025-07-03T03:01:40.528Z] GET /.git/objects/a7/b94f44f137a1463d7396c9897e41c4ff774d15 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:40.529Z] Serving index.html for path: /.git/objects/a7/b94f44f137a1463d7396c9897e41c4ff774d15
+[2025-07-03T03:01:40.529Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:40.533Z] GET /.git/objects/a7/b94f44f137a1463d7396c9897e41c4ff774d15 | Status: 200 | Duration: 5ms
+[2025-07-03T03:01:41.364Z] GET /.git/objects/e8/7e7fcf15faa2bedbbc08abbfe92fb3e8995b15 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:41.364Z] Serving index.html for path: /.git/objects/e8/7e7fcf15faa2bedbbc08abbfe92fb3e8995b15
+[2025-07-03T03:01:41.364Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:41.368Z] GET /.git/objects/e8/7e7fcf15faa2bedbbc08abbfe92fb3e8995b15 | Status: 200 | Duration: 4ms
+[2025-07-03T03:01:41.495Z] GET /.git/objects/7a/5d7de71fa10e547f646643bf2b584f8cab68e2 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:41.496Z] Serving index.html for path: /.git/objects/7a/5d7de71fa10e547f646643bf2b584f8cab68e2
+[2025-07-03T03:01:41.496Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:41.498Z] GET /.git/objects/7a/5d7de71fa10e547f646643bf2b584f8cab68e2 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:42.076Z] GET /.git/objects/58/f7e442608f945deb078c897c8b82c9bb6eed40 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:42.077Z] Serving index.html for path: /.git/objects/58/f7e442608f945deb078c897c8b82c9bb6eed40
+[2025-07-03T03:01:42.077Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:42.081Z] GET /.git/objects/58/f7e442608f945deb078c897c8b82c9bb6eed40 | Status: 200 | Duration: 5ms
+[2025-07-03T03:01:42.341Z] GET /.git/objects/5a/4ebd0e19242b552a4020cc2e190cf78cf0698c | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:42.342Z] Serving index.html for path: /.git/objects/5a/4ebd0e19242b552a4020cc2e190cf78cf0698c
+[2025-07-03T03:01:42.342Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:42.349Z] GET /.git/objects/5a/4ebd0e19242b552a4020cc2e190cf78cf0698c | Status: 200 | Duration: 8ms
+[2025-07-03T03:01:42.608Z] GET /.git/objects/76/f0ef757203ce318e92523468c7079efbbec1a7 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:42.609Z] Serving index.html for path: /.git/objects/76/f0ef757203ce318e92523468c7079efbbec1a7
+[2025-07-03T03:01:42.609Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:42.612Z] GET /.git/objects/76/f0ef757203ce318e92523468c7079efbbec1a7 | Status: 200 | Duration: 4ms
+[2025-07-03T03:01:43.134Z] GET /.git/objects/70/127e58364002e7aef6fee824310253374ff110 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:43.134Z] Serving index.html for path: /.git/objects/70/127e58364002e7aef6fee824310253374ff110
+[2025-07-03T03:01:43.134Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:43.137Z] GET /.git/objects/70/127e58364002e7aef6fee824310253374ff110 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:43.396Z] GET /.git/objects/81/7cfe2842e4ae7c22a1c2f2e375060507ca7eb2 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:43.397Z] Serving index.html for path: /.git/objects/81/7cfe2842e4ae7c22a1c2f2e375060507ca7eb2
+[2025-07-03T03:01:43.397Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:43.398Z] GET /.git/objects/81/7cfe2842e4ae7c22a1c2f2e375060507ca7eb2 | Status: 200 | Duration: 2ms
+[2025-07-03T03:01:43.532Z] GET /.git/objects/87/6500086c33ffd344d558c125aa6c651eaf6e61 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:43.532Z] Serving index.html for path: /.git/objects/87/6500086c33ffd344d558c125aa6c651eaf6e61
+[2025-07-03T03:01:43.532Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:43.535Z] GET /.git/objects/87/6500086c33ffd344d558c125aa6c651eaf6e61 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:43.696Z] GET /.git/objects/45/973662f70bbc4f55da9540b77cb785b70ba6d5 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:43.697Z] Serving index.html for path: /.git/objects/45/973662f70bbc4f55da9540b77cb785b70ba6d5
+[2025-07-03T03:01:43.697Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:43.699Z] GET /.git/objects/45/973662f70bbc4f55da9540b77cb785b70ba6d5 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:43.828Z] GET /.git/objects/93/53734c3ab0370f333106242472c29151d26628 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:43.829Z] Serving index.html for path: /.git/objects/93/53734c3ab0370f333106242472c29151d26628
+[2025-07-03T03:01:43.829Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:43.831Z] GET /.git/objects/93/53734c3ab0370f333106242472c29151d26628 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:43.960Z] GET /.git/objects/0b/1095439bac91187f74a43c9132e44d1ab26fc8 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:43.961Z] Serving index.html for path: /.git/objects/0b/1095439bac91187f74a43c9132e44d1ab26fc8
+[2025-07-03T03:01:43.961Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:43.967Z] GET /.git/objects/0b/1095439bac91187f74a43c9132e44d1ab26fc8 | Status: 200 | Duration: 7ms
+[2025-07-03T03:01:44.096Z] GET /.git/objects/9e/242d66065a084f166bb9167fdbfb9cd14e9028 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:44.096Z] Serving index.html for path: /.git/objects/9e/242d66065a084f166bb9167fdbfb9cd14e9028
+[2025-07-03T03:01:44.097Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:44.099Z] GET /.git/objects/9e/242d66065a084f166bb9167fdbfb9cd14e9028 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:44.274Z] GET /.git/objects/0d/ef55d678356c6e6d75b0bfe22b582dcba2ef4d | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:44.275Z] Serving index.html for path: /.git/objects/0d/ef55d678356c6e6d75b0bfe22b582dcba2ef4d
+[2025-07-03T03:01:44.275Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:44.277Z] GET /.git/objects/0d/ef55d678356c6e6d75b0bfe22b582dcba2ef4d | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:44.406Z] GET /.git/objects/92/5b9dcc031255a1e05477989968fd1bff42c342 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:44.407Z] Serving index.html for path: /.git/objects/92/5b9dcc031255a1e05477989968fd1bff42c342
+[2025-07-03T03:01:44.407Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:44.409Z] GET /.git/objects/92/5b9dcc031255a1e05477989968fd1bff42c342 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:44.538Z] GET /.git/objects/35/af8b4ffb813bab0f4a4d7f15ae24c5d3b2801e | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:44.539Z] Serving index.html for path: /.git/objects/35/af8b4ffb813bab0f4a4d7f15ae24c5d3b2801e
+[2025-07-03T03:01:44.539Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:44.541Z] GET /.git/objects/35/af8b4ffb813bab0f4a4d7f15ae24c5d3b2801e | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:44.670Z] GET /.git/objects/f9/b7f5a8e202ff0d37b5968c6c5f31dcb092e8d4 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:44.670Z] Serving index.html for path: /.git/objects/f9/b7f5a8e202ff0d37b5968c6c5f31dcb092e8d4
+[2025-07-03T03:01:44.670Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:44.673Z] GET /.git/objects/f9/b7f5a8e202ff0d37b5968c6c5f31dcb092e8d4 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:45.204Z] GET /.git/objects/ec/1679e7600854763e413f7e8c74d13b0bd44506 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:45.204Z] Serving index.html for path: /.git/objects/ec/1679e7600854763e413f7e8c74d13b0bd44506
+[2025-07-03T03:01:45.205Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:45.207Z] GET /.git/objects/ec/1679e7600854763e413f7e8c74d13b0bd44506 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:45.337Z] GET /.git/objects/75/191ba642b87fcdebe6f71142ea7f99957e68c4 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:45.337Z] Serving index.html for path: /.git/objects/75/191ba642b87fcdebe6f71142ea7f99957e68c4
+[2025-07-03T03:01:45.337Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:45.339Z] GET /.git/objects/75/191ba642b87fcdebe6f71142ea7f99957e68c4 | Status: 200 | Duration: 2ms
+[2025-07-03T03:01:45.599Z] GET /.git/objects/5d/850ff99a83cc87453caf4e3fc744dfdccdc718 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:45.600Z] Serving index.html for path: /.git/objects/5d/850ff99a83cc87453caf4e3fc744dfdccdc718
+[2025-07-03T03:01:45.600Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:45.611Z] GET /.git/objects/5d/850ff99a83cc87453caf4e3fc744dfdccdc718 | Status: 200 | Duration: 12ms
+[2025-07-03T03:01:45.874Z] GET /.git/objects/f7/911147f102afab62e705e78228b631563c3bd8 | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:45.874Z] Serving index.html for path: /.git/objects/f7/911147f102afab62e705e78228b631563c3bd8
+[2025-07-03T03:01:45.874Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:45.877Z] GET /.git/objects/f7/911147f102afab62e705e78228b631563c3bd8 | Status: 200 | Duration: 3ms
+[2025-07-03T03:01:48.262Z] GET /.git/objects/c8/b3dfd4f17af0795f46b9d98459db06cd5b3c6f | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:48.262Z] Serving index.html for path: /.git/objects/c8/b3dfd4f17af0795f46b9d98459db06cd5b3c6f
+[2025-07-03T03:01:48.262Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:48.265Z] GET /.git/objects/c8/b3dfd4f17af0795f46b9d98459db06cd5b3c6f | Status: 200 | Duration: 2ms
+[2025-07-03T03:01:48.823Z] GET /.git/objects/0a/15b363650f7f2241c3030477f5cd8c9375738b | IP: ::ffff:185.177.72.12
+[2025-07-03T03:01:48.823Z] Serving index.html for path: /.git/objects/0a/15b363650f7f2241c3030477f5cd8c9375738b
+[2025-07-03T03:01:48.823Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T03:01:48.825Z] GET /.git/objects/0a/15b363650f7f2241c3030477f5cd8c9375738b | Status: 200 | Duration: 2ms
+[2025-07-03T05:13:27.566Z] GET /favicon.ico | IP: ::ffff:216.218.206.67
+[2025-07-03T05:13:27.567Z] Serving index.html for path: /favicon.ico
+[2025-07-03T05:13:27.567Z] File exists: /home/cdr/domains/cdr2.com/www/job-tool/index.html
+[2025-07-03T05:13:27.710Z] GET /favicon.ico | Status: 200 | Duration: 144ms
