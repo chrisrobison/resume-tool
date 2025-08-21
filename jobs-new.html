@@ -96,12 +96,12 @@
 
                 <!-- Settings Panel -->
                 <div id="settings-panel" class="settings-panel" style="display:none; width:100%;">
-                    <settings-manager></settings-manager>
+                    <settings-manager-migrated></settings-manager-migrated>
                 </div>
 
                 <!-- AI Assistant Panel -->
                 <div id="ai-assistant-panel" class="ai-assistant-panel" style="display:none; width:100%;">
-                    <ai-assistant-worker></ai-assistant-worker>
+                    <ai-assistant-worker-migrated></ai-assistant-worker-migrated>
                 </div>
 
                 <!-- Help Panel -->
@@ -460,17 +460,17 @@
     <div id="toast" class="toast"></div>
 
     <!-- Resume Editor Component -->
-    <script type="module" src="./components/resume-editor.js"></script>
-    <script type="module" src="./components/resume-viewer.js"></script>
+    <script type="module" src="./components/resume-editor-migrated.js"></script>
+    <script type="module" src="./components/resume-viewer-migrated.js"></script>
     <script type="module" src="./components/resume-analytics.js"></script>
-    <script type="module" src="./components/global-store.js"></script>
-    <script type="module" src="./components/settings-manager.js"></script>
-    <script type="module" src="./components/ai-assistant-worker.js"></script>
+    <script type="module" src="./components/global-store-migrated.js"></script>
+    <script type="module" src="./components/settings-manager-migrated.js"></script>
+    <script type="module" src="./components/ai-assistant-worker-migrated.js"></script>
     <script type="module" src="./js/ai-service.js"></script>
     <script type="module" src="./js/store.js"></script>
 
     <!-- Global Store Instance -->
-    <global-store></global-store>
+    <global-store-migrated></global-store-migrated>
 
     <!-- Main Application JavaScript - Now Modular! -->
     <script type="module" src="./js/app-manager.js"></script>
