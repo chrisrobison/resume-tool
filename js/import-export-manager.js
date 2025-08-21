@@ -13,14 +13,13 @@ import { showModal, closeModal } from './modal-manager.js';
  */
 export function openImportJobModal() {
     try {
-        // Check if API key is configured
-        if (!isAPIConfigured()) {
-            showAPIWarning('import-api-warning');
-            return;
-        }
-
         showModal('import-job-modal');
         setupImportJobHandlers();
+        
+        // Show API warning if not configured (inside the modal)
+        if (!isAPIConfigured()) {
+            showAPIWarning('import-api-warning');
+        }
         
         console.log('ImportExportManager: Opened import job modal');
         
@@ -368,8 +367,12 @@ function showAPIWarning(elementId) {
  * Check if API is configured
  */
 function isAPIConfigured() {
-    // TODO: Check actual API configuration from settings
-    return false; // Placeholder
+    // Check for API keys in localStorage (support both new and legacy key names)
+    const claudeKey = localStorage.getItem('claude_api_key');
+    const openaiKey = localStorage.getItem('openai_api_key');
+    const legacyKey = localStorage.getItem('api_key'); // Legacy format
+    
+    return !!(claudeKey || openaiKey || legacyKey);
 }
 
 /**
