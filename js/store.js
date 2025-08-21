@@ -5,9 +5,9 @@ let storeInstance = null;
 
 export function getStore() {
     if (!storeInstance) {
-        storeInstance = document.querySelector('global-store');
+        storeInstance = document.querySelector('global-store-migrated');
         if (!storeInstance) {
-            console.warn('global-store component not found in DOM');
+            console.warn('global-store-migrated component not found in DOM');
         }
     }
     return storeInstance;
