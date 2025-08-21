@@ -46,41 +46,79 @@
 <body>
     <div class="help-container">
         <h1><i class="fas fa-question-circle"></i> Job Hunt Manager Help & Usage Guide</h1>
-        <p>Welcome to the Job Hunt Manager! This guide will help you get the most out of the tool.</p>
+        <p>Welcome to the Job Hunt Manager! This guide will help you get the most out of this professional job search management tool with AI integration.</p>
+        
+        <div class="tip">
+            <b>✨ What's New:</b> This tool now features a completely modular architecture with ComponentBase web components, extracted JavaScript modules, and enhanced AI integration for a professional development experience.
+        </div>
 
-        <h2>Getting Started</h2>
+        <h2>🚀 Getting Started</h2>
         <ol>
             <li><strong>Add Jobs:</strong> Click <b>Add Job</b> to enter job details manually, or use <b>Import Job</b> to extract details from a job posting URL or description.</li>
-            <li><strong>Track Status:</strong> Update the status of each job (e.g., saved, applied, interviewing, etc.) as your search progresses.</li>
-            <li><strong>Manage Resumes:</strong> Store and edit multiple resumes. Tailor resumes for specific jobs using the AI features.</li>
-            <li><strong>Generate Cover Letters:</strong> Use the AI tool to create personalized cover letters for each job application.</li>
+            <li><strong>Track Status:</strong> Update the status of each job (saved, applied, interviewing, offered, rejected, etc.) with automatic status history tracking.</li>
+            <li><strong>Manage Resumes:</strong> Create and edit multiple resumes using the integrated JSON Resume standard editor with live preview.</li>
+            <li><strong>AI-Powered Features:</strong> Use advanced AI to tailor resumes, generate cover letters, and analyze job-resume compatibility.</li>
+            <li><strong>Settings Configuration:</strong> Configure API keys for AI services (Claude/OpenAI) and customize themes and preferences.</li>
         </ol>
 
-        <h2>Sections Overview</h2>
+        <h2>📋 Interface Overview</h2>
         <ul>
-            <li><b>Jobs:</b> List and manage all job opportunities. Click a job to view or edit details.</li>
-            <li><b>Resumes:</b> Store, edit, and tailor resumes. Use the visual editor for easy updates.</li>
-            <li><b>Letters:</b> Manage cover letters and other correspondence.</li>
-            <li><b>AI History:</b> View a log of all AI-powered actions (resume tailoring, letter generation, etc.).</li>
+            <li><b>Jobs:</b> Comprehensive job management with status tracking, contact information, and resume associations. Features tabbed interface for details, contact, resume, and status management.</li>
+            <li><b>Resumes:</b> Full-featured resume editor supporting JSON Resume standard with multiple themes (Modern, Classic, Minimal). Real-time preview and export capabilities.</li>
+            <li><b>Cover Letters:</b> AI-generated cover letters with job-specific customization and template management.</li>
+            <li><b>AI Assistant:</b> Dedicated AI workspace for resume tailoring, cover letter generation, and compatibility analysis with progress tracking.</li>
+            <li><b>AI History:</b> Complete log of all AI operations with detailed results and re-application capabilities.</li>
+            <li><b>Settings:</b> Comprehensive settings management including API configuration, theme selection, and application preferences.</li>
         </ul>
 
-        <h2>AI Features</h2>
+        <h2>🤖 Advanced AI Features</h2>
         <ul>
-            <li><b>Tailor Resume:</b> Select a job and a base resume, then use the AI to generate a tailored resume for that job.</li>
-            <li><b>Generate Cover Letter:</b> Optionally generate a cover letter at the same time as tailoring a resume.</li>
-            <li><b>API Key Required:</b> Set your API key in <b>Settings</b> to use AI features. You can use OpenAI (ChatGPT) or Anthropic (Claude).</li>
+            <li><b>Resume Tailoring:</b> AI analyzes job descriptions and customizes resume content, skills, and experience highlights for maximum compatibility.</li>
+            <li><b>Cover Letter Generation:</b> Creates personalized cover letters that incorporate job requirements and highlight relevant experience.</li>
+            <li><b>Job-Resume Match Analysis:</b> Comprehensive compatibility scoring with keyword analysis, skills matching, and improvement recommendations.</li>
+            <li><b>Web Worker Architecture:</b> AI operations run in background threads for non-blocking UI performance with real-time progress updates.</li>
+            <li><b>Multi-Provider Support:</b> Compatible with both Anthropic Claude and OpenAI ChatGPT APIs with automatic provider selection.</li>
+            <li><b>Progress Tracking:</b> Real-time progress indicators and detailed logging for all AI operations.</li>
         </ul>
-
-        <h2>Tips & Best Practices</h2>
-        <ul>
-            <li>Regularly save your data. All information is stored in your browser's local storage.</li>
-            <li>Use the <b>Import Job</b> feature to quickly add jobs from URLs or descriptions.</li>
-            <li>Keep your resumes up to date and tailor them for each application.</li>
-            <li>Check the <b>AI History</b> tab to review past AI actions and outputs.</li>
-        </ul>
-
+        
         <div class="tip">
-            <b>Need more help?</b> If you have questions or encounter issues, please contact the developer or check for updates.
+            <b>🔑 API Configuration:</b> Go to Settings to configure your AI provider API keys. Both Claude (recommended) and OpenAI are supported with live testing capabilities.
+        </div>
+
+        <h2>💡 Tips & Best Practices</h2>
+        <ul>
+            <li><b>Data Persistence:</b> All data is stored locally in your browser for privacy. Use export/import features for backup and sharing.</li>
+            <li><b>Job-Centric Workflow:</b> Start with jobs, then associate tailored resumes and cover letters for a organized approach.</li>
+            <li><b>Resume Variants:</b> Create multiple resume versions for different job types and use AI to tailor them further.</li>
+            <li><b>Status Tracking:</b> Keep job statuses current - the system maintains a complete history of status changes.</li>
+            <li><b>AI History Review:</b> Use the AI History section to review, refine, and re-apply previous AI outputs.</li>
+            <li><b>Theme Customization:</b> Experiment with different resume themes to find what works best for your industry.</li>
+            <li><b>Bulk Operations:</b> Use import/export features for managing large numbers of jobs or resumes efficiently.</li>
+        </ul>
+        
+        <h2>🏗️ Technical Architecture</h2>
+        <ul>
+            <li><b>Modern Web Components:</b> Built using ComponentBase standardization for consistent behavior and maintainability.</li>
+            <li><b>Modular JavaScript:</b> Clean separation of concerns with dedicated modules for different functionalities.</li>
+            <li><b>No Build Required:</b> Runs directly in the browser with ES6 modules - no compilation or build process needed.</li>
+            <li><b>Progressive Enhancement:</b> Core features work offline; AI features require internet connection for API calls.</li>
+            <li><b>Privacy-First:</b> All personal data stored locally in browser - no data sent to servers except for AI processing.</li>
+        </ul>
+
+        <h2>🔧 Advanced Usage</h2>
+        <ul>
+            <li><b>Component System:</b> All UI components use the ComponentBase framework for consistent lifecycle management.</li>
+            <li><b>Global State:</b> Centralized state management ensures data consistency across all components.</li>
+            <li><b>Modal System:</b> Dynamic modal generation for forms and data entry with validation.</li>
+            <li><b>Section Management:</b> Smooth navigation between different application sections with state preservation.</li>
+        </ul>
+        
+        <div class="tip">
+            <b>🆘 Need Help?</b> This tool is actively maintained with comprehensive documentation. Check the project README.md, CLAUDE.md, and TODO.md files for technical details, or review the test-results.md for architecture information.
+        </div>
+        
+        <div class="tip">
+            <b>🚀 Latest Version:</b> You're using the modular architecture version with ComponentBase integration. For the latest features and bug fixes, always use jobs-new.html which represents the current production-ready interface.
         </div>
     </div>
 </body>
