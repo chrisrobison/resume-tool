@@ -5,3 +5,4 @@ package-lock.json
 resume-editor
 .env
 .aider*
+*.log
