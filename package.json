@@ -1,0 +1,58 @@
+{
+  "name": "job-hunt-manager",
+  "version": "2.0.0",
+  "description": "Professional job-centric career management tool with modular architecture",
+  "main": "jobs-new.html",
+  "scripts": {
+    "test": "cypress run",
+    "test:open": "cypress open",
+    "test:headless": "cypress run --headless",
+    "test:chrome": "cypress run --browser chrome",
+    "test:firefox": "cypress run --browser firefox",
+    "test:screenshots": "cypress run --spec '**/screenshots/**'",
+    "test:visual": "cypress run --spec '**/visual-regression/**'",
+    "serve": "python3 -m http.server 8081",
+    "serve:bg": "python3 -m http.server 8081 &",
+    "test:ci": "npm run serve:bg && sleep 2 && npm run test:headless",
+    "test:report": "npm run test:headless",
+    "pretest": "npm run serve:bg && sleep 2",
+    "posttest": "pkill -f 'python.*server' || true",
+    "clean:reports": "rm -rf cypress/reports cypress/screenshots cypress/videos",
+    "test:verify": "echo 'Run: npm run serve:bg && npm run test:open' to verify tests manually"
+  },
+  "devDependencies": {
+    "cypress": "^13.6.2",
+    "wait-on": "^7.2.0"
+  },
+  "keywords": [
+    "job-search",
+    "career-management", 
+    "resume-builder",
+    "ai-integration",
+    "web-components",
+    "modular-architecture"
+  ],
+  "author": "Job Hunt Manager Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chrisrobison/job-tool.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "cypress": {
+    "baseUrl": "http://localhost:8081",
+    "viewportWidth": 1280,
+    "viewportHeight": 720,
+    "screenshotOnRunFailure": true,
+    "video": true,
+    "videoCompression": 32,
+    "defaultCommandTimeout": 10000,
+    "requestTimeout": 15000,
+    "responseTimeout": 15000,
+    "pageLoadTimeout": 30000,
+    "watchForFileChanges": false,
+    "chromeWebSecurity": false
+  }
+}

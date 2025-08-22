@@ -1,0 +1,145 @@
+{
+  "testJobs": [
+    {
+      "id": "test-job-1",
+      "company": "TechCorp Inc",
+      "position": "Senior Software Engineer",
+      "location": "San Francisco, CA",
+      "status": "applied",
+      "description": "We are looking for a Senior Software Engineer to join our team. You will be responsible for designing and developing scalable web applications using modern technologies.",
+      "url": "https://example.com/jobs/senior-software-engineer",
+      "dateCreated": "2025-01-21T10:00:00.000Z",
+      "dateApplied": "2025-01-21T14:30:00.000Z",
+      "resumeId": "test-resume-1"
+    },
+    {
+      "id": "test-job-2", 
+      "company": "StartupCo",
+      "position": "Full Stack Developer",
+      "location": "Remote",
+      "status": "interviewing",
+      "description": "Join our fast-paced startup as a Full Stack Developer. Work with React, Node.js, and modern cloud technologies.",
+      "url": "https://example.com/jobs/full-stack-developer",
+      "dateCreated": "2025-01-20T09:15:00.000Z",
+      "dateApplied": "2025-01-20T16:45:00.000Z"
+    },
+    {
+      "id": "test-job-3",
+      "company": "Enterprise Solutions Ltd",
+      "position": "Frontend Engineer",
+      "location": "New York, NY",
+      "status": "saved",
+      "description": "Looking for a Frontend Engineer to build user interfaces for enterprise applications using React and TypeScript.",
+      "dateCreated": "2025-01-19T11:20:00.000Z"
+    }
+  ],
+  
+  "testResumes": [
+    {
+      "id": "test-resume-1",
+      "basics": {
+        "name": "John Doe",
+        "email": "john.doe@example.com", 
+        "phone": "555-123-4567",
+        "summary": "Experienced software engineer with 5+ years of experience in web development, specializing in JavaScript, React, and Node.js.",
+        "location": {
+          "city": "San Francisco",
+          "region": "CA",
+          "countryCode": "US"
+        },
+        "profiles": [
+          {
+            "network": "LinkedIn",
+            "username": "johndoe",
+            "url": "https://linkedin.com/in/johndoe"
+          },
+          {
+            "network": "GitHub",
+            "username": "johndoe",
+            "url": "https://github.com/johndoe"
+          }
+        ]
+      },
+      "work": [
+        {
+          "name": "TechCorp Inc",
+          "position": "Software Engineer",
+          "startDate": "2020-01-15",
+          "endDate": "2024-12-31",
+          "summary": "Developed and maintained web applications using React and Node.js",
+          "highlights": [
+            "Built responsive web applications serving 10k+ users",
+            "Implemented CI/CD pipelines reducing deployment time by 50%",
+            "Mentored junior developers and conducted code reviews"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "University of Technology",
+          "area": "Computer Science",
+          "studyType": "Bachelor of Science",
+          "startDate": "2016-09-01",
+          "endDate": "2020-05-15",
+          "score": "3.8"
+        }
+      ],
+      "skills": [
+        {
+          "name": "Programming Languages",
+          "level": "Expert",
+          "keywords": ["JavaScript", "TypeScript", "Python", "Java"]
+        },
+        {
+          "name": "Web Technologies", 
+          "level": "Expert",
+          "keywords": ["React", "Node.js", "Express", "HTML5", "CSS3"]
+        },
+        {
+          "name": "Databases",
+          "level": "Intermediate",
+          "keywords": ["PostgreSQL", "MongoDB", "Redis"]
+        }
+      ],
+      "projects": [
+        {
+          "name": "E-commerce Platform",
+          "description": "Full-stack e-commerce platform built with React and Node.js",
+          "highlights": [
+            "Implemented secure payment processing",
+            "Built responsive mobile-first design",
+            "Integrated with third-party APIs"
+          ],
+          "url": "https://github.com/johndoe/ecommerce-platform"
+        }
+      ]
+    }
+  ],
+  
+  "testAPIKeys": {
+    "claude": "sk-test-claude-key-12345",
+    "openai": "sk-test-openai-key-67890"
+  },
+  
+  "importJobTestData": {
+    "validJobURL": "https://example.com/valid-job-posting",
+    "invalidJobURL": "https://invalid-url",
+    "jobDescription": "Senior Software Engineer position at TechCorp. Requirements: 5+ years experience with JavaScript, React, Node.js. Remote work available. Competitive salary and benefits.",
+    "customInstructions": "Focus on technical skills and emphasize remote work experience."
+  },
+  
+  "formTestData": {
+    "validJob": {
+      "company": "Test Company",
+      "position": "Software Engineer",
+      "location": "Remote", 
+      "description": "A test job description for Cypress testing",
+      "url": "https://example.com/test-job"
+    },
+    "invalidJob": {
+      "company": "",
+      "position": "",
+      "location": "Remote"
+    }
+  }
+}

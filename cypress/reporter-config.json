@@ -1,0 +1,18 @@
+{
+  "reporterEnabled": "cypress-multi-reporters",
+  "reporterOptions": {
+    "configFile": "cypress/reporter-config.json"
+  },
+  "mochaFile": "cypress/results/results-[hash].xml",
+  "toConsole": true,
+  "attachments": true,
+  "html": true,
+  "json": true,
+  "timestamp": "yyyy-mm-dd-HH-MM-ss",
+  "reportDir": "cypress/reports",
+  "overwrite": false,
+  "charts": true,
+  "reportPageTitle": "Job Hunt Manager Test Results",
+  "embeddedScreenshots": true,
+  "inlineAssets": true
+}
