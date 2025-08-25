@@ -5,12 +5,22 @@ const path = require('path');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
+const rateLimit = require('express-rate-limit');
 const { tailorResumeWithClaude } = require('./claudeService');
 const { tailorResumeWithChatGPT } = require('./chatgptService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
+
+// Rate limiter for catch-all route serving index.html
+const indexRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: "Too many requests, please try again later."
+});
 
 // Middleware
 app.use(cors());
@@ -116,7 +126,7 @@ app.post('/api/ai-request', async (req, res) => {
 });
 
 // Catch-all route to serve the main app
-app.get('*', (req, res) => {
+app.get('*', indexRateLimiter, (req, res) => {
   console.log(`[${new Date().toISOString()}] Serving index.html for path: ${req.url}`);
   const filePath = path.join(__dirname, '../index.html');
   
