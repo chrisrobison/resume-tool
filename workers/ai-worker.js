@@ -185,35 +185,115 @@ class AIWorker {
                 throw new Error('No URL or description provided for parse-job');
             }
 
-            // Attempt to parse AI response as JSON
+            // Attempt to extract assistant content and parse JSON
             let parsed = null;
-            if (typeof aiResponse === 'object') {
-                parsed = aiResponse;
-            } else if (typeof aiResponse === 'string') {
-                const txt = aiResponse.trim();
-                // Try direct JSON
+            // Helper: try to parse a JSON substring from text
+            const tryParseFromText = (text) => {
+                if (!text || typeof text !== 'string') return null;
+                let t = text.trim();
+                // Remove markdown code fences if present
+                t = t.replace(/```json\s*/i, '```');
+                const fenceMatch = t.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+                if (fenceMatch && fenceMatch[1]) {
+                    try {
+                        return JSON.parse(fenceMatch[1].trim());
+                    } catch (e) {
+                        // fallthrough to other attempts
+                    }
+                }
+
+                // Try to find the first {...} block
+                const objMatch = t.match(/\{[\s\S]*\}/);
+                if (objMatch) {
+                    try {
+                        return JSON.parse(objMatch[0]);
+                    } catch (e) {
+                        return null;
+                    }
+                }
+
+                // Try whole-text parse as last resort
                 try {
-                    parsed = JSON.parse(txt);
+                    return JSON.parse(t);
                 } catch (e) {
-                    // Try to extract first JSON object from the text
-                    const m = txt.match(/\{[\s\S]*\}/);
-                    if (m) {
-                        try {
-                            parsed = JSON.parse(m[0]);
-                        } catch (e2) {
-                            // leave parsed null
+                    return null;
+                }
+            };
+
+            // If the AI response is already an object, try to extract assistant content shapes
+            if (typeof aiResponse === 'object' && aiResponse !== null) {
+                // OpenAI chat completion shape
+                if (aiResponse.choices && aiResponse.choices[0]) {
+                    const choice = aiResponse.choices[0];
+                    const msg = choice.message || choice;
+                    const content = msg?.content || msg?.text || choice?.text || null;
+                    if (typeof content === 'string') {
+                        parsed = tryParseFromText(content) || tryParseFromText(JSON.stringify(content));
+                    } else if (typeof content === 'object') {
+                        // Some Responses API shapes return arrays under content
+                        const arr = Array.isArray(content) ? content : (content?.content || []);
+                        if (Array.isArray(arr)) {
+                            const outText = arr.map(c => (c?.text || c?.content || '')).join('\n');
+                            parsed = tryParseFromText(outText) || tryParseFromText(JSON.stringify(outText));
                         }
                     }
+                }
+
+                // OpenAI Responses API simple output_text
+                if (!parsed && typeof aiResponse.output_text === 'string') {
+                    parsed = tryParseFromText(aiResponse.output_text);
+                }
+
+                // Claude style nested content
+                if (!parsed && aiResponse.content && typeof aiResponse.content === 'string') {
+                    parsed = tryParseFromText(aiResponse.content);
+                }
+
+                // If still not parsed, maybe the object already *is* the parsed job
+                if (!parsed) {
+                    // Heuristic: check for expected keys
+                    const hasKeys = ['title','company','location','description','requirements','skills'].some(k => k in aiResponse);
+                    if (hasKeys) parsed = aiResponse;
+                }
+            }
+
+            // If aiResponse is a string, run parsing attempts on the string
+            if (!parsed && typeof aiResponse === 'string') {
+                // If the server returned a provider envelope as JSON string, try to parse that first
+                let envelope = null;
+                try {
+                    envelope = JSON.parse(aiResponse);
+                } catch (e) {
+                    envelope = null;
+                }
+
+                if (envelope && typeof envelope === 'object') {
+                    // Re-run extraction on the envelope object
+                    if (envelope.choices && envelope.choices[0]) {
+                        const content = envelope.choices[0].message?.content || envelope.choices[0].message?.text || envelope.choices[0].text || null;
+                        if (content) parsed = tryParseFromText(typeof content === 'string' ? content : JSON.stringify(content));
+                    }
+                    if (!parsed && typeof envelope.output_text === 'string') {
+                        parsed = tryParseFromText(envelope.output_text);
+                    }
+                    if (!parsed && envelope.response) {
+                        parsed = tryParseFromText(typeof envelope.response === 'string' ? envelope.response : JSON.stringify(envelope.response));
+                    }
+                }
+
+                // Last resort: try to extract a JSON block from the raw string
+                if (!parsed) {
+                    parsed = tryParseFromText(aiResponse);
                 }
             }
 
             if (!parsed) {
-                // If parsing failed, return raw text in a structured envelope
+                // If parsing failed, return raw text/envelope in a structured envelope
                 this.postSuccess({ type: 'parse-job', result: null, raw: aiResponse }, requestId);
                 return;
             }
 
-            // Normalize keys and return
+            // Return the parsed job object
             this.postSuccess({ type: 'parse-job', result: parsed }, requestId);
 
         } catch (error) {
@@ -597,7 +677,7 @@ Provide honest, constructive analysis that will help the candidate understand th
         try {
             // Try different server endpoints
             const endpoints = [
-                '/ai-proxy.php',
+                '/job-tool/ai-proxy.php',
                 '/api/tailor-resume',  // Direct proxy (if configured)
                 'http://localhost:3000/api/tailor-resume',  // Local server
                 'https://cdr2.com:3000/api/tailor-resume'   // Remote server

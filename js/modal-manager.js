@@ -164,10 +164,20 @@ export function openFormModal(section, item = null, saveCallback = null) {
             return false;
         }
 
-        // Set current state
+        // Set current state (also attach to modal element to survive state resets)
         currentSection = section;
         currentItem = item;
         currentSaveCallback = saveCallback;
+        try {
+            if (modal.element) {
+                modal.element.dataset.currentSection = section;
+                // Store callback and item directly on the DOM element (non-enumerable if possible)
+                modal.element._currentSaveCallback = saveCallback;
+                modal.element._currentItem = item;
+            }
+        } catch (e) {
+            // Non-fatal if DOM access fails
+        }
 
         // Update modal title
         const isEdit = item !== null;
@@ -203,7 +213,20 @@ export function openFormModal(section, item = null, saveCallback = null) {
  */
 function handleFormSave() {
     try {
-        if (!currentSection || !currentSaveCallback) {
+        // Prefer module state, but fall back to modal element-stored callback
+        let saveCb = currentSaveCallback;
+        let section = currentSection;
+        let item = currentItem;
+        if ((!section || !saveCb) && modalRegistry.has('form-modal')) {
+            const modal = modalRegistry.get('form-modal');
+            if (modal && modal.element) {
+                section = section || modal.element.dataset.currentSection || null;
+                saveCb = saveCb || modal.element._currentSaveCallback || null;
+                item = item || modal.element._currentItem || null;
+            }
+        }
+
+        if (!section || !saveCb) {
             console.error('ModalManager: No current section or save callback');
             return;
         }
@@ -228,13 +251,17 @@ function handleFormSave() {
         const formData = extractFormData(form);
         
         // Preserve existing ID if editing
-        if (currentItem && currentItem.id) {
-            formData.id = currentItem.id;
+        if (item && item.id) {
+            formData.id = item.id;
         }
 
         // Call save callback
-        const isEdit = currentItem !== null;
-        currentSaveCallback(formData, isEdit);
+        const isEdit = item !== null;
+        try {
+            saveCb(formData, isEdit);
+        } catch (err) {
+            console.error('ModalManager: Save callback threw an error:', err);
+        }
 
         // Close modal
         closeModal('form-modal');

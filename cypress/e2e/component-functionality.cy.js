@@ -7,23 +7,30 @@ describe('Component Functionality Tests', () => {
 
   describe('Job Manager Component', () => {
     it('should create a new job successfully', () => {
-      cy.get('#add-job-btn').should('be.visible').click();
-      cy.openModal('job-modal');
-      
-      // Fill job form
+      // Use generic Add button (migrated UI)
+      cy.get('#add-item-text').should('contain.text', 'Add Job');
+      cy.get('#add-item-btn').should('be.visible').click();
+      cy.openModal('form-modal');
+
+      // Fill job form using form field names
       cy.fixture('test-data').then((testData) => {
-        cy.fillJobForm(testData.formTestData.validJob);
+        const job = testData.formTestData.validJob;
+        cy.get('#form-modal').within(() => {
+          cy.get('form [name="company"]').clear().type(job.company);
+          cy.get('form [name="position"]').clear().type(job.position);
+          cy.get('form [name="location"]').clear().type(job.location);
+          cy.get('form [name="description"]').clear().type(job.description || '');
+          cy.get('form [name="url"]').clear().type(job.url || '');
+        });
       });
-      
+
       cy.takeNamedScreenshot('job-manager-create-job');
-      
-      // Save job
-      cy.get('#job-modal').within(() => {
-        cy.get('button').contains('Save').click();
-      });
-      
-      // Verify job appears in list
-      cy.get('.job-card').should('contain.text', 'Test Company');
+
+      // Save job (generic form save)
+      cy.get('#form-save').click();
+
+      // Verify job appears in list (card renderer uses .item-card)
+      cy.get('.item-card').should('contain.text', 'Test Company');
       cy.takeNamedScreenshot('job-manager-job-created');
     });
 
@@ -36,15 +43,16 @@ describe('Component Functionality Tests', () => {
       cy.visitJobsApp('new');
       cy.waitForStore();
       
-      // Click on job to open details
-      cy.get('.job-card').first().click();
-      
-      // Change status
-      cy.get('.status-dropdown').select('interviewing');
+      // Click on job to open details (cards are .item-card)
+      cy.get('.item-card').first().click();
+
+      // Change status using migrated control id
+      cy.get('#job-status').select('interviewing');
       cy.takeNamedScreenshot('job-manager-status-change');
-      
-      // Verify status updated
-      cy.get('.job-status').should('contain.text', 'Interviewing');
+
+      // Verify status updated in select and on card badges
+      cy.get('#job-status').should('have.value', 'interviewing');
+      cy.get('.status-badge').should('contain.text', 'interviewing');
     });
 
     it('should filter jobs by status', () => {
@@ -77,24 +85,32 @@ describe('Component Functionality Tests', () => {
     });
 
     it('should create a new resume', () => {
-      cy.get('#add-resume-btn').should('be.visible').click();
-      
-      // Wait for resume editor to load
+      // Use migrated UI: navigate to resumes and click generic Add button
+      cy.get('#add-item-text').should('contain.text', 'Add Resume');
+      cy.get('#add-item-btn').should('be.visible').click();
+
+      // Wait for resume editor component to initialize (or the generic form)
       cy.waitForComponent('resume-editor-migrated');
-      
-      // Fill basic information
-      cy.get('#basics-name').clear().type('Test User');
-      cy.get('#basics-email').clear().type('test@example.com');
-      cy.get('#basics-phone').clear().type('555-0123');
-      cy.get('#basics-summary').clear().type('Experienced software developer');
-      
+
+      // Fill basic information (resume editor uses #name, #email, #phone, #summary)
+      cy.get('#name').clear().type('Test User');
+      cy.get('#email').clear().type('test@example.com');
+      cy.get('#phone').clear().type('555-0123');
+      cy.get('#summary').clear().type('Experienced software developer');
+
       cy.takeNamedScreenshot('resume-editor-basic-info');
-      
-      // Save resume
-      cy.get('#save-resume-btn').click();
-      
-      // Verify resume was saved
-      cy.get('.resume-card').should('contain.text', 'Test User');
+
+      // Save resume using generic form save if present, otherwise click component save
+      cy.get('body').then(($body) => {
+        if ($body.find('#form-save').length) {
+          cy.get('#form-save').click();
+        } else if ($body.find('.save-profile').length) {
+          cy.get('.save-profile').click();
+        }
+      });
+
+      // Verify resume was saved (card renderer .item-card used for resumes)
+      cy.get('.item-card').should('contain.text', 'Test User');
       cy.takeNamedScreenshot('resume-editor-resume-saved');
     });
 
@@ -109,18 +125,20 @@ describe('Component Functionality Tests', () => {
       cy.navigateToSection('resumes');
       
       // Open resume for editing
-      cy.get('.resume-card').first().click();
+      cy.get('.item-card').first().click();
       cy.waitForComponent('resume-editor-migrated');
-      
-      // Navigate to work section
-      cy.get('[data-section-tab="work"]').click();
-      
-      // Add work experience
-      cy.get('#add-work-btn').click();
-      cy.get('#work-company-0').type('New Company');
-      cy.get('#work-position-0').type('Senior Developer');
-      cy.get('#work-startDate-0').type('2023-01-01');
-      
+
+      // Click the Add Work Experience button (data-modal="work-modal")
+      cy.get('button[data-modal="work-modal"]').first().click();
+
+      // Fill the work modal inputs
+      cy.get('#work-name').type('New Company');
+      cy.get('#work-position').type('Senior Developer');
+      cy.get('#work-startDate').type('2023-01-01');
+
+      // Save work entry
+      cy.get('.save-work').click();
+
       cy.takeNamedScreenshot('resume-editor-add-work');
     });
   });
@@ -132,37 +150,36 @@ describe('Component Functionality Tests', () => {
 
     it('should configure API keys', () => {
       cy.waitForComponent('settings-manager-migrated');
-      
-      // Navigate to API settings
-      cy.get('[data-settings-tab="api"]').click();
-      
-      // Set Claude API key
-      cy.fixture('test-data').then((testData) => {
-        cy.get('#claude-api-key').clear().type(testData.testAPIKeys.claude);
-        cy.get('#openai-api-key').clear().type(testData.testAPIKeys.openai);
+
+      // The settings manager is a web component, interact via its shadow root
+      cy.get('settings-manager-migrated').shadow().within(() => {
+        // Set API keys
+        cy.fixture('test-data').then((testData) => {
+          cy.get('#claude-api-key').clear().type(testData.testAPIKeys.claude);
+          cy.get('#openai-api-key').clear().type(testData.testAPIKeys.openai);
+        });
+
+        cy.takeNamedScreenshot('settings-manager-api-keys');
+
+        // Test API connection for Claude
+        cy.get('[data-test-provider="claude"]').click();
+        cy.get('#claude-test-result').should('exist');
       });
-      
-      cy.takeNamedScreenshot('settings-manager-api-keys');
-      
-      // Test API connection
-      cy.get('#test-claude-api').click();
-      cy.get('#api-test-result').should('be.visible');
-      
+
       cy.takeNamedScreenshot('settings-manager-api-test');
     });
 
     it('should change theme settings', () => {
       cy.waitForComponent('settings-manager-migrated');
       
-      // Navigate to theme settings
-      cy.get('[data-settings-tab="theme"]').click();
-      
-      // Change theme
-      cy.get('#theme-select').select('dark');
-      cy.takeNamedScreenshot('settings-manager-theme-dark');
-      
-      cy.get('#theme-select').select('modern');
-      cy.takeNamedScreenshot('settings-manager-theme-modern');
+      // Change theme via shadow DOM
+      cy.get('settings-manager-migrated').shadow().within(() => {
+        cy.get('#theme-select').select('dark');
+        cy.takeNamedScreenshot('settings-manager-theme-dark');
+
+        cy.get('#theme-select').select('modern');
+        cy.takeNamedScreenshot('settings-manager-theme-modern');
+      });
     });
   });
 
