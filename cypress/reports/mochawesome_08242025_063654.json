@@ -1,0 +1,130 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-08-24T13:36:30.499Z",
+    "end": "2025-08-24T13:36:54.752Z",
+    "duration": 24253,
+    "testsRegistered": 2,
+    "passPercent": 50,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "9b5233db-db2b-45c8-a5fc-14469180af7d",
+      "title": "",
+      "fullFile": "cypress/e2e/import-button-quick.cy.js",
+      "file": "cypress/e2e/import-button-quick.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "27289d91-ec9c-4a06-8ba4-0af08133cf40",
+          "title": "Import Job Button Quick Test",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should click Import Job button and verify modal opens",
+              "fullTitle": "Import Job Button Quick Test should click Import Job button and verify modal opens",
+              "timedOut": null,
+              "duration": 8447,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Clear any existing API keys to test the fix\ncy.window().then(win => {\n  win.localStorage.removeItem('claude_api_key');\n  win.localStorage.removeItem('openai_api_key');\n});\n// Click the Import Job button\ncy.get('#import-job-btn').should('be.visible').click();\n// Verify modal opened (our bug fix - modal should open even without API keys)\ncy.get('#import-job-modal').should('exist').and('not.have.class', 'hidden');\n// Take screenshot showing the fix works\ncy.screenshot('import-job-modal-opened-without-api');\n// Verify the API warning appears inside the modal (part of our fix)\ncy.get('#import-api-warning').should('be.visible');\ncy.log('✅ Import Job button fix verified: Modal opens and shows API warning');",
+              "err": {},
+              "uuid": "a55ad5e1-8541-401e-9845-b86ad4b463a3",
+              "parentUUID": "27289d91-ec9c-4a06-8ba4-0af08133cf40",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should allow form filling even without API keys",
+              "fullTitle": "Import Job Button Quick Test should allow form filling even without API keys",
+              "timedOut": null,
+              "duration": 14889,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.window().then(win => {\n  win.localStorage.removeItem('claude_api_key');\n  win.localStorage.removeItem('openai_api_key');\n});\ncy.get('#import-job-btn').click();\ncy.get('#import-job-modal').should('not.have.class', 'hidden');\n// Try to fill the job form manually\ncy.get('#job-company').should('exist').clear().type('Test Company');\ncy.get('#job-position').should('exist').clear().type('Software Engineer');\ncy.screenshot('import-job-form-fillable');\ncy.log('✅ Manual job form entry works without API keys');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#job-company`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#job-company`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/import-button-quick.cy.js:39:27)",
+                "diff": null
+              },
+              "uuid": "c01245c3-31fa-4fd4-acf4-32e213e43dee",
+              "parentUUID": "27289d91-ec9c-4a06-8ba4-0af08133cf40",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "a55ad5e1-8541-401e-9845-b86ad4b463a3"
+          ],
+          "failures": [
+            "c01245c3-31fa-4fd4-acf4-32e213e43dee"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 23336,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}

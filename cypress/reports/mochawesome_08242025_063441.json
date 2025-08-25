@@ -1,0 +1,439 @@
+{
+  "stats": {
+    "suites": 6,
+    "tests": 11,
+    "passes": 0,
+    "pending": 0,
+    "failures": 11,
+    "start": "2025-08-24T13:31:34.609Z",
+    "end": "2025-08-24T13:34:41.560Z",
+    "duration": 186951,
+    "testsRegistered": 11,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "27839403-0ac6-4250-a982-e1502377842e",
+      "title": "",
+      "fullFile": "cypress/e2e/component-functionality.cy.js",
+      "file": "cypress/e2e/component-functionality.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "fce348c8-a6d6-4ace-8ecc-6b2895b6e008",
+          "title": "Component Functionality Tests",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "95b679ac-de16-4c48-bc50-70c2f862c638",
+              "title": "Job Manager Component",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should create a new job successfully",
+                  "fullTitle": "Component Functionality Tests Job Manager Component should create a new job successfully",
+                  "timedOut": null,
+                  "duration": 16331,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('#add-job-btn').should('be.visible').click();\ncy.openModal('job-modal');\n// Fill job form\ncy.fixture('test-data').then(testData => {\n  cy.fillJobForm(testData.formTestData.validJob);\n});\ncy.takeNamedScreenshot('job-manager-create-job');\n// Save job\ncy.get('#job-modal').within(() => {\n  cy.get('button').contains('Save').click();\n});\n// Verify job appears in list\ncy.get('.job-card').should('contain.text', 'Test Company');\ncy.takeNamedScreenshot('job-manager-job-created');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-job-btn`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-job-btn`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:10:29)",
+                    "diff": null
+                  },
+                  "uuid": "c128a627-f2ab-4956-a671-935145f5a8e3",
+                  "parentUUID": "95b679ac-de16-4c48-bc50-70c2f862c638",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should update job status",
+                  "fullTitle": "Component Functionality Tests Job Manager Component should update job status",
+                  "timedOut": null,
+                  "duration": 17473,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Seed test data first\ncy.fixture('test-data').then(testData => {\n  cy.seedJobData([testData.testJobs[0]]);\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Click on job to open details\ncy.get('.job-card').first().click();\n// Change status\ncy.get('.status-dropdown').select('interviewing');\ncy.takeNamedScreenshot('job-manager-status-change');\n// Verify status updated\ncy.get('.job-status').should('contain.text', 'Interviewing');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.job-card`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.job-card`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:40:9)",
+                    "diff": null
+                  },
+                  "uuid": "7019e110-ccd4-4592-a93e-efe86a440cf7",
+                  "parentUUID": "95b679ac-de16-4c48-bc50-70c2f862c638",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should filter jobs by status",
+                  "fullTitle": "Component Functionality Tests Job Manager Component should filter jobs by status",
+                  "timedOut": null,
+                  "duration": 18439,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Seed multiple jobs with different statuses\ncy.fixture('test-data').then(testData => {\n  cy.seedJobData(testData.testJobs);\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Test different filter options\ncy.get('#status-filter').select('applied');\ncy.get('.job-card').should('have.length', 1);\ncy.takeNamedScreenshot('job-manager-filter-applied');\ncy.get('#status-filter').select('interviewing');\ncy.get('.job-card').should('have.length', 1);\ncy.takeNamedScreenshot('job-manager-filter-interviewing');\ncy.get('#status-filter').select('all');\ncy.get('.job-card').should('have.length.greaterThan', 1);\ncy.takeNamedScreenshot('job-manager-filter-all');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#status-filter`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#status-filter`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:60:9)",
+                    "diff": null
+                  },
+                  "uuid": "d67aa8f1-9a2b-48e9-aa2f-be553929f447",
+                  "parentUUID": "95b679ac-de16-4c48-bc50-70c2f862c638",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "c128a627-f2ab-4956-a671-935145f5a8e3",
+                "7019e110-ccd4-4592-a93e-efe86a440cf7",
+                "d67aa8f1-9a2b-48e9-aa2f-be553929f447"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 52243,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "4714d35e-6117-4250-bb28-2c6a12d0c777",
+              "title": "Resume Editor Component",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should create a new resume",
+                  "fullTitle": "Component Functionality Tests Resume Editor Component should create a new resume",
+                  "timedOut": null,
+                  "duration": 14697,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('#add-resume-btn').should('be.visible').click();\n// Wait for resume editor to load\ncy.waitForComponent('resume-editor-migrated');\n// Fill basic information\ncy.get('#basics-name').clear().type('Test User');\ncy.get('#basics-email').clear().type('test@example.com');\ncy.get('#basics-phone').clear().type('555-0123');\ncy.get('#basics-summary').clear().type('Experienced software developer');\ncy.takeNamedScreenshot('resume-editor-basic-info');\n// Save resume\ncy.get('#save-resume-btn').click();\n// Verify resume was saved\ncy.get('.resume-card').should('contain.text', 'Test User');\ncy.takeNamedScreenshot('resume-editor-resume-saved');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-resume-btn`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-resume-btn`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:80:32)",
+                    "diff": null
+                  },
+                  "uuid": "f69a6cab-0dad-440a-8a52-f4e2021f7755",
+                  "parentUUID": "4714d35e-6117-4250-bb28-2c6a12d0c777",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should add work experience",
+                  "fullTitle": "Component Functionality Tests Resume Editor Component should add work experience",
+                  "timedOut": null,
+                  "duration": 21902,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Create a basic resume first\ncy.fixture('test-data').then(testData => {\n  cy.seedResumeData([testData.testResumes[0]]);\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\ncy.navigateToSection('resumes');\n// Open resume for editing\ncy.get('.resume-card').first().click();\ncy.waitForComponent('resume-editor-migrated');\n// Navigate to work section\ncy.get('[data-section-tab=\"work\"]').click();\n// Add work experience\ncy.get('#add-work-btn').click();\ncy.get('#work-company-0').type('New Company');\ncy.get('#work-position-0').type('Senior Developer');\ncy.get('#work-startDate-0').type('2023-01-01');\ncy.takeNamedScreenshot('resume-editor-add-work');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.resume-card`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.resume-card`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:112:9)",
+                    "diff": null
+                  },
+                  "uuid": "1f0b8b53-9509-469e-a78c-eafc0b46552a",
+                  "parentUUID": "4714d35e-6117-4250-bb28-2c6a12d0c777",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "f69a6cab-0dad-440a-8a52-f4e2021f7755",
+                "1f0b8b53-9509-469e-a78c-eafc0b46552a"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 36599,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "f48354f4-9366-46ce-b849-12bab73cc8c7",
+              "title": "Settings Manager Component",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should configure API keys",
+                  "fullTitle": "Component Functionality Tests Settings Manager Component should configure API keys",
+                  "timedOut": null,
+                  "duration": 17967,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.waitForComponent('settings-manager-migrated');\n// Navigate to API settings\ncy.get('[data-settings-tab=\"api\"]').click();\n// Set Claude API key\ncy.fixture('test-data').then(testData => {\n  cy.get('#claude-api-key').clear().type(testData.testAPIKeys.claude);\n  cy.get('#openai-api-key').clear().type(testData.testAPIKeys.openai);\n});\ncy.takeNamedScreenshot('settings-manager-api-keys');\n// Test API connection\ncy.get('#test-claude-api').click();\ncy.get('#api-test-result').should('be.visible');\ncy.takeNamedScreenshot('settings-manager-api-test');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-settings-tab=\"api\"]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-settings-tab=\"api\"]`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:137:9)",
+                    "diff": null
+                  },
+                  "uuid": "6475e043-1c7c-4a2d-b203-58f1a7476a1e",
+                  "parentUUID": "f48354f4-9366-46ce-b849-12bab73cc8c7",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should change theme settings",
+                  "fullTitle": "Component Functionality Tests Settings Manager Component should change theme settings",
+                  "timedOut": null,
+                  "duration": 16650,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.waitForComponent('settings-manager-migrated');\n// Navigate to theme settings\ncy.get('[data-settings-tab=\"theme\"]').click();\n// Change theme\ncy.get('#theme-select').select('dark');\ncy.takeNamedScreenshot('settings-manager-theme-dark');\ncy.get('#theme-select').select('modern');\ncy.takeNamedScreenshot('settings-manager-theme-modern');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-settings-tab=\"theme\"]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-settings-tab=\"theme\"]`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:158:9)",
+                    "diff": null
+                  },
+                  "uuid": "60ba1efc-05ba-4a7e-9df5-853ec92e92ab",
+                  "parentUUID": "f48354f4-9366-46ce-b849-12bab73cc8c7",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "6475e043-1c7c-4a2d-b203-58f1a7476a1e",
+                "60ba1efc-05ba-4a7e-9df5-853ec92e92ab"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 34617,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "f4ca6c03-8cd9-4b83-b025-5c0df0d857a8",
+              "title": "Global Store Component",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should maintain state across components",
+                  "fullTitle": "Component Functionality Tests Global Store Component should maintain state across components",
+                  "timedOut": null,
+                  "duration": 13877,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Add a job\ncy.get('#add-job-btn').click();\ncy.openModal('job-modal');\ncy.fixture('test-data').then(testData => {\n  cy.fillJobForm(testData.formTestData.validJob);\n});\ncy.get('#job-modal').within(() => {\n  cy.get('button').contains('Save').click();\n});\n// Navigate to different section and back\ncy.navigateToSection('resumes');\ncy.navigateToSection('jobs');\n// Verify job still exists\ncy.get('.job-card').should('contain.text', 'Test Company');\ncy.takeNamedScreenshot('global-store-state-persistence');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-job-btn`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-job-btn`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:172:9)",
+                    "diff": null
+                  },
+                  "uuid": "1e15de51-9b27-42cd-89f9-a7f3f26a806f",
+                  "parentUUID": "f4ca6c03-8cd9-4b83-b025-5c0df0d857a8",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should handle state updates across components",
+                  "fullTitle": "Component Functionality Tests Global Store Component should handle state updates across components",
+                  "timedOut": null,
+                  "duration": 17197,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Seed test data\ncy.fixture('test-data').then(testData => {\n  cy.seedJobData([testData.testJobs[0]]);\n  cy.seedResumeData([testData.testResumes[0]]);\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Check initial statistics\ncy.get('[data-stat=\"total-jobs\"]').should('contain.text', '1');\n// Add another job\ncy.get('#add-job-btn').click();\ncy.openModal('job-modal');\ncy.fixture('test-data').then(testData => {\n  cy.fillJobForm(testData.formTestData.validJob);\n});\ncy.get('#job-modal').within(() => {\n  cy.get('button').contains('Save').click();\n});\n// Verify statistics updated\ncy.get('[data-stat=\"total-jobs\"]').should('contain.text', '2');\ncy.takeNamedScreenshot('global-store-state-updates');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-stat=\"total-jobs\"]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-stat=\"total-jobs\"]`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:203:41)",
+                    "diff": null
+                  },
+                  "uuid": "d3be5630-fde4-4895-9c98-3df61a4772d6",
+                  "parentUUID": "f4ca6c03-8cd9-4b83-b025-5c0df0d857a8",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "1e15de51-9b27-42cd-89f9-a7f3f26a806f",
+                "d3be5630-fde4-4895-9c98-3df61a4772d6"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 31074,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "48783547-298b-46c6-8161-9b9450726d43",
+              "title": "Modal System",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should handle multiple modals",
+                  "fullTitle": "Component Functionality Tests Modal System should handle multiple modals",
+                  "timedOut": null,
+                  "duration": 13752,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Open job modal\ncy.get('#add-job-btn').click();\ncy.openModal('job-modal');\ncy.takeNamedScreenshot('modal-system-job-modal');\ncy.closeModal('job-modal');\n// Open import job modal\ncy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\ncy.takeNamedScreenshot('modal-system-import-modal');\ncy.closeModal('import-job-modal');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-job-btn`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-job-btn`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:226:9)",
+                    "diff": null
+                  },
+                  "uuid": "ba0460d8-de81-4480-bfb8-90f4910b7724",
+                  "parentUUID": "48783547-298b-46c6-8161-9b9450726d43",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should handle modal overlays properly",
+                  "fullTitle": "Component Functionality Tests Modal System should handle modal overlays properly",
+                  "timedOut": null,
+                  "duration": 13969,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('#add-job-btn').click();\ncy.openModal('job-modal');\n// Check overlay behavior\ncy.get('.modal-overlay').should('be.visible');\ncy.get('.modal-overlay').click({\n  force: true\n});\n// Modal should close when clicking overlay\ncy.get('#job-modal').should('have.class', 'hidden');\ncy.takeNamedScreenshot('modal-system-overlay-close');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-job-btn`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-job-btn`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:241:9)",
+                    "diff": null
+                  },
+                  "uuid": "5f32a964-8b0d-47a9-964e-dcc7cfbe4e7b",
+                  "parentUUID": "48783547-298b-46c6-8161-9b9450726d43",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "ba0460d8-de81-4480-bfb8-90f4910b7724",
+                "5f32a964-8b0d-47a9-964e-dcc7cfbe4e7b"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 27721,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}
