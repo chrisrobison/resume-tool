@@ -1,0 +1,283 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 9,
+    "passes": 3,
+    "pending": 0,
+    "failures": 6,
+    "start": "2025-08-24T21:08:32.921Z",
+    "end": "2025-08-24T21:10:23.841Z",
+    "duration": 110920,
+    "testsRegistered": 9,
+    "passPercent": 33.33333333333333,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "5dd9bd32-d912-4a02-835c-50130b38226f",
+      "title": "",
+      "fullFile": "cypress/e2e/import-job-button.cy.js",
+      "file": "cypress/e2e/import-job-button.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "e5e3b57b-7e64-4e45-9edb-f80aeb5ac4dc",
+          "title": "Import Job Button Functionality",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should open import job modal when clicked",
+              "fullTitle": "Import Job Button Functionality should open import job modal when clicked",
+              "timedOut": null,
+              "duration": 15877,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Take screenshot before clicking\ncy.takeNamedScreenshot('before-import-job-click');\n// Click the Import Job button\ncy.get('#import-job-btn').should('be.visible').click();\n// Verify modal opens\ncy.openModal('import-job-modal');\ncy.get('#import-job-modal').should('not.have.class', 'hidden');\ncy.get('#import-job-modal .modal-content').should('be.visible');\n// Take screenshot of opened modal\ncy.takeNamedScreenshot('import-job-modal-opened');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#import-job-modal .modal-content`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#import-job-modal .modal-content`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/import-job-button.cy.js:18:47)",
+                "diff": null
+              },
+              "uuid": "41aa0bf0-60d2-45d5-a5c6-8afa3fb73c67",
+              "parentUUID": "e5e3b57b-7e64-4e45-9edb-f80aeb5ac4dc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should display API warning when no API key is configured",
+              "fullTitle": "Import Job Button Functionality should display API warning when no API key is configured",
+              "timedOut": null,
+              "duration": 13722,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Ensure no API keys are set\ncy.clearAPIKeys();\n// Open import job modal\ncy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Check for API warning\ncy.get('#import-api-warning').should('be.visible');\ncy.get('#import-api-warning').should('contain.text', 'API key required');\ncy.takeNamedScreenshot('import-job-api-warning');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: expected '<div#import-api-warning>' to contain text 'API key required', but the text was '\\n                    ⚠️ API Key Required\\n                    Please configure your API key in Settings before using import features.\\n                '",
+                "estack": "AssertionError: Timed out retrying after 10000ms: expected '<div#import-api-warning>' to contain text 'API key required', but the text was '\\n                    ⚠️ API Key Required\\n                    Please configure your API key in Settings before using import features.\\n                '\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/import-job-button.cy.js:34:34)",
+                "diff": "- '\\n                    ⚠️ API Key Required\\n                    Please configure your API key in Settings before using import features.\\n                '\n+ 'API key required'\n"
+              },
+              "uuid": "b07dbc53-623b-4238-a5c1-1cd30f3a3e9b",
+              "parentUUID": "e5e3b57b-7e64-4e45-9edb-f80aeb5ac4dc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should hide API warning when API key is configured",
+              "fullTitle": "Import Job Button Functionality should hide API warning when API key is configured",
+              "timedOut": null,
+              "duration": 4387,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Set an API key\ncy.fixture('test-data').then(testData => {\n  cy.setAPIKey('claude', testData.testAPIKeys.claude);\n});\n// Open import job modal\ncy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// API warning should not be visible or should be hidden\ncy.get('#import-api-warning').should('not.be.visible');\ncy.takeNamedScreenshot('import-job-no-warning');",
+              "err": {},
+              "uuid": "2ad19795-fcd9-4727-81c3-ed1383c7772e",
+              "parentUUID": "e5e3b57b-7e64-4e45-9edb-f80aeb5ac4dc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should allow manual job entry when modal is open",
+              "fullTitle": "Import Job Button Functionality should allow manual job entry when modal is open",
+              "timedOut": null,
+              "duration": 13836,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Fill out the manual job form\ncy.fixture('test-data').then(testData => {\n  cy.fillJobForm(testData.formTestData.validJob);\n});\ncy.takeNamedScreenshot('import-job-form-filled');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#job-company`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#job-company`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/support/commands.js:32:26)",
+                "diff": null
+              },
+              "uuid": "098097c2-065b-4e59-b133-7470ec7537ba",
+              "parentUUID": "e5e3b57b-7e64-4e45-9edb-f80aeb5ac4dc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should handle URL import field",
+              "fullTitle": "Import Job Button Functionality should handle URL import field",
+              "timedOut": null,
+              "duration": 14027,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Test URL input\ncy.fixture('test-data').then(testData => {\n  cy.get('#job-url-import').should('be.visible').clear().type(testData.importJobTestData.validJobURL);\n});\ncy.takeNamedScreenshot('import-job-url-filled');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#job-url-import`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#job-url-import`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/import-job-button.cy.js:73:32)",
+                "diff": null
+              },
+              "uuid": "431283c2-650d-47ce-873f-a890f196837a",
+              "parentUUID": "e5e3b57b-7e64-4e45-9edb-f80aeb5ac4dc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should close modal when close button is clicked",
+              "fullTitle": "Import Job Button Functionality should close modal when close button is clicked",
+              "timedOut": null,
+              "duration": 5584,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Open modal\ncy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Take screenshot of open modal\ncy.takeNamedScreenshot('import-job-modal-before-close');\n// Close modal\ncy.closeModal('import-job-modal');\n// Verify modal is closed\ncy.get('#import-job-modal').should('have.class', 'hidden');\ncy.takeNamedScreenshot('import-job-modal-after-close');",
+              "err": {},
+              "uuid": "94b77edb-3dba-46d6-a299-9eaa5dcd9d5e",
+              "parentUUID": "e5e3b57b-7e64-4e45-9edb-f80aeb5ac4dc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should validate required fields",
+              "fullTitle": "Import Job Button Functionality should validate required fields",
+              "timedOut": null,
+              "duration": 13828,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Try to submit with invalid data\ncy.fixture('test-data').then(testData => {\n  cy.fillJobForm(testData.formTestData.invalidJob);\n});\n// Attempt to save (if save button exists)\ncy.get('#import-job-modal').within(() => {\n  cy.get('button').contains('Save').should('be.visible');\n});\ncy.takeNamedScreenshot('import-job-validation-errors');",
+              "err": {
+                "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#job-location`, but never found it.",
+                "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#job-location`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/support/commands.js:34:27)",
+                "diff": null
+              },
+              "uuid": "cf2e68da-f915-46d2-9d56-0dd9e73d74b3",
+              "parentUUID": "e5e3b57b-7e64-4e45-9edb-f80aeb5ac4dc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should work consistently on both job interfaces",
+              "fullTitle": "Import Job Button Functionality should work consistently on both job interfaces",
+              "timedOut": null,
+              "duration": 21006,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Test on jobs-new.html (current)\ncy.visitJobsApp('new');\ncy.waitForStore();\ncy.get('#import-job-btn').should('be.visible').click();\ncy.openModal('import-job-modal');\ncy.takeNamedScreenshot('import-job-new-interface');\ncy.closeModal('import-job-modal');\n// Test on jobs.html (legacy) if it exists\ncy.visitJobsApp('legacy');\ncy.waitForStore();\ncy.get('#import-job-btn').should('be.visible').click();\ncy.openModal('import-job-modal');\ncy.takeNamedScreenshot('import-job-legacy-interface');\ncy.closeModal('import-job-modal');",
+              "err": {},
+              "uuid": "105633b9-24ca-44b4-a195-a5800ad08624",
+              "parentUUID": "e5e3b57b-7e64-4e45-9edb-f80aeb5ac4dc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should handle keyboard navigation",
+              "fullTitle": "Import Job Button Functionality should handle keyboard navigation",
+              "timedOut": null,
+              "duration": 5272,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#import-job-btn').focus().should('have.focus');\ncy.get('#import-job-btn').type('{enter}');\n// Modal should open\ncy.openModal('import-job-modal');\n// Test tab navigation within modal\ncy.get('#import-job-modal').within(() => {\n  cy.get('input, textarea, button, select').first().focus();\n  cy.focused().tab().tab().tab(); // Navigate through fields\n});\ncy.takeNamedScreenshot('import-job-keyboard-navigation');",
+              "err": {
+                "message": "TypeError: cy.focused(...).tab is not a function",
+                "estack": "TypeError: cy.focused(...).tab is not a function\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/import-job-button.cy.js:143:19)",
+                "diff": null
+              },
+              "uuid": "04be4d85-97bf-40db-aca9-9abe7ead77b5",
+              "parentUUID": "e5e3b57b-7e64-4e45-9edb-f80aeb5ac4dc",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "2ad19795-fcd9-4727-81c3-ed1383c7772e",
+            "94b77edb-3dba-46d6-a299-9eaa5dcd9d5e",
+            "105633b9-24ca-44b4-a195-a5800ad08624"
+          ],
+          "failures": [
+            "41aa0bf0-60d2-45d5-a5c6-8afa3fb73c67",
+            "b07dbc53-623b-4238-a5c1-1cd30f3a3e9b",
+            "098097c2-065b-4e59-b133-7470ec7537ba",
+            "431283c2-650d-47ce-873f-a890f196837a",
+            "cf2e68da-f915-46d2-9d56-0dd9e73d74b3",
+            "04be4d85-97bf-40db-aca9-9abe7ead77b5"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 107539,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}

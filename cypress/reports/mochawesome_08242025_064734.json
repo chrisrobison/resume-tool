@@ -1,0 +1,783 @@
+{
+  "stats": {
+    "suites": 10,
+    "tests": 24,
+    "passes": 9,
+    "pending": 0,
+    "failures": 15,
+    "start": "2025-08-24T13:40:37.916Z",
+    "end": "2025-08-24T13:47:34.129Z",
+    "duration": 416213,
+    "testsRegistered": 24,
+    "passPercent": 37.5,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "9fa6ce26-b20c-47e0-a08e-6e38ab4da105",
+      "title": "",
+      "fullFile": "cypress/e2e/visual-regression.cy.js",
+      "file": "cypress/e2e/visual-regression.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "cf1094bc-7d3a-4aaf-bd81-13564129882f",
+          "title": "Visual Regression Testing",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "94b2ec96-cd75-4e15-af3e-31d425ee485c",
+              "title": "Application Layout",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should match baseline application layout",
+                  "fullTitle": "Visual Regression Testing Application Layout should match baseline application layout",
+                  "timedOut": null,
+                  "duration": 19336,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Seed consistent test data for visual consistency\ncy.fixture('test-data').then(testData => {\n  cy.seedJobData(testData.testJobs);\n  cy.seedResumeData(testData.testResumes);\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Wait for data to load and render\ncy.get('.job-card').should('have.length', 3);\n// Take full page screenshot for baseline\ncy.compareSnapshot('application-layout-full', {\n  capture: 'fullPage'\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.job-card`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.job-card`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:20:26)",
+                    "diff": null
+                  },
+                  "uuid": "cc54f5a0-ad11-42f6-bdfd-8f39c1e92d40",
+                  "parentUUID": "94b2ec96-cd75-4e15-af3e-31d425ee485c",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match navigation header consistently",
+                  "fullTitle": "Visual Regression Testing Application Layout should match navigation header consistently",
+                  "timedOut": null,
+                  "duration": 14369,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('#main-nav').should('be.visible');\n// Compare just the navigation area\ncy.get('#main-nav').compareSnapshot('navigation-header');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#main-nav`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#main-nav`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:29:26)",
+                    "diff": null
+                  },
+                  "uuid": "d41530d5-cb20-4df8-907d-70f5b488d682",
+                  "parentUUID": "94b2ec96-cd75-4e15-af3e-31d425ee485c",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match job statistics panel",
+                  "fullTitle": "Visual Regression Testing Application Layout should match job statistics panel",
+                  "timedOut": null,
+                  "duration": 18145,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.fixture('test-data').then(testData => {\n  cy.seedJobData(testData.testJobs);\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\ncy.get('.stats-container').should('be.visible');\ncy.get('.stats-container').compareSnapshot('job-statistics-panel');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.stats-container`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.stats-container`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:43:33)",
+                    "diff": null
+                  },
+                  "uuid": "96ff8372-7129-4769-8689-9746464103ee",
+                  "parentUUID": "94b2ec96-cd75-4e15-af3e-31d425ee485c",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "cc54f5a0-ad11-42f6-bdfd-8f39c1e92d40",
+                "d41530d5-cb20-4df8-907d-70f5b488d682",
+                "96ff8372-7129-4769-8689-9746464103ee"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 51850,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "14e65808-ffa1-4f9d-8540-7df0f0c986d8",
+              "title": "Job Card Layouts",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should match job card with applied status",
+                  "fullTitle": "Visual Regression Testing Job Card Layouts should match job card with applied status",
+                  "timedOut": null,
+                  "duration": 18524,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('.job-card').contains('TechCorp Inc').parent('.job-card').compareSnapshot('job-card-applied-status');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.job-card`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.job-card`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:59:9)",
+                    "diff": null
+                  },
+                  "uuid": "e312d7aa-bd08-41e0-8130-6d1ac787487d",
+                  "parentUUID": "14e65808-ffa1-4f9d-8540-7df0f0c986d8",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match job card with interviewing status",
+                  "fullTitle": "Visual Regression Testing Job Card Layouts should match job card with interviewing status",
+                  "timedOut": null,
+                  "duration": 17587,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('.job-card').contains('StartupCo').parent('.job-card').compareSnapshot('job-card-interviewing-status');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.job-card`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.job-card`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:65:9)",
+                    "diff": null
+                  },
+                  "uuid": "296b3c3a-ab3c-4ead-85b9-3361c91c1798",
+                  "parentUUID": "14e65808-ffa1-4f9d-8540-7df0f0c986d8",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match job card with saved status",
+                  "fullTitle": "Visual Regression Testing Job Card Layouts should match job card with saved status",
+                  "timedOut": null,
+                  "duration": 17883,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('.job-card').contains('Enterprise Solutions').parent('.job-card').compareSnapshot('job-card-saved-status');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.job-card`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `.job-card`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:71:9)",
+                    "diff": null
+                  },
+                  "uuid": "03f06629-42b9-4c5f-8b47-52d27c5827de",
+                  "parentUUID": "14e65808-ffa1-4f9d-8540-7df0f0c986d8",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match job cards grid layout",
+                  "fullTitle": "Visual Regression Testing Job Card Layouts should match job cards grid layout",
+                  "timedOut": null,
+                  "duration": 23973,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('#jobs-container').compareSnapshot('job-cards-grid-layout');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#jobs-container`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#jobs-container`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:77:9)",
+                    "diff": null
+                  },
+                  "uuid": "7524f209-d993-4e49-a545-d7894fcbaa3a",
+                  "parentUUID": "14e65808-ffa1-4f9d-8540-7df0f0c986d8",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "e312d7aa-bd08-41e0-8130-6d1ac787487d",
+                "296b3c3a-ab3c-4ead-85b9-3361c91c1798",
+                "03f06629-42b9-4c5f-8b47-52d27c5827de",
+                "7524f209-d993-4e49-a545-d7894fcbaa3a"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 77967,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "7691bb50-00b0-4608-8cce-e699f7c54b7a",
+              "title": "Modal Dialogs",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should match add job modal layout",
+                  "fullTitle": "Visual Regression Testing Modal Dialogs should match add job modal layout",
+                  "timedOut": null,
+                  "duration": 14716,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('#add-job-btn').click();\ncy.openModal('job-modal');\n// Wait for modal animation to complete\ncy.wait(300);\ncy.get('#job-modal').compareSnapshot('add-job-modal-layout');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-job-btn`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#add-job-btn`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:83:9)",
+                    "diff": null
+                  },
+                  "uuid": "9b76eb41-8cf3-4017-9ce1-ed76a3651607",
+                  "parentUUID": "7691bb50-00b0-4608-8cce-e699f7c54b7a",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match import job modal layout",
+                  "fullTitle": "Visual Regression Testing Modal Dialogs should match import job modal layout",
+                  "timedOut": null,
+                  "duration": 9619,
+                  "state": "passed",
+                  "speed": "medium",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\ncy.wait(300);\ncy.get('#import-job-modal').compareSnapshot('import-job-modal-layout');",
+                  "err": {},
+                  "uuid": "3ba65d63-c5f3-4ce4-8c5c-5fa3b6760ad5",
+                  "parentUUID": "7691bb50-00b0-4608-8cce-e699f7c54b7a",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match import job modal with API warning",
+                  "fullTitle": "Visual Regression Testing Modal Dialogs should match import job modal with API warning",
+                  "timedOut": null,
+                  "duration": 7911,
+                  "state": "passed",
+                  "speed": "medium",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.clearAPIKeys();\ncy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\ncy.wait(300);\n// Ensure API warning is visible\ncy.get('#import-api-warning').should('be.visible');\ncy.get('#import-job-modal').compareSnapshot('import-job-modal-api-warning');",
+                  "err": {},
+                  "uuid": "6779d840-f149-43fb-a4cc-733e1c3c4bf6",
+                  "parentUUID": "7691bb50-00b0-4608-8cce-e699f7c54b7a",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [
+                "3ba65d63-c5f3-4ce4-8c5c-5fa3b6760ad5",
+                "6779d840-f149-43fb-a4cc-733e1c3c4bf6"
+              ],
+              "failures": [
+                "9b76eb41-8cf3-4017-9ce1-ed76a3651607"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 32246,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "61f603f6-09e1-4478-9434-86f400ae0fba",
+              "title": "Section Layouts",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should match jobs section layout",
+                  "fullTitle": "Visual Regression Testing Section Layouts should match jobs section layout",
+                  "timedOut": null,
+                  "duration": 18268,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.navigateToSection('jobs');\ncy.wait(500);\ncy.get('#main-content').compareSnapshot('jobs-section-layout');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#main-content`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#main-content`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:130:9)",
+                    "diff": null
+                  },
+                  "uuid": "3790f3ff-80e6-4d3c-83a9-80a781cc5138",
+                  "parentUUID": "61f603f6-09e1-4478-9434-86f400ae0fba",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match resumes section layout",
+                  "fullTitle": "Visual Regression Testing Section Layouts should match resumes section layout",
+                  "timedOut": null,
+                  "duration": 19113,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.navigateToSection('resumes');\ncy.wait(500);\ncy.get('#main-content').compareSnapshot('resumes-section-layout');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#main-content`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#main-content`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:137:9)",
+                    "diff": null
+                  },
+                  "uuid": "9f276329-4a11-4ab2-98d6-422645b1de71",
+                  "parentUUID": "61f603f6-09e1-4478-9434-86f400ae0fba",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match settings section layout",
+                  "fullTitle": "Visual Regression Testing Section Layouts should match settings section layout",
+                  "timedOut": null,
+                  "duration": 18621,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.navigateToSection('settings');\ncy.wait(500);\ncy.get('#main-content').compareSnapshot('settings-section-layout');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#main-content`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#main-content`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:144:9)",
+                    "diff": null
+                  },
+                  "uuid": "e31c5a7a-ad56-478c-b728-590f3da47ed6",
+                  "parentUUID": "61f603f6-09e1-4478-9434-86f400ae0fba",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match logs section layout",
+                  "fullTitle": "Visual Regression Testing Section Layouts should match logs section layout",
+                  "timedOut": null,
+                  "duration": 17821,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.navigateToSection('logs');\ncy.wait(500);\ncy.get('#main-content').compareSnapshot('logs-section-layout');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-section=\"logs\"]`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `[data-section=\"logs\"]`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/support/commands.js:15:5)",
+                    "diff": null
+                  },
+                  "uuid": "d93023a2-47b9-47d0-bb4a-fc1725884c85",
+                  "parentUUID": "61f603f6-09e1-4478-9434-86f400ae0fba",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "3790f3ff-80e6-4d3c-83a9-80a781cc5138",
+                "9f276329-4a11-4ab2-98d6-422645b1de71",
+                "e31c5a7a-ad56-478c-b728-590f3da47ed6",
+                "d93023a2-47b9-47d0-bb4a-fc1725884c85"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 73823,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "c4180863-a398-48ef-aad1-9771f8c76814",
+              "title": "Empty States",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should match empty jobs state",
+                  "fullTitle": "Visual Regression Testing Empty States should match empty jobs state",
+                  "timedOut": null,
+                  "duration": 17831,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Ensure no jobs in storage\ncy.window().then(win => {\n  win.localStorage.removeItem('jobHuntData');\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\ncy.get('.empty-state').should('be.visible');\ncy.get('#jobs-container').compareSnapshot('empty-jobs-state');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#jobs-container`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#jobs-container`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:166:9)",
+                    "diff": null
+                  },
+                  "uuid": "ec20bd06-73ef-44e0-9b7c-9e81a945507e",
+                  "parentUUID": "c4180863-a398-48ef-aad1-9771f8c76814",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match empty resumes state",
+                  "fullTitle": "Visual Regression Testing Empty States should match empty resumes state",
+                  "timedOut": null,
+                  "duration": 17857,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.navigateToSection('resumes');\ncy.wait(500);\ncy.get('#resumes-container').compareSnapshot('empty-resumes-state');",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#resumes-container`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#resumes-container`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:173:9)",
+                    "diff": null
+                  },
+                  "uuid": "eb674a15-add8-475d-a919-0072631e8f36",
+                  "parentUUID": "c4180863-a398-48ef-aad1-9771f8c76814",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "ec20bd06-73ef-44e0-9b7c-9e81a945507e",
+                "eb674a15-add8-475d-a919-0072631e8f36"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 35688,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "2525c286-213b-46e5-b718-3040a6b323c1",
+              "title": "Responsive Design",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should match layout on desktop-large",
+                  "fullTitle": "Visual Regression Testing Responsive Design should match layout on desktop-large",
+                  "timedOut": null,
+                  "duration": 12590,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.fixture('test-data').then(testData => {\n  cy.seedJobData(testData.testJobs.slice(0, 2)); // Limit jobs for mobile\n});\ncy.viewport(viewport.width, viewport.height);\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Wait for layout to stabilize\ncy.wait(1000);\ncy.compareSnapshot(`responsive-layout-${viewport.name}`, {\n  capture: 'viewport'\n});",
+                  "err": {},
+                  "uuid": "22b53501-3f8d-4e49-aa6b-7d87df43c229",
+                  "parentUUID": "2525c286-213b-46e5-b718-3040a6b323c1",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match layout on desktop",
+                  "fullTitle": "Visual Regression Testing Responsive Design should match layout on desktop",
+                  "timedOut": null,
+                  "duration": 14366,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.fixture('test-data').then(testData => {\n  cy.seedJobData(testData.testJobs.slice(0, 2)); // Limit jobs for mobile\n});\ncy.viewport(viewport.width, viewport.height);\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Wait for layout to stabilize\ncy.wait(1000);\ncy.compareSnapshot(`responsive-layout-${viewport.name}`, {\n  capture: 'viewport'\n});",
+                  "err": {},
+                  "uuid": "63e78dbf-35f9-46be-a3fd-46baa9c6a9d7",
+                  "parentUUID": "2525c286-213b-46e5-b718-3040a6b323c1",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match layout on tablet",
+                  "fullTitle": "Visual Regression Testing Responsive Design should match layout on tablet",
+                  "timedOut": null,
+                  "duration": 13067,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.fixture('test-data').then(testData => {\n  cy.seedJobData(testData.testJobs.slice(0, 2)); // Limit jobs for mobile\n});\ncy.viewport(viewport.width, viewport.height);\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Wait for layout to stabilize\ncy.wait(1000);\ncy.compareSnapshot(`responsive-layout-${viewport.name}`, {\n  capture: 'viewport'\n});",
+                  "err": {},
+                  "uuid": "76157ad8-f281-4d0c-bd9a-961b54024c21",
+                  "parentUUID": "2525c286-213b-46e5-b718-3040a6b323c1",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match layout on mobile",
+                  "fullTitle": "Visual Regression Testing Responsive Design should match layout on mobile",
+                  "timedOut": null,
+                  "duration": 18885,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.fixture('test-data').then(testData => {\n  cy.seedJobData(testData.testJobs.slice(0, 2)); // Limit jobs for mobile\n});\ncy.viewport(viewport.width, viewport.height);\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Wait for layout to stabilize\ncy.wait(1000);\ncy.compareSnapshot(`responsive-layout-${viewport.name}`, {\n  capture: 'viewport'\n});",
+                  "err": {},
+                  "uuid": "89bcd076-3acf-4783-841a-cbeadb6e4bb1",
+                  "parentUUID": "2525c286-213b-46e5-b718-3040a6b323c1",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [
+                "22b53501-3f8d-4e49-aa6b-7d87df43c229",
+                "63e78dbf-35f9-46be-a3fd-46baa9c6a9d7",
+                "76157ad8-f281-4d0c-bd9a-961b54024c21",
+                "89bcd076-3acf-4783-841a-cbeadb6e4bb1"
+              ],
+              "failures": [],
+              "pending": [],
+              "skipped": [],
+              "duration": 58908,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "8e7fe511-4241-4045-87e3-432da63113ee",
+              "title": "Theme Variations",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should match default theme",
+                  "fullTitle": "Visual Regression Testing Theme Variations should match default theme",
+                  "timedOut": null,
+                  "duration": 15563,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.compareSnapshot('theme-default', {\n  capture: 'viewport'\n});",
+                  "err": {},
+                  "uuid": "02fc2d41-4d00-43aa-a27f-c5c8d9297676",
+                  "parentUUID": "8e7fe511-4241-4045-87e3-432da63113ee",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should match dark theme if available",
+                  "fullTitle": "Visual Regression Testing Theme Variations should match dark theme if available",
+                  "timedOut": null,
+                  "duration": 13751,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Try to set dark theme via settings\ncy.navigateToSection('settings');\ncy.get('body').then($body => {\n  if ($body.find('#theme-select').length > 0) {\n    cy.get('#theme-select').select('dark');\n    cy.wait(500);\n    cy.compareSnapshot('theme-dark', {\n      capture: 'viewport'\n    });\n  }\n});",
+                  "err": {},
+                  "uuid": "0929b884-5813-46cb-92e5-9b9ccc566f12",
+                  "parentUUID": "8e7fe511-4241-4045-87e3-432da63113ee",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [
+                "02fc2d41-4d00-43aa-a27f-c5c8d9297676",
+                "0929b884-5813-46cb-92e5-9b9ccc566f12"
+              ],
+              "failures": [],
+              "pending": [],
+              "skipped": [],
+              "duration": 29314,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "ca4f86fd-5e4c-4a9c-ab4c-ce5f0adb990e",
+              "title": "Loading States",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should match initial loading state",
+                  "fullTitle": "Visual Regression Testing Loading States should match initial loading state",
+                  "timedOut": null,
+                  "duration": 11675,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Visit page and capture before data loads\ncy.visit('/jobs-new.html');\n// Capture the loading state quickly\ncy.compareSnapshot('loading-state-initial', {\n  capture: 'viewport'\n});",
+                  "err": {},
+                  "uuid": "59949da8-b304-46b1-bcbb-54157825f722",
+                  "parentUUID": "ca4f86fd-5e4c-4a9c-ab4c-ce5f0adb990e",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [
+                "59949da8-b304-46b1-bcbb-54157825f722"
+              ],
+              "failures": [],
+              "pending": [],
+              "skipped": [],
+              "duration": 11675,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "9edc000e-9016-463c-8c6f-93af857c5b7d",
+              "title": "Error States",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should match API error state",
+                  "fullTitle": "Visual Regression Testing Error States should match API error state",
+                  "timedOut": null,
+                  "duration": 19651,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Set invalid API key to trigger error\ncy.setAPIKey('claude', 'invalid-key');\ncy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Try to use AI import (this should fail)\ncy.get('#job-url-import').type('https://example.com/job');\n// If there's an import button, click it to trigger API error\ncy.get('#import-job-modal').within(() => {\n  cy.get('button').contains('Import').then($btn => {\n    if ($btn.length > 0) {\n      cy.wrap($btn).click();\n      cy.wait(2000); // Wait for error to appear\n      cy.compareSnapshot('api-error-state');\n    }\n  });\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#job-url-import`, but never found it.",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: Expected to find element: `#job-url-import`, but never found it.\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/visual-regression.cy.js:259:9)",
+                    "diff": null
+                  },
+                  "uuid": "a7ca4b47-1463-4b76-bd7d-1d4f0cf1ff8c",
+                  "parentUUID": "9edc000e-9016-463c-8c6f-93af857c5b7d",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [],
+              "failures": [
+                "a7ca4b47-1463-4b76-bd7d-1d4f0cf1ff8c"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 19651,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}
