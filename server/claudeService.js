@@ -8,7 +8,7 @@ const axios = require('axios');
  * @param {string} apiKey - The Claude API key
  * @returns {Object} - Object containing the tailored resume, cover letter, and job description
  */
-async function tailorResumeWithClaude(resume, jobDescription, apiKey) {
+async function tailorResumeWithClaude(resume, jobDescription, apiKey, model = 'claude-3-5-sonnet-20241022') {
   try {
     // Format the resume as a string for easier processing
     const resumeStr = JSON.stringify(resume, null, 2);
@@ -48,7 +48,7 @@ IMPORTANT REQUIREMENTS:
     const response = await axios.post(
       'https://api.anthropic.com/v1/messages',
       {
-        model: 'claude-opus-4-20250514',
+        model: model || 'claude-opus-4-20250514',
         max_tokens: 4000,
         messages: [
           {

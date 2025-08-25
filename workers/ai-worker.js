@@ -26,6 +26,9 @@ class AIWorker {
             case 'analyze-match':
                 this.handleAnalyzeMatch(data, requestId);
                 break;
+            case 'parse-job':
+                this.handleParseJob(data, requestId);
+                break;
             case 'test-api-key':
                 this.handleTestApiKey(data, requestId);
                 break;
@@ -41,7 +44,7 @@ class AIWorker {
             // Debug logging
             console.log('Worker handleTailorResume - Received data:', data);
             
-            const { resume, jobDescription, provider, apiKey, includeAnalysis = false } = data;
+            const { resume, jobDescription, provider, apiKey, model, includeAnalysis = false } = data;
             
             // Set metadata for logging
             this.currentOperation = 'tailor_resume';
@@ -66,7 +69,7 @@ class AIWorker {
             
             this.postProgress('Sending request to AI service...', requestId);
             
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId);
+            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model);
             
             this.postProgress('Processing AI response...', requestId);
             
@@ -90,7 +93,7 @@ class AIWorker {
         try {
             this.postProgress('Starting cover letter generation...', requestId);
             
-            const { resume, jobDescription, jobInfo, provider, apiKey, includeAnalysis = true } = data;
+            const { resume, jobDescription, jobInfo, provider, apiKey, model, includeAnalysis = true } = data;
             
             if (!resume || !jobDescription || !provider || !apiKey) {
                 throw new Error('Missing required parameters for cover letter generation');
@@ -100,7 +103,7 @@ class AIWorker {
             
             this.postProgress('Generating cover letter with AI...', requestId);
             
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId);
+            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model);
             
             this.postProgress('Processing cover letter response...', requestId);
             
@@ -123,7 +126,7 @@ class AIWorker {
         try {
             this.postProgress('Starting job-resume match analysis...', requestId);
             
-            const { resume, jobDescription, provider, apiKey } = data;
+            const { resume, jobDescription, provider, apiKey, model } = data;
             
             if (!resume || !jobDescription || !provider || !apiKey) {
                 throw new Error('Missing required parameters for match analysis');
@@ -133,7 +136,7 @@ class AIWorker {
             
             this.postProgress('Analyzing match with AI...', requestId);
             
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId);
+            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model);
             
             this.postProgress('Processing match analysis...', requestId);
             
@@ -151,11 +154,78 @@ class AIWorker {
         }
     }
 
+    async handleParseJob(data, requestId) {
+        try {
+            this.postProgress('Starting job parsing...', requestId);
+
+            const { url, description, instructions, provider, apiKey, model } = data;
+
+            if (!provider || !apiKey) {
+                throw new Error('Missing provider or apiKey for parse-job');
+            }
+
+            // Build parsing prompt
+            let prompt = `You are an expert at extracting structured data from job postings. Return ONLY a JSON object (no surrounding text) with the following keys if available: title, company, location, description, requirements, skills, seniority, employmentType, postedDate, applyUrl, rawText.\n`;
+            if (instructions) {
+                prompt += `Additional instructions: ${instructions}\n`;
+            }
+
+            let aiResponse;
+
+            if (url) {
+                // Ask the server proxy to fetch the URL and run the AI on the fetched content
+                prompt += "Fetch the page content from the provided URL on the server and extract the job posting information. Use the page text to populate the fields.\n";
+                const metadata = { operation: 'parse-job', targetUrl: url };
+                aiResponse = await this.callServerAPI(provider, apiKey, prompt, requestId, metadata, model);
+            } else if (description) {
+                prompt += `Job description:\n${description}\n`;
+                // Use direct AI request for raw description
+                aiResponse = await this.makeAIRequest(provider, apiKey, prompt, requestId, model);
+            } else {
+                throw new Error('No URL or description provided for parse-job');
+            }
+
+            // Attempt to parse AI response as JSON
+            let parsed = null;
+            if (typeof aiResponse === 'object') {
+                parsed = aiResponse;
+            } else if (typeof aiResponse === 'string') {
+                const txt = aiResponse.trim();
+                // Try direct JSON
+                try {
+                    parsed = JSON.parse(txt);
+                } catch (e) {
+                    // Try to extract first JSON object from the text
+                    const m = txt.match(/\{[\s\S]*\}/);
+                    if (m) {
+                        try {
+                            parsed = JSON.parse(m[0]);
+                        } catch (e2) {
+                            // leave parsed null
+                        }
+                    }
+                }
+            }
+
+            if (!parsed) {
+                // If parsing failed, return raw text in a structured envelope
+                this.postSuccess({ type: 'parse-job', result: null, raw: aiResponse }, requestId);
+                return;
+            }
+
+            // Normalize keys and return
+            this.postSuccess({ type: 'parse-job', result: parsed }, requestId);
+
+        } catch (error) {
+            this.postError(`Job parsing failed: ${error.message}`, requestId);
+        }
+    }
+
     async handleTestApiKey(data, requestId) {
         try {
             this.postProgress('Testing API key...', requestId);
             
-            const { provider, apiKey } = data;
+            const { provider, apiKey, model } = data;
             
             if (!provider || !apiKey) {
                 throw new Error('Missing provider or API key');
@@ -164,11 +234,12 @@ class AIWorker {
             // Simple test prompt
             const testPrompt = 'Respond with exactly: "API key test successful"';
             
-            const result = await this.makeAIRequest(provider, apiKey, testPrompt, requestId);
+            const result = await this.makeAIRequest(provider, apiKey, testPrompt, requestId, model);
             
             this.postSuccess({
                 type: 'api-test',
-                result: { success: true, response: result },
+                success: true,
+                response: result,
                 provider: provider,
                 timestamp: new Date().toISOString()
             }, requestId);
@@ -178,7 +249,7 @@ class AIWorker {
         }
     }
 
-    async makeAIRequest(provider, apiKey, prompt, requestId) {
+    async makeAIRequest(provider, apiKey, prompt, requestId, model) {
         const maxRetries = 2;
         let attempt = 0;
         
@@ -195,9 +266,9 @@ class AIWorker {
                 };
 
                 if (provider === 'claude') {
-                    return await this.callClaudeAPI(apiKey, prompt, requestId, apiMetadata);
+                    return await this.callClaudeAPI(apiKey, prompt, requestId, apiMetadata, model);
                 } else if (provider === 'openai') {
-                    return await this.callOpenAIAPI(apiKey, prompt, requestId, apiMetadata);
+                    return await this.callOpenAIAPI(apiKey, prompt, requestId, apiMetadata, model);
                 } else {
                     throw new Error(`Unsupported AI provider: ${provider}`);
                 }
@@ -396,35 +467,35 @@ Provide honest, constructive analysis that will help the candidate understand th
         });
     }
 
-    async callClaudeAPI(apiKey, prompt, requestId, metadata = {}) {
+    async callClaudeAPI(apiKey, prompt, requestId, metadata = {}, model) {
         // Try direct API call first, fallback to server if CORS fails
         try {
             this.postProgress('Connecting directly to Claude API...', requestId);
-            return await this.callClaudeAPIDirect(apiKey, prompt);
+            return await this.callClaudeAPIDirect(apiKey, prompt, model);
         } catch (error) {
             if (error.message.includes('CORS') || error.message.includes('network')) {
                 this.postProgress('Direct connection failed, trying server proxy...', requestId);
-                return await this.callServerAPI('claude', apiKey, prompt, requestId, metadata);
+                return await this.callServerAPI('claude', apiKey, prompt, requestId, metadata, model);
             }
             throw error;
         }
     }
 
-    async callOpenAIAPI(apiKey, prompt, requestId, metadata = {}) {
+    async callOpenAIAPI(apiKey, prompt, requestId, metadata = {}, model) {
         // Try direct API call first, fallback to server if CORS fails
         try {
             this.postProgress('Connecting directly to OpenAI API...', requestId);
-            return await this.callOpenAIAPIDirect(apiKey, prompt);
+            return await this.callOpenAIAPIDirect(apiKey, prompt, model);
         } catch (error) {
             if (error.message.includes('CORS') || error.message.includes('network')) {
                 this.postProgress('Direct connection failed, trying server proxy...', requestId);
-                return await this.callServerAPI('openai', apiKey, prompt, requestId, metadata);
+                return await this.callServerAPI('openai', apiKey, prompt, requestId, metadata, model);
             }
             throw error;
         }
     }
 
-    async callClaudeAPIDirect(apiKey, prompt) {
+    async callClaudeAPIDirect(apiKey, prompt, model) {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -434,7 +505,7 @@ Provide honest, constructive analysis that will help the candidate understand th
                 'anthropic-dangerous-direct-browser-access': 'true'
             },
             body: JSON.stringify({
-                model: 'claude-3-5-sonnet-20241022',
+                model: model || 'claude-3-5-sonnet-20241022',
                 max_tokens: 4000,
                 messages: [{
                     role: 'user',
@@ -457,23 +528,27 @@ Provide honest, constructive analysis that will help the candidate understand th
         return data.content[0].text;
     }
 
-    async callOpenAIAPIDirect(apiKey, prompt) {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-4o',
-                messages: [{
-                    role: 'user',
-                    content: prompt
-                }],
+    async callOpenAIAPIDirect(apiKey, prompt, model) {
+        const useResponses = this.shouldUseOpenAIResponses(model);
+        const url = useResponses ? 'https://api.openai.com/v1/responses' : 'https://api.openai.com/v1/chat/completions';
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        };
+        const body = useResponses
+            ? {
+                model: model || 'gpt-4o',
+                input: prompt,
+                max_output_tokens: 4000
+            }
+            : {
+                model: model || 'gpt-4o',
+                messages: [{ role: 'user', content: prompt }],
                 max_tokens: 4000,
                 temperature: 0.7
-            })
-        });
+            };
+
+        const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
 
         if (!response.ok) {
             const errorData = await response.text();
@@ -481,21 +556,48 @@ Provide honest, constructive analysis that will help the candidate understand th
         }
 
         const data = await response.json();
-        
+
+        // Try Responses API shape first
+        if (useResponses) {
+            if (typeof data.output_text === 'string') return data.output_text;
+            if (Array.isArray(data.output) && data.output.length > 0) {
+                // Find the 'message' block in output
+                const msgBlock = data.output.find(b => b && b.type === 'message');
+                const contentArr = msgBlock?.content;
+                if (Array.isArray(contentArr)) {
+                    // Prefer 'output_text', fallback to 'text'
+                    const out = contentArr.find(c => c?.type === 'output_text') || contentArr.find(c => c?.type === 'text');
+                    if (out?.text) return out.text;
+                }
+            }
+            // Fallback to choices if OpenAI returns hybrid shape
+            if (data.choices && data.choices[0]?.message?.content) {
+                return data.choices[0].message.content;
+            }
+            throw new Error('Invalid response format from OpenAI Responses API');
+        }
+
+        // Chat Completions shape
         if (!data.choices || !data.choices[0] || !data.choices[0].message) {
             throw new Error('Invalid response format from OpenAI API');
         }
-
         return data.choices[0].message.content;
     }
 
-    async callServerAPI(apiType, apiKey, prompt, requestId, metadata = {}) {
+    shouldUseOpenAIResponses(model) {
+        const m = (model || '').toLowerCase();
+        // Newer models typically require Responses API params
+        return m.startsWith('gpt-5') || m.startsWith('o1') || m.includes('responses');
+    }
+
+    async callServerAPI(apiType, apiKey, prompt, requestId, metadata = {}, model) {
         const startTime = Date.now();
         this.postProgress(`Connecting to ${apiType} via server...`, requestId);
         
         try {
             // Try different server endpoints
             const endpoints = [
+                '/ai-proxy.php',
                 '/api/tailor-resume',  // Direct proxy (if configured)
                 'http://localhost:3000/api/tailor-resume',  // Local server
                 'https://cdr2.com:3000/api/tailor-resume'   // Remote server
@@ -511,14 +613,17 @@ Provide honest, constructive analysis that will help the candidate understand th
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({
-                            prompt,
-                            apiType,
-                            apiKey,
-                            resume: metadata.resume,
-                            operation: metadata.operation
-                        })
-                    });
+                // Include optional metadata such as resume, operation and targetUrl
+                body: JSON.stringify({
+                    prompt,
+                    apiType,
+                    apiKey,
+                    model,
+                    resume: metadata.resume,
+                    operation: metadata.operation,
+                    targetUrl: metadata.targetUrl || null
+                })
+            });
                     
                     // If we get here without error, break out of the loop
                     break;

@@ -500,7 +500,7 @@ class SettingsManager extends HTMLElement {
                     <p>Configure your AI service providers for resume tailoring, cover letter generation, and match analysis.</p>
                     
                     ${this.renderApiProvider('claude', 'Claude (Anthropic)', providers.claude)}
-                    ${this.renderApiProvider('openai', 'OpenAI (GPT-4)', providers.openai)}
+                    ${this.renderApiProvider('openai', 'OpenAI (GPT-5)', providers.openai)}
                 </div>
                 
                 <div class="setting-group">
@@ -568,7 +568,8 @@ class SettingsManager extends HTMLElement {
                 { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' }
             ],
             openai: [
-                { value: 'gpt-4o', label: 'GPT-4o (Latest)' },
+                { value: 'gpt-5', label: 'GPT-5 (Latest)' },
+                { value: 'gpt-4o', label: 'GPT-4o' },
                 { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
                 { value: 'o1-preview', label: 'o1 Preview' },
                 { value: 'o1-mini', label: 'o1 Mini' },

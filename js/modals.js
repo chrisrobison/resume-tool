@@ -812,12 +812,29 @@ function setupJobsModal(app) {
                 
                 let result;
                 
+                // Resolve model from Settings if available
+                const getSelectedModelForProvider = (providerKey) => {
+                    const key = providerKey === 'chatgpt' ? 'openai' : providerKey;
+                    try {
+                        const store = document.querySelector('global-store-migrated');
+                        const settings = store?.getState('settings');
+                        const providers = settings?.apiProviders || {};
+                        const prefsProvider = settings?.preferences?.defaultProvider;
+                        const selected = providers[key] || providers[prefsProvider];
+                        if (selected && selected.model) return selected.model;
+                    } catch (e) { /* ignore */ }
+                    // Fallback defaults
+                    return key === 'openai' ? 'gpt-4o' : 'claude-3-5-sonnet-20241022';
+                };
+
                 if (useDirectApi) {
                     // Direct API calls
                     if (apiType === 'claude') {
-                        result = await callClaudeDirectly(app.data, jobDescription, apiKey);
+                        const model = getSelectedModelForProvider('claude');
+                        result = await callClaudeDirectly(app.data, jobDescription, apiKey, model);
                     } else if (apiType === 'chatgpt') {
-                        result = await callOpenAIDirectly(app.data, jobDescription, apiKey);
+                        const model = getSelectedModelForProvider('chatgpt');
+                        result = await callOpenAIDirectly(app.data, jobDescription, apiKey, model);
                     } else {
                         throw new Error('Invalid API type selected');
                     }
@@ -827,7 +844,8 @@ function setupJobsModal(app) {
                         resume: app.data,
                         jobDescription: jobDescription,
                         apiKey: apiKey,
-                        apiType: apiType
+                        apiType: apiType,
+                        model: getSelectedModelForProvider(apiType)
                     };
                     
                     // Determine endpoint based on hostname
@@ -935,7 +953,7 @@ function setupJobsModal(app) {
     }
     
     // Direct Anthropic Claude API call
-    async function callClaudeDirectly(resume, jobDescription, apiKey) {
+    async function callClaudeDirectly(resume, jobDescription, apiKey, model) {
         console.log('Calling Claude API directly from browser');
         
         // Format the resume data as string
@@ -978,7 +996,7 @@ IMPORTANT:
                     'anthropic-dangerous-direct-browser-access': 'true'
                 },
                 body: JSON.stringify({
-                    model: 'claude-opus-4-20250514',
+                    model: model || 'claude-opus-4-20250514',
                     max_tokens: 4000,
                     temperature: 0.2, // Lower temperature for more consistent output
                     messages: [
@@ -1069,7 +1087,7 @@ IMPORTANT:
     }
     
     // Direct OpenAI API call
-    async function callOpenAIDirectly(resume, jobDescription, apiKey) {
+    async function callOpenAIDirectly(resume, jobDescription, apiKey, model) {
         console.log('Calling OpenAI API directly from browser');
         
         // Format the resume data as string
@@ -1117,7 +1135,7 @@ IMPORTANT REQUIREMENTS:
                     'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-4o',
+                    model: model || 'gpt-4o',
                     messages: [
                         {
                             role: 'system',

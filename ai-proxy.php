@@ -45,6 +45,46 @@ $apiKey = $input['apiKey'] ?? '';
 $prompt = $input['prompt'] ?? '';
 $resume = $input['resume'] ?? null;
 $operation = $input['operation'] ?? null;
+$requestedModel = $input['model'] ?? null;
+$targetUrl = $input['targetUrl'] ?? null;
+$instructions = $input['instructions'] ?? null;
+
+// If operation requests server-side fetch + parse, fetch the target URL and embed content
+if ($operation === 'parse-job' && $targetUrl) {
+    // Fetch the target URL content server-side
+    $ch = curl_init($targetUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+    $page = curl_exec($ch);
+    $err = curl_error($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($err || !$page) {
+        // leave prompt as-is; downstream will handle
+        $pageText = '';
+    } else {
+        // Strip scripts/styles and tags, collapse whitespace, limit size
+        $pageText = preg_replace('#<script(.*?)>(.*?)</script>#is', ' ', $page);
+        $pageText = preg_replace('#<style(.*?)>(.*?)</style>#is', ' ', $pageText);
+        $pageText = strip_tags($pageText);
+        $pageText = preg_replace('/\s+/', ' ', $pageText);
+        $pageText = trim($pageText);
+        if (strlen($pageText) > 20000) {
+            $pageText = substr($pageText, 0, 20000);
+        }
+    }
+
+    // Build a focused parsing prompt for the AI
+    $parsePrompt = "You are an expert at extracting structured data from job postings. Return ONLY a single JSON object (no commentary) with the following keys if available: title, company, location, description, requirements, skills, seniority, employmentType, postedDate, applyUrl, rawText. Use null for missing values.\n\n";
+    if ($instructions) {
+        $parsePrompt .= "Additional instructions: " . $instructions . "\n\n";
+    }
+    $parsePrompt .= "Page content (server-fetched):\n" . $pageText . "\n\nRespond with the JSON object only.";
+    // Override prompt with the parse prompt
+    $prompt = $parsePrompt;
+}
 
 // Use .env API key if not provided in request
 if (!$apiKey) {
@@ -77,7 +117,7 @@ function post_json($url, $headers, $body) {
 }
 
 if ($apiType === 'claude') {
-    $model = $_ENV['CLAUDE_MODEL'] ?? 'claude-3-5-sonnet-20241022';
+    $model = $requestedModel ?: ($_ENV['CLAUDE_MODEL'] ?? 'claude-3-5-sonnet-20241022');
     $url = 'https://api.anthropic.com/v1/messages';
     $headers = [
         'Content-Type: application/json',
@@ -95,20 +135,29 @@ if ($apiType === 'claude') {
     ];
     if ($operation) $body['system'] = $operation;
 } elseif ($apiType === 'openai') {
-    $model = $_ENV['OPENAI_MODEL'] ?? 'gpt-4o';
-    $url = 'https://api.openai.com/v1/chat/completions';
+    $model = $requestedModel ?: ($_ENV['OPENAI_MODEL'] ?? 'gpt-4o');
+    $useResponses = stripos($model, 'gpt-5') === 0 || stripos($model, 'o1') === 0;
+    $url = $useResponses ? 'https://api.openai.com/v1/responses' : 'https://api.openai.com/v1/chat/completions';
     $headers = [
         'Content-Type: application/json',
         'Authorization: Bearer ' . $apiKey
     ];
-    $body = [
-        'model' => $model,
-        'messages' => [
-            ['role' => 'user', 'content' => $prompt]
-        ],
-        'max_tokens' => 4000,
-        'temperature' => 0.3
-    ];
+    if ($useResponses) {
+        $body = [
+            'model' => $model,
+            'input' => $prompt,
+            'max_output_tokens' => 4000
+        ];
+    } else {
+        $body = [
+            'model' => $model,
+            'messages' => [
+                ['role' => 'user', 'content' => $prompt]
+            ],
+            'max_tokens' => 4000,
+            'temperature' => 0.3
+        ];
+    }
 } else {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid apiType']);

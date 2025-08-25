@@ -1,0 +1,41 @@
+;FFMETADATA1
+[CHAPTER]
+TIMEBASE=1/1000
+START=6240
+END=15576
+title=Basic UI Functionality should load the application successfully
+[CHAPTER]
+TIMEBASE=1/1000
+START=16159
+END=25035
+title=Basic UI Functionality should navigate between sections
+[CHAPTER]
+TIMEBASE=1/1000
+START=27949
+END=33998
+title=Basic UI Functionality should display job list interface correctly
+[CHAPTER]
+TIMEBASE=1/1000
+START=35080
+END=40098
+title=Basic UI Functionality should handle empty state properly
+[CHAPTER]
+TIMEBASE=1/1000
+START=39766
+END=45171
+title=Basic UI Functionality should display settings section
+[CHAPTER]
+TIMEBASE=1/1000
+START=42331
+END=50723
+title=Basic UI Functionality should be responsive on different viewports
+[CHAPTER]
+TIMEBASE=1/1000
+START=52405
+END=59227
+title=Basic UI Functionality should maintain application state across page reloads
+[CHAPTER]
+TIMEBASE=1/1000
+START=61390
+END=66077
+title=Basic UI Functionality should perform basic accessibility checks

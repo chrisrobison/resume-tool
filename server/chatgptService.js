@@ -8,7 +8,7 @@ const axios = require('axios');
  * @param {string} apiKey - The OpenAI API key
  * @returns {Object} - Object containing the tailored resume, cover letter, and job description
  */
-async function tailorResumeWithChatGPT(resume, jobDescription, apiKey) {
+async function tailorResumeWithChatGPT(resume, jobDescription, apiKey, model = 'gpt-4o') {
   try {
     // Format the resume as a string for easier processing
     const resumeStr = JSON.stringify(resume, null, 2);
@@ -63,26 +63,50 @@ IMPORTANT REQUIREMENTS:
       }
     ];
 
-    // Call OpenAI API
-    const response = await axios.post(
-      'https://api.openai.com/v1/chat/completions',
-      {
-        model: 'gpt-4o',
-        messages: messages,
-        max_tokens: 4000,
-        temperature: 0.7,
-        response_format: { type: "json_object" }
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+    // Choose endpoint/params based on model
+    const useResponses = (model || '').toLowerCase().startsWith('gpt-5') || (model || '').toLowerCase().startsWith('o1');
+    const url = useResponses ? 'https://api.openai.com/v1/responses' : 'https://api.openai.com/v1/chat/completions';
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+    const body = useResponses
+      ? {
+          model: model || 'gpt-4o',
+          input: messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n'),
+          max_output_tokens: 4000
         }
-      }
-    );
+      : {
+          model: model || 'gpt-4o',
+          messages: messages,
+          max_tokens: 4000,
+          temperature: 0.7,
+          response_format: { type: 'json_object' }
+        };
+
+    const response = await axios.post(url, body, { headers });
 
     // Extract and parse JSON from ChatGPT's response
-    const assistantMessage = response.data.choices[0].message.content;
+    // Extract text from Responses or Chat Completions
+    let assistantMessage;
+    if (useResponses) {
+      // Prefer output_text; else search output array for the message block
+      assistantMessage = response.data.output_text || null;
+      if (!assistantMessage && Array.isArray(response.data.output)) {
+        const msgBlock = response.data.output.find(b => b && b.type === 'message');
+        const contentArr = msgBlock?.content;
+        if (Array.isArray(contentArr)) {
+          const out = contentArr.find(c => c?.type === 'output_text') || contentArr.find(c => c?.type === 'text');
+          if (out?.text) assistantMessage = out.text;
+        }
+      }
+      if (typeof assistantMessage !== 'string') {
+        // Fallback: if API returns choices-like structure
+        assistantMessage = response.data.choices?.[0]?.message?.content || null;
+      }
+    } else {
+      assistantMessage = response.data.choices[0].message.content;
+    }
+    if (!assistantMessage) {
+      throw new Error('Failed to extract text from OpenAI response');
+    }
     let result;
     
     try {

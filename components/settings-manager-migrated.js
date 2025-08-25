@@ -326,7 +326,7 @@ class SettingsManagerMigrated extends ComponentBase {
                     <p>Configure your AI service providers for resume tailoring, cover letter generation, and match analysis.</p>
                     
                     ${this.renderApiProvider('claude', 'Claude (Anthropic)', providers.claude)}
-                    ${this.renderApiProvider('openai', 'OpenAI (GPT-4)', providers.openai)}
+                    ${this.renderApiProvider('openai', 'OpenAI (GPT-5)', providers.openai)}
                 </div>
                 
                 <div class="setting-group">
@@ -393,6 +393,7 @@ class SettingsManagerMigrated extends ComponentBase {
     renderModelOptions(provider, selectedModel) {
         const models = {
             claude: [
+                { value: 'claude-opus-4-20250514', label: 'Claude 4 Opus (Preview)' },
                 { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (Latest)' },
                 { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku (Latest)' },
                 { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
@@ -400,7 +401,8 @@ class SettingsManagerMigrated extends ComponentBase {
                 { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' }
             ],
             openai: [
-                { value: 'gpt-4o', label: 'GPT-4o (Latest)' },
+                { value: 'gpt-5', label: 'GPT-5 (Latest)' },
+                { value: 'gpt-4o', label: 'GPT-4o' },
                 { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
                 { value: 'o1-preview', label: 'o1 Preview' },
                 { value: 'o1-mini', label: 'o1 Mini' },
@@ -605,6 +607,8 @@ class SettingsManagerMigrated extends ComponentBase {
      * Handle save settings
      */
     handleSaveSettings() {
+        // Ensure we capture current form values even if fields haven't blurred
+        this.applyFormValuesToSettings();
         const validation = this.validate();
         if (!validation.valid) {
             this.showToast(`Validation failed: ${validation.errors.join(', ')}`, 'error');
@@ -683,7 +687,38 @@ class SettingsManagerMigrated extends ComponentBase {
             }
             settings.apiProviders[provider][field] = !settings.apiProviders[provider][field];
             this.setData(settings, 'toggle-change');
+            // Persist immediately so users see it saved
+            this.saveSettings();
         }
+    }
+
+    /**
+     * Read current form values from the DOM and apply to settings
+     */
+    applyFormValuesToSettings() {
+        if (!this.shadowRoot) return;
+        const settings = { ...(this.getData() || this.getDefaultSettings()) };
+        if (!settings.apiProviders) settings.apiProviders = {};
+
+        const providers = ['claude', 'openai'];
+        providers.forEach((key) => {
+            const apiKeyEl = this.shadowRoot.getElementById(`${key}-api-key`);
+            const modelEl = this.shadowRoot.getElementById(`${key}-model`);
+            const toggleEl = this.shadowRoot.querySelector(`.toggle-switch[data-provider="${key}"]`);
+
+            if (!settings.apiProviders[key]) settings.apiProviders[key] = {};
+            const cfg = settings.apiProviders[key];
+            if (apiKeyEl) cfg.apiKey = apiKeyEl.value || '';
+            if (modelEl) cfg.model = modelEl.value || cfg.model || '';
+            if (toggleEl) cfg.enabled = toggleEl.classList.contains('active');
+        });
+
+        // Default provider and other preferences
+        const defaultProviderEl = this.shadowRoot.getElementById('default-provider');
+        if (!settings.preferences) settings.preferences = {};
+        if (defaultProviderEl) settings.preferences.defaultProvider = defaultProviderEl.value;
+
+        this.setData(settings, 'form-sync');
     }
 
     /**
