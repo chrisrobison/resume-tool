@@ -9,6 +9,7 @@ import * as importExportManager from './import-export-manager.js';
 import * as cardRenderer from './card-renderer.js';
 import { schemas } from './schema-definitions.js';
 import { ComponentBase } from './component-base.js';
+import * as utils from './utils.js';
 
 /**
  * Main Application Manager
@@ -519,10 +520,15 @@ class AppManager {
      * Show toast notification
      */
     showToast(message, type = 'info') {
-        // TODO: Implement proper toast notification system
-        console.log(`Toast (${type}): ${message}`);
+        try {
+            // Visual toast via shared utils
+            utils.showToast(message, type);
+        } catch (e) {
+            // Fallback to console if utils/toast not available
+            console.log(`Toast (${type}): ${message}`);
+        }
         
-        // Emit toast event for components that want to listen
+        // Emit toast event for listeners
         this.emitEvent('toast-message', {
             message: message,
             type: type,

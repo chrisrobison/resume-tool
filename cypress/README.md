@@ -75,10 +75,47 @@ npm run test:visual
 npm run test:ci
 ```
 
-### With Reports
+### With HTML Reports
 ```bash
+# Run all tests and generate HTML report
 npm run test:report
+
+# Run just basic UI tests and generate HTML report (faster)
+npm run test:report:single
 ```
+
+## HTML Reports with Mochawesome
+
+### Quick Access
+**Web URL (Recommended for SSH development):**
+- https://cdr2.com/job-tool/cypress/reports/html/merged-report.html
+
+### Report Features
+- ✅ Test results summary with pass/fail counts
+- 📊 Interactive charts and statistics  
+- 🖼️ Embedded screenshots from failed tests
+- ⏱️ Test duration and performance metrics
+- 🔍 Detailed test descriptions and error messages
+- 📱 Responsive design for viewing on any device
+
+### Manual Report Generation
+```bash
+# 1. Run tests
+npm run serve:bg && sleep 2
+npx cypress run --headless
+
+# 2. Merge JSON reports
+npm run report:merge
+
+# 3. Generate HTML report
+npm run report:generate
+```
+
+### Report Configuration
+- **Output Directory:** `cypress/reports/html/`
+- **Merged JSON:** `cypress/reports/merged-report.json`  
+- **Screenshots:** Automatically embedded from `cypress/screenshots/`
+- **Videos:** Located in `cypress/videos/`
 
 ## Test Data
 

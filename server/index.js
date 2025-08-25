@@ -53,7 +53,7 @@ app.use((req, res, next) => {
 // API endpoints
 app.post('/api/tailor-resume', async (req, res) => {
   try {
-    const { prompt, apiType, apiKey, resume } = req.body;
+    const { prompt, apiType, apiKey, resume, model } = req.body;
     
     if (!prompt || !apiType || !apiKey) {
       return res.status(400).json({ error: 'Missing required parameters' });
@@ -61,10 +61,11 @@ app.post('/api/tailor-resume', async (req, res) => {
     
     let result;
     
-    if (apiType === 'claude') {
-      result = await tailorResumeWithClaude(resume, prompt, apiKey);
-    } else if (apiType === 'chatgpt') {
-      result = await tailorResumeWithChatGPT(resume, prompt, apiKey);
+    const type = apiType === 'openai' ? 'chatgpt' : apiType;
+    if (type === 'claude') {
+      result = await tailorResumeWithClaude(resume, prompt, apiKey, model);
+    } else if (type === 'chatgpt') {
+      result = await tailorResumeWithChatGPT(resume, prompt, apiKey, model);
     } else {
       return res.status(400).json({ error: 'Invalid API type' });
     }
@@ -79,7 +80,7 @@ app.post('/api/tailor-resume', async (req, res) => {
 // Generic AI API endpoint for all operations
 app.post('/api/ai-request', async (req, res) => {
   try {
-    const { prompt, apiType, apiKey, resume, operation } = req.body;
+    const { prompt, apiType, apiKey, resume, operation, model } = req.body;
     
     if (!prompt || !apiType || !apiKey) {
       return res.status(400).json({ error: 'Missing required parameters' });
@@ -88,10 +89,11 @@ app.post('/api/ai-request', async (req, res) => {
     let result;
     
     // For now, use the same service functions but we can expand later
-    if (apiType === 'claude') {
-      result = await tailorResumeWithClaude(resume, prompt, apiKey);
-    } else if (apiType === 'chatgpt') {
-      result = await tailorResumeWithChatGPT(resume, prompt, apiKey);
+    const type2 = apiType === 'openai' ? 'chatgpt' : apiType;
+    if (type2 === 'claude') {
+      result = await tailorResumeWithClaude(resume, prompt, apiKey, model);
+    } else if (type2 === 'chatgpt') {
+      result = await tailorResumeWithChatGPT(resume, prompt, apiKey, model);
     } else {
       return res.status(400).json({ error: 'Invalid API type' });
     }

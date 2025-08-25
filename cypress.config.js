@@ -22,8 +22,15 @@ module.exports = defineConfig({
     screenshotsFolder: 'cypress/screenshots',
     videosFolder: 'cypress/videos',
     
-    // Test results - using built-in spec reporter
-    reporter: 'spec',
+    // Test results - using mochawesome for HTML reports
+    reporter: 'mochawesome',
+    reporterOptions: {
+      reportDir: 'cypress/reports',
+      overwrite: false,
+      html: false,
+      json: true,
+      timestamp: 'mmddyyyy_HHMMss'
+    },
 
     setupNodeEvents(on, config) {
       // Custom tasks only (removed visual regression plugins for now)

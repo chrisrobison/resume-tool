@@ -623,7 +623,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         this.render();
         
         try {
-            const { provider, apiKey } = this.getApiConfig();
+            const { provider, apiKey, model } = this.getApiConfig();
             console.log('AIAssistantWorkerMigrated - Using provider:', provider);
             console.log('AIAssistantWorkerMigrated - API key length:', apiKey?.length);
             
@@ -643,6 +643,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                 jobDescription: jobDesc,
                 provider,
                 apiKey,
+                model,
                 includeAnalysis: true,
                 onProgress: this.handleProgress
             });
@@ -689,7 +690,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         this.render();
         
         try {
-            const { provider, apiKey } = this.getApiConfig();
+            const { provider, apiKey, model } = this.getApiConfig();
             
             const result = await aiService.generateCoverLetter({
                 resume: this._currentResume.content || this._currentResume.data,
@@ -701,6 +702,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                 },
                 provider,
                 apiKey,
+                model,
                 includeAnalysis: true,
                 onProgress: this.handleProgress
             });
@@ -735,13 +737,14 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         this.render();
         
         try {
-            const { provider, apiKey } = this.getApiConfig();
+            const { provider, apiKey, model } = this.getApiConfig();
             
             const result = await aiService.analyzeMatch({
                 resume: this._currentResume.content || this._currentResume.data,
                 jobDescription: this._currentJob.description || this._currentJob.jobDetails,
                 provider,
                 apiKey,
+                model,
                 onProgress: this.handleProgress
             });
             
@@ -1017,9 +1020,13 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         
         if (apiKey && apiKey.trim().length > 0) {
             console.log('AIAssistantWorkerMigrated getApiConfig - Using localStorage config');
+            const provider = apiType === 'chatgpt' ? 'openai' : apiType;
+            // Fallback model defaults when using legacy localStorage path
+            const defaultModels = { claude: 'claude-3-5-sonnet-20241022', openai: 'gpt-4o' };
             return { 
-                provider: apiType === 'chatgpt' ? 'openai' : apiType,
-                apiKey: apiKey.trim() 
+                provider,
+                apiKey: apiKey.trim(),
+                model: defaultModels[provider] || 'gpt-4o'
             };
         }
         
@@ -1040,7 +1047,8 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                 console.log(`AIAssistantWorkerMigrated getApiConfig - Using default provider: ${defaultProvider}`);
                 return { 
                     provider: defaultProvider, 
-                    apiKey: providers[defaultProvider].apiKey.trim() 
+                    apiKey: providers[defaultProvider].apiKey.trim(),
+                    model: providers[defaultProvider].model || (defaultProvider === 'openai' ? 'gpt-4o' : 'claude-3-5-sonnet-20241022')
                 };
             }
             
@@ -1050,7 +1058,8 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                     console.log(`AIAssistantWorkerMigrated getApiConfig - Using fallback provider: ${providerName}`);
                     return { 
                         provider: providerName, 
-                        apiKey: config.apiKey.trim() 
+                        apiKey: config.apiKey.trim(),
+                        model: config.model || (providerName === 'openai' ? 'gpt-4o' : 'claude-3-5-sonnet-20241022')
                     };
                 }
             }

@@ -490,11 +490,28 @@ class GlobalStoreMigrated extends ComponentBase {
             const state = this.getData();
             if (!state) return;
             
+            // Avoid accidentally wiping non-empty settings with an empty object
+            let settingsSafe = state.settings || {};
+            if (settingsSafe && typeof settingsSafe === 'object' && Object.keys(settingsSafe).length === 0) {
+                try {
+                    const existing = localStorage.getItem('global-store-state');
+                    if (existing) {
+                        const parsed = JSON.parse(existing);
+                        if (parsed?.settings && Object.keys(parsed.settings).length > 0) {
+                            settingsSafe = parsed.settings;
+                            console.warn('GlobalStoreMigrated: Prevented overwrite of settings with empty object; preserved existing saved settings.');
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }
+
             const stateToSave = {
                 jobs: state.jobs || [],
                 resumes: state.resumes || [],
                 coverLetters: state.coverLetters || [],
-                settings: state.settings || {},
+                settings: settingsSafe,
                 logs: state.logs || []
             };
             
@@ -512,6 +529,14 @@ class GlobalStoreMigrated extends ComponentBase {
                 const parsedState = JSON.parse(saved);
                 return parsedState;
             }
+            // Fallback: migrate from legacy standalone settings if present
+            try {
+                const legacySettings = localStorage.getItem('resumeEditorSettings');
+                if (legacySettings) {
+                    const parsed = JSON.parse(legacySettings);
+                    return { settings: parsed };
+                }
+            } catch (e) { /* ignore */ }
             return null;
             
         } catch (error) {

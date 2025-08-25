@@ -13,7 +13,9 @@ class AIService {
 
     initWorker() {
         try {
-            this.worker = new Worker('./workers/ai-worker.js');
+            // Cache-bust the worker to avoid stale code in browsers
+            const cacheBuster = `v=${Date.now()}`;
+            this.worker = new Worker(`./workers/ai-worker.js?${cacheBuster}`);
             
             this.worker.onmessage = (event) => {
                 this.handleWorkerMessage(event.data);
@@ -182,6 +184,21 @@ class AIService {
     }
 
     /**
+     * Parse a job posting (from URL or description) into structured data
+     * @param {Object} options - Configuration object
+     * @param {string} options.url - Job posting URL (optional)
+     * @param {string} options.description - Job description text (optional)
+     * @param {string} options.instructions - Additional parsing instructions (optional)
+     * @param {string} options.provider - AI provider ('claude' or 'openai')
+     * @param {string} options.apiKey - API key for the provider
+     * @param {Function} options.onProgress - Progress callback function
+     * @returns {Promise} Promise that resolves with parsed job data (object or string)
+     */
+    async parseJob(options) {
+        return this.makeRequest('parse-job', options);
+    }
+
+    /**
      * Test an API key
      * @param {Object} options - Configuration object
      * @param {string} options.provider - AI provider ('claude' or 'openai')
@@ -191,6 +208,31 @@ class AIService {
      */
     async testApiKey(options) {
         return this.makeRequest('test-api-key', options);
+    }
+
+    /**
+     * Convenience: test provider connectivity with explicit args
+     * @param {string} provider - 'claude' | 'openai'
+     * @param {string} apiKey - provider API key
+     * @param {string} model - optional model override
+     * @returns {Promise<{success:boolean,response?:any,error?:string}>}
+     */
+    async testConnection(provider, apiKey, model) {
+        const data = await this.testApiKey({ provider, apiKey, model });
+        let success = false;
+        let response = data?.response ?? data?.result?.response;
+        const error = data?.error;
+        if (data && (data.success === true || data.result?.success === true)) {
+            success = true;
+        } else if (typeof data === 'string') {
+            const txt = data.toLowerCase();
+            success = txt.includes('api key test successful');
+            response = data;
+        } else if (typeof response === 'string') {
+            const txt = response.toLowerCase();
+            success = txt.includes('api key test successful');
+        }
+        return { success, response, error, raw: data };
     }
 
     /**
