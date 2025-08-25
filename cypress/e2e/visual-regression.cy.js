@@ -16,8 +16,8 @@ describe('Visual Regression Testing', () => {
       cy.visitJobsApp('new');
       cy.waitForStore();
       
-      // Wait for data to load and render
-      cy.get('.job-card').should('have.length', 3);
+      // Wait for data to load and render (cards are .item-card now)
+      cy.get('.item-card').should('have.length', 3);
       
       // Take full page screenshot for baseline
       cy.compareSnapshot('application-layout-full', {
@@ -56,20 +56,20 @@ describe('Visual Regression Testing', () => {
     });
 
     it('should match job card with applied status', () => {
-      cy.get('.job-card').contains('TechCorp Inc')
-        .parent('.job-card')
+      cy.get('.item-card').contains('TechCorp Inc')
+        .closest('.item-card')
         .compareSnapshot('job-card-applied-status');
     });
 
     it('should match job card with interviewing status', () => {
-      cy.get('.job-card').contains('StartupCo')
-        .parent('.job-card')
+      cy.get('.item-card').contains('StartupCo')
+        .closest('.item-card')
         .compareSnapshot('job-card-interviewing-status');
     });
 
     it('should match job card with saved status', () => {
-      cy.get('.job-card').contains('Enterprise Solutions')
-        .parent('.job-card')
+      cy.get('.item-card').contains('Enterprise Solutions')
+        .closest('.item-card')
         .compareSnapshot('job-card-saved-status');
     });
 
@@ -80,13 +80,13 @@ describe('Visual Regression Testing', () => {
 
   describe('Modal Dialogs', () => {
     it('should match add job modal layout', () => {
-      cy.get('#add-job-btn').click();
-      cy.openModal('job-modal');
-      
+      cy.get('#add-item-btn').click();
+      cy.openModal('form-modal');
+
       // Wait for modal animation to complete
       cy.wait(300);
-      
-      cy.get('#job-modal').compareSnapshot('add-job-modal-layout');
+
+      cy.get('#form-modal').compareSnapshot('add-job-modal-layout');
     });
 
     it('should match import job modal layout', () => {
@@ -107,7 +107,7 @@ describe('Visual Regression Testing', () => {
       
       // Ensure API warning is visible
       cy.get('#import-api-warning').should('be.visible');
-      
+
       cy.get('#import-job-modal').compareSnapshot('import-job-modal-api-warning');
     });
   });

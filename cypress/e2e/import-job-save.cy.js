@@ -43,10 +43,12 @@ describe('Import Job and Save (AI stub)', () => {
     // The form modal should open with pre-filled values
     cy.openModal('form-modal');
 
-    // Verify the form fields were populated from the parsed job
-    cy.get('#job-company').should('have.value', 'Samsara');
-    cy.get('#job-position').should('have.value', 'Software Engineering Director - Mobile');
-    cy.get('#job-location').should('have.value', 'Remote - US');
+    // Verify the form fields were populated from the parsed job (form fields are generated)
+    cy.get('#form-modal').within(() => {
+      cy.get('form [name="company"]').should('have.value', 'Samsara');
+      cy.get('form [name="position"]').should('have.value', 'Software Engineering Director - Mobile');
+      cy.get('form [name="location"]').should('have.value', 'Remote - US');
+    });
 
     // Save the job
     cy.get('#form-save').click();
@@ -60,4 +62,3 @@ describe('Import Job and Save (AI stub)', () => {
     });
   });
 });
-

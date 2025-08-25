@@ -91,8 +91,17 @@ Cypress.Commands.add('seedResumeData', (resumes = []) => {
 
 // Component interaction commands
 Cypress.Commands.add('waitForComponent', (componentSelector, timeout = 5000) => {
-  cy.get(componentSelector, { timeout }).should('be.visible');
-  // Wait for component to be fully initialized
+  // Support both migrated and legacy component tag names.
+  const selectors = [componentSelector];
+  if (componentSelector.includes('-migrated')) {
+    const alt = componentSelector.replace('-migrated', '');
+    selectors.push(alt);
+  } else {
+    selectors.push(`${componentSelector}-migrated`);
+  }
+
+  cy.get(selectors.join(','), { timeout }).should('exist').and('be.visible');
+  // Wait briefly for component internals to initialize
   cy.wait(500);
 });
 

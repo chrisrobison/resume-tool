@@ -13,7 +13,7 @@ describe('Import Job Button Quick Test', () => {
     
     // Click the Import Job button
     cy.get('#import-job-btn').should('be.visible').click();
-    
+
     // Verify modal opened (our bug fix - modal should open even without API keys)
     cy.get('#import-job-modal').should('exist').and('not.have.class', 'hidden');
     
@@ -34,10 +34,9 @@ describe('Import Job Button Quick Test', () => {
     
     cy.get('#import-job-btn').click();
     cy.get('#import-job-modal').should('not.have.class', 'hidden');
-    
-    // Try to fill the job form manually
-    cy.get('#job-company').should('exist').clear().type('Test Company');
-    cy.get('#job-position').should('exist').clear().type('Software Engineer');
+
+    // Try to fill the manual import description (no API keys path)
+    cy.get('#import-job-description').should('exist').clear().type('Test Company - Software Engineer');
     
     cy.screenshot('import-job-form-fillable');
     
