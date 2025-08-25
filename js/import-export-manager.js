@@ -335,6 +335,7 @@ async function processJobImport() {
             try {
                 let provider = null;
                 let apiKey = null;
+
                 try {
                     const store = getStore();
                     const settings = store?.getState('settings');
@@ -346,7 +347,7 @@ async function processJobImport() {
                         provider = 'claude';
                         apiKey = providers.claude.apiKey;
                     }
-                } catch (e) { /* ignore */ }
+                } catch (innerErr) { /* ignore */ }
 
                 if (!apiKey) {
                     apiKey = localStorage.getItem('openai_api_key') || localStorage.getItem('claude_api_key') || localStorage.getItem('api_key');
@@ -359,12 +360,30 @@ async function processJobImport() {
                 } else {
                     updateImportProgressText('Sending pasted description to AI...');
                     const aiResult = await aiService.parseJob({ description: content, instructions: customInstructions, provider, apiKey, onProgress: (m) => updateImportProgressText(m) });
+
                     let parsed = null;
-                    if (typeof aiResult === 'object') parsed = aiResult.result ?? aiResult;
-                    else if (typeof aiResult === 'string') {
-                        try { parsed = JSON.parse(aiResult); } catch (e) { const m = aiResult.match(/\{[\s\S]*\}/); if (m) { try { parsed = JSON.parse(m[0]); } catch (e2) { parsed = null; } } }
-                    if (parsed) result = { success: true, jobData: parsed };
-                    else result = await simulateJobImport(content, method, customInstructions);
+                    if (typeof aiResult === 'object') {
+                        parsed = aiResult.result ?? aiResult;
+                    } else if (typeof aiResult === 'string') {
+                        try {
+                            parsed = JSON.parse(aiResult);
+                        } catch (err) {
+                            const m = aiResult.match(/\{[\s\S]*\}/);
+                            if (m) {
+                                try {
+                                    parsed = JSON.parse(m[0]);
+                                } catch (err2) {
+                                    parsed = null;
+                                }
+                            }
+                        }
+                    }
+
+                    if (parsed) {
+                        result = { success: true, jobData: parsed };
+                    } else {
+                        result = await simulateJobImport(content, method, customInstructions);
+                    }
                 }
             } catch (e) {
                 console.warn('ImportExportManager: AI parse of description failed, falling back to simulation.', e);
