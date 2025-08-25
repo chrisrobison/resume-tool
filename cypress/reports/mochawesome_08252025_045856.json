@@ -1,0 +1,106 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-08-25T11:58:49.924Z",
+    "end": "2025-08-25T11:58:56.564Z",
+    "duration": 6640,
+    "testsRegistered": 1,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "3adb4fb2-3737-4cfb-8e0e-f14509fe3ed1",
+      "title": "",
+      "fullFile": "cypress/e2e/import-job-save.cy.js",
+      "file": "cypress/e2e/import-job-save.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "af40ffff-c92a-4321-9be4-924b00af9fbf",
+          "title": "Import Job and Save (AI stub)",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "stubs AI proxy, imports job and saves it",
+              "fullTitle": "Import Job and Save (AI stub) stubs AI proxy, imports job and saves it",
+              "timedOut": null,
+              "duration": 6488,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Prepare a fake parsed job response from the server-side AI proxy\nconst parsedJob = {\n  title: 'Software Engineering Director - Mobile',\n  company: 'Samsara',\n  location: 'Remote - US',\n  description: 'Lead and scale mobile development teams at Samsara.',\n  requirements: '10+ years experience; React Native; GraphQL',\n  skills: 'Leadership, React Native, GraphQL',\n  applyUrl: 'https://samsara.example/apply'\n};\n// Intercept proxy call and return structured result\ncy.intercept('POST', '**/ai-proxy.php', req => {\n  req.reply({\n    statusCode: 200,\n    body: {\n      result: parsedJob\n    }\n  });\n}).as('aiProxy');\n// Ensure an API key is present so the import flow uses AI\ncy.setAPIKey('openai', 'test-key');\n// Open import modal\ncy.get('#import-job-btn').should('be.visible').click();\ncy.openModal('import-job-modal');\n// Fill URL method and submit\ncy.get('#import-method-url').check();\ncy.get('#import-job-url').clear().type('https://example.com/job/123');\ncy.get('#import-job-submit').click();\n// Wait for AI proxy to be called\ncy.wait('@aiProxy');\n// The form modal should open with pre-filled values\ncy.openModal('form-modal');\n// Verify the form fields were populated from the parsed job (form fields are generated)\ncy.get('#form-modal').within(() => {\n  cy.get('form [name=\"company\"]').should('have.value', 'Samsara');\n  cy.get('form [name=\"position\"]').should('have.value', 'Software Engineering Director - Mobile');\n  cy.get('form [name=\"location\"]').should('have.value', 'Remote - US');\n});\n// Save the job\ncy.get('#form-save').click();\n// Verify the job was persisted to localStorage\ncy.window().then(win => {\n  const data = JSON.parse(win.localStorage.getItem('jobHuntData') || '{}');\n  expect(data).to.have.property('jobs');\n  const found = (data.jobs || []).some(j => j.company === 'Samsara' && (j.position || j.title || j.position === 'Software Engineering Director - Mobile' || j.position && j.position.includes && j.position.includes('Software Engineering Director')));\n  expect(found).to.equal(true);\n});",
+              "err": {},
+              "uuid": "918399a1-537d-4448-b30d-401622db7a7e",
+              "parentUUID": "af40ffff-c92a-4321-9be4-924b00af9fbf",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "918399a1-537d-4448-b30d-401622db7a7e"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 6488,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}

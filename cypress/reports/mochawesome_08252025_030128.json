@@ -1,0 +1,130 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-08-25T10:01:04.196Z",
+    "end": "2025-08-25T10:01:28.861Z",
+    "duration": 24665,
+    "testsRegistered": 2,
+    "passPercent": 50,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "cd53394c-a1e0-4036-9faf-dd0e4463b67a",
+      "title": "",
+      "fullFile": "cypress/e2e/import-button-quick.cy.js",
+      "file": "cypress/e2e/import-button-quick.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "79f1bba5-2f7d-4c67-9b9c-a655b7964ff5",
+          "title": "Import Job Button Quick Test",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should click Import Job button and verify modal opens",
+              "fullTitle": "Import Job Button Quick Test should click Import Job button and verify modal opens",
+              "timedOut": null,
+              "duration": 8874,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Clear any existing API keys to test the fix\ncy.window().then(win => {\n  win.localStorage.removeItem('claude_api_key');\n  win.localStorage.removeItem('openai_api_key');\n});\n// Click the Import Job button\ncy.get('#import-job-btn').should('be.visible').click();\n// Verify modal opened (our bug fix - modal should open even without API keys)\ncy.get('#import-job-modal').should('exist').and('not.have.class', 'hidden');\n// Take screenshot showing the fix works\ncy.screenshot('import-job-modal-opened-without-api');\n// Verify the API warning appears inside the modal (part of our fix)\ncy.get('#import-api-warning').should('be.visible');\ncy.log('✅ Import Job button fix verified: Modal opens and shows API warning');",
+              "err": {},
+              "uuid": "9506a815-2655-4229-9a57-bb4156e2384c",
+              "parentUUID": "79f1bba5-2f7d-4c67-9b9c-a655b7964ff5",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should allow form filling even without API keys",
+              "fullTitle": "Import Job Button Quick Test should allow form filling even without API keys",
+              "timedOut": null,
+              "duration": 14804,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.window().then(win => {\n  win.localStorage.removeItem('claude_api_key');\n  win.localStorage.removeItem('openai_api_key');\n});\ncy.get('#import-job-btn').click();\ncy.get('#import-job-modal').should('not.have.class', 'hidden');\n// Try to fill the manual import description (no API keys path)\ncy.get('#import-job-description').should('exist').clear().type('Test Company - Software Engineer');\ncy.screenshot('import-job-form-fillable');\ncy.log('✅ Manual job form entry works without API keys');",
+              "err": {
+                "message": "CypressError: Timed out retrying after 10000ms: `cy.clear()` failed because this element is not visible:\n\n`<textarea class=\"form-input form-textarea\" id=\"import-job-description\" rows=\"10\" placeholder=\"Paste the complete job description here...\"></textarea>`\n\nThis element `<textarea#import-job-description.form-input.form-textarea>` is not visible because its parent `<div#import-description-section.form-group.hidden>` has CSS property: `display: none`\n\nFix this problem, or use `{force: true}` to disable error checking.\n\nhttps://on.cypress.io/element-cannot-be-interacted-with",
+                "estack": "CypressError: Timed out retrying after 10000ms: `cy.clear()` failed because this element is not visible:\n\n`<textarea class=\"form-input form-textarea\" id=\"import-job-description\" rows=\"10\" placeholder=\"Paste the complete job description here...\"></textarea>`\n\nThis element `<textarea#import-job-description.form-input.form-textarea>` is not visible because its parent `<div#import-description-section.form-group.hidden>` has CSS property: `display: none`\n\nFix this problem, or use `{force: true}` to disable error checking.\n\nhttps://on.cypress.io/element-cannot-be-interacted-with\n    at runVisibilityCheck (http://localhost:8080/__cypress/runner/cypress_runner.js:144957:58)\n    at Object.isStrictlyVisible (http://localhost:8080/__cypress/runner/cypress_runner.js:144971:10)\n    at runAllChecks (http://localhost:8080/__cypress/runner/cypress_runner.js:113271:26)\n    at retryActionability (http://localhost:8080/__cypress/runner/cypress_runner.js:113339:16)\n    at tryCatcher (http://localhost:8080/__cypress/runner/cypress_runner.js:1830:23)\n    at Promise.attempt.Promise.try (http://localhost:8080/__cypress/runner/cypress_runner.js:4338:29)\n    at whenStable (http://localhost:8080/__cypress/runner/cypress_runner.js:143744:68)\n    at <unknown> (http://localhost:8080/__cypress/runner/cypress_runner.js:143685:14)\n    at tryCatcher (http://localhost:8080/__cypress/runner/cypress_runner.js:1830:23)\n    at Promise._settlePromiseFromHandler (http://localhost:8080/__cypress/runner/cypress_runner.js:1542:31)\n    at Promise._settlePromise (http://localhost:8080/__cypress/runner/cypress_runner.js:1599:18)\n    at Promise._settlePromise0 (http://localhost:8080/__cypress/runner/cypress_runner.js:1644:10)\n    at Promise._settlePromises (http://localhost:8080/__cypress/runner/cypress_runner.js:1724:18)\n    at Promise._fulfill (http://localhost:8080/__cypress/runner/cypress_runner.js:1668:18)\n    at <unknown> (http://localhost:8080/__cypress/runner/cypress_runner.js:5473:46)\nFrom Your Spec Code:\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/import-button-quick.cy.js:39:54)",
+                "diff": null
+              },
+              "uuid": "d1e9d1e5-0e34-4658-8483-4f19afeaf36f",
+              "parentUUID": "79f1bba5-2f7d-4c67-9b9c-a655b7964ff5",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "9506a815-2655-4229-9a57-bb4156e2384c"
+          ],
+          "failures": [
+            "d1e9d1e5-0e34-4658-8483-4f19afeaf36f"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 23678,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}
