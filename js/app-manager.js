@@ -41,7 +41,7 @@ class AppManager {
             this.setupEventListeners();
             await this.syncWithGlobalStore();
             // Listen for global store changes to sync resume components directly
-            document.addEventListener('global-state-changed', (e) => {
+            document.addEventListener('global-state-changed', async (e) => {
                 try {
                     const payload = e.detail?.newState || e.detail || e;
                     const currentResume = payload?.currentResume || null;
@@ -49,10 +49,24 @@ class AppManager {
                         // derive resume data from possible shapes
                         const resumeData = currentResume.data || (currentResume.content ? (typeof currentResume.content === 'string' ? (() => { try { return JSON.parse(currentResume.content); } catch { return null; } })() : currentResume.content) : currentResume);
                         if (resumeData) {
+                            // Wait for components to be defined (migrated or legacy)
+                            try {
+                                if (customElements) {
+                                    await Promise.all([
+                                        customElements.whenDefined('resume-editor-migrated').catch(() => {}),
+                                        customElements.whenDefined('resume-viewer-migrated').catch(() => {}),
+                                        customElements.whenDefined('resume-editor').catch(() => {}),
+                                        customElements.whenDefined('resume-viewer').catch(() => {})
+                                    ]);
+                                }
+                            } catch (waitErr) {
+                                // ignore
+                            }
+
                             const editor = document.querySelector('resume-editor-migrated') || document.querySelector('resume-editor');
                             const viewer = document.querySelector('resume-viewer-migrated') || document.querySelector('resume-viewer');
-                            try { if (editor && typeof editor.setResumeData === 'function') editor.setResumeData(resumeData); } catch (err) {}
-                            try { if (viewer && typeof viewer.setResumeData === 'function') viewer.setResumeData(resumeData); } catch (err) {}
+                            try { if (editor && typeof editor.setResumeData === 'function') editor.setResumeData(resumeData); } catch (err) { console.warn(err); }
+                            try { if (viewer && typeof viewer.setResumeData === 'function') viewer.setResumeData(resumeData); } catch (err) { console.warn(err); }
                         }
                     }
                 } catch (err) {
@@ -214,7 +228,7 @@ class AppManager {
     /**
      * Handle item selection
      */
-    handleItemSelection(item) {
+    async handleItemSelection(item) {
         try {
             this.currentItem = item;
             
@@ -242,10 +256,22 @@ class AppManager {
                     const resumeData = item?.data || item?.content || item || null;
                     const parsed = typeof resumeData === 'string' ? (() => { try { return JSON.parse(resumeData); } catch { return null; } })() : resumeData;
                     if (parsed) {
+                        // Ensure components are defined before setting data to avoid race conditions
+                        try {
+                            if (customElements) {
+                                await Promise.all([
+                                    customElements.whenDefined('resume-editor-migrated').catch(() => {}),
+                                    customElements.whenDefined('resume-viewer-migrated').catch(() => {}),
+                                    customElements.whenDefined('resume-editor').catch(() => {}),
+                                    customElements.whenDefined('resume-viewer').catch(() => {})
+                                ]);
+                            }
+                        } catch (waitErr) { /* ignore */ }
+
                         const editor = document.querySelector('resume-editor-migrated') || document.querySelector('resume-editor');
                         const viewer = document.querySelector('resume-viewer-migrated') || document.querySelector('resume-viewer');
-                        try { if (editor && typeof editor.setResumeData === 'function') editor.setResumeData(parsed); } catch (err) {}
-                        try { if (viewer && typeof viewer.setResumeData === 'function') viewer.setResumeData(parsed); } catch (err) {}
+                        try { if (editor && typeof editor.setResumeData === 'function') editor.setResumeData(parsed); } catch (err) { console.warn(err); }
+                        try { if (viewer && typeof viewer.setResumeData === 'function') viewer.setResumeData(parsed); } catch (err) { console.warn(err); }
                     }
                 }
             } catch (e) { /* ignore */ }
