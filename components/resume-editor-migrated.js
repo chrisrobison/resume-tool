@@ -188,6 +188,11 @@ class ResumeEditorMigrated extends ComponentBase {
                 if (source === 'initialization') {
                     return;
                 }
+                // If we already have valid resume data locally, do not clear it
+                if (this._resumeData && this.isValidResumeData(this._resumeData)) {
+                    console.log('ResumeEditorMigrated: Preserving local resume data (store requested clear)');
+                    return;
+                }
                 // Clear to default if no resume selected
                 this._resumeData = this.getDefaultResumeData();
                 this.setData(this._resumeData, 'global-store-clear');

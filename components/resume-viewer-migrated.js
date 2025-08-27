@@ -131,6 +131,12 @@ class ResumeViewerMigrated extends ComponentBase {
             } else if (currentResume === null) {
                 // Ignore store initialization (don't clear UI on store init)
                 if (source === 'initialization') return;
+                // If viewer has local data, preserve it
+                const localData = this.getData();
+                if (localData && typeof localData === 'object' && Object.keys(localData).length > 0) {
+                    console.log('ResumeViewerMigrated: Preserving local data (store requested clear)');
+                    return;
+                }
                 // Clear viewer if no current resume
                 this.setData(null, 'global-store-clear');
             }
