@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Test - Resume Editor (migrated)</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 20px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    resume-editor-migrated { display:block; border: 1px solid #ddd; padding: 10px; min-height: 300px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Resume Editor - Quick Test</h1>
+    <p>This page mounts <code>global-store-migrated</code> and a <code>resume-editor-migrated</code> component,
+       then injects sample resume data so you can debug the editor UI and preview.</p>
+
+    <global-store-migrated></global-store-migrated>
+    <resume-editor-migrated id="editor"></resume-editor-migrated>
+
+    <pre id="debug" style="margin-top: 20px; background:#f6f8fa; padding:10px; border-radius:4px;
+                border:1px solid #e1e4e8; white-space:pre-wrap;"></pre>
+  </div>
+
+  <script type="module">
+    import '../components/resume-editor-migrated.js';
+    import '../components/global-store-migrated.js';
+
+    const sample = {
+      basics: {
+        name: 'Alex Tester',
+        label: 'Full Stack Engineer',
+        email: 'alex@example.com',
+        phone: '+1 555 111 2222',
+        summary: 'Engineer focused on building robust web platforms.',
+        location: { city: 'Austin', region: 'TX' },
+        profiles: [{ network: 'LinkedIn', username: 'alex', url: 'https://linkedin.com/in/alex' }]
+      },
+      work: [ { name: 'Example Inc', position: 'Engineer', startDate: '2020-01-01', summary: 'Worked on APIs.' } ],
+      education: [],
+      skills: [ { name: 'Node.js', level: 'Intermediate', keywords: ['Express', 'APIs'] } ],
+      projects: []
+    };
+
+    (async () => {
+      await customElements.whenDefined('resume-editor-migrated');
+      await customElements.whenDefined('global-store-migrated');
+
+      const editor = document.getElementById('editor');
+
+      // Use public API to set data so component lifecycle hooks are respected
+      if (typeof editor.setResumeData === 'function') {
+        editor.setResumeData(sample);
+      } else if (typeof editor.setData === 'function') {
+        editor.setData(sample, 'test-load');
+      } else {
+        editor.resumeData = sample;
+      }
+
+      // Show debug data
+      document.getElementById('debug').textContent = JSON.stringify(sample, null, 2);
+
+      // Also try to call generatePreview and log result (if available)
+      setTimeout(() => {
+        try {
+          if (typeof editor.generatePreview === 'function') {
+            const preview = editor.generatePreview();
+            console.log('Preview HTML:', preview);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }, 500);
+    })();
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,110 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-08-26T19:27:16.108Z",
+    "end": "2025-08-26T19:27:34.262Z",
+    "duration": 18154,
+    "testsRegistered": 1,
+    "passPercent": 0,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "0404eb15-7386-4093-af29-8a71d6e5041a",
+      "title": "",
+      "fullFile": "cypress/e2e/import-job-save.cy.js",
+      "file": "cypress/e2e/import-job-save.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "17274994-afaf-4c9b-8f45-66c89f430df7",
+          "title": "Import Job and Save (AI stub)",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "stubs AI proxy, imports job and saves it",
+              "fullTitle": "Import Job and Save (AI stub) stubs AI proxy, imports job and saves it",
+              "timedOut": null,
+              "duration": 17778,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "// Prepare a fake parsed job response from the server-side AI proxy\nconst parsedJob = {\n  title: 'Software Engineering Director - Mobile',\n  company: 'Samsara',\n  location: 'Remote - US',\n  description: 'Lead and scale mobile development teams at Samsara.',\n  requirements: '10+ years experience; React Native; GraphQL',\n  skills: 'Leadership, React Native, GraphQL',\n  applyUrl: 'https://samsara.example/apply'\n};\n// Intercept proxy call and return structured result\ncy.intercept('POST', '**/ai-proxy.php', req => {\n  req.reply({\n    statusCode: 200,\n    body: {\n      result: parsedJob\n    }\n  });\n}).as('aiProxy');\n// Ensure an API key is present so the import flow uses AI\ncy.setAPIKey('openai', 'test-key');\n// Open import modal\ncy.get('#import-job-btn').should('be.visible').click();\ncy.openModal('import-job-modal');\n// Fill URL method and submit\ncy.get('#import-method-url').check();\ncy.get('#import-job-url').clear().type('https://example.com/job/123');\ncy.get('#import-job-submit').click();\n// Wait for AI proxy to be called\ncy.wait('@aiProxy');\n// The form modal should open with pre-filled values\ncy.openModal('form-modal');\n// Verify the form fields were populated from the parsed job (form fields are generated)\ncy.get('#form-modal').within(() => {\n  cy.get('form [name=\"company\"]').should('have.value', 'Samsara');\n  cy.get('form [name=\"position\"]').should('have.value', 'Software Engineering Director - Mobile');\n  cy.get('form [name=\"location\"]').should('have.value', 'Remote - US');\n});\n// Save the job\ncy.get('#form-save').click();\n// Verify the job was persisted to localStorage\ncy.window().then(win => {\n  const data = JSON.parse(win.localStorage.getItem('jobHuntData') || '{}');\n  expect(data).to.have.property('jobs');\n  const found = (data.jobs || []).some(j => j.company === 'Samsara' && (j.position || j.title || j.position === 'Software Engineering Director - Mobile' || j.position && j.position.includes && j.position.includes('Software Engineering Director')));\n  expect(found).to.equal(true);\n});",
+              "err": {
+                "message": "CypressError: Timed out retrying after 10050ms: `cy.click()` failed because the center of this element is hidden from view:\n\n`<button type=\"button\" class=\"btn btn-primary\" id=\"form-save\">Save</button>`\n\nFix this problem, or use `{force: true}` to disable error checking.\n\nhttps://on.cypress.io/element-cannot-be-interacted-with",
+                "estack": "CypressError: Timed out retrying after 10050ms: `cy.click()` failed because the center of this element is hidden from view:\n\n`<button type=\"button\" class=\"btn btn-primary\" id=\"form-save\">Save</button>`\n\nFix this problem, or use `{force: true}` to disable error checking.\n\nhttps://on.cypress.io/element-cannot-be-interacted-with\n    at ensureIsDescendent (https://cdr2.com/__cypress/runner/cypress_runner.js:112930:66)\n    at ensureDescendents (https://cdr2.com/__cypress/runner/cypress_runner.js:112966:5)\n    at possiblyScrollMultipleTimes (https://cdr2.com/__cypress/runner/cypress_runner.js:113073:22)\n    at scrollContainers (https://cdr2.com/__cypress/runner/cypress_runner.js:113095:16)\n    at possiblyScrollMultipleTimes (https://cdr2.com/__cypress/runner/cypress_runner.js:113092:20)\n    at possiblyScrollMultipleTimes (https://cdr2.com/__cypress/runner/cypress_runner.js:113085:24)\n    at scrollContainers (https://cdr2.com/__cypress/runner/cypress_runner.js:113095:16)\n    at ensureDescendentsAndScroll (https://cdr2.com/__cypress/runner/cypress_runner.js:113099:14)\n    at ensureElIsNotCovered (https://cdr2.com/__cypress/runner/cypress_runner.js:113103:5)\n    at runAllChecks (https://cdr2.com/__cypress/runner/cypress_runner.js:113302:52)\n    at retryActionability (https://cdr2.com/__cypress/runner/cypress_runner.js:113339:16)\n    at tryCatcher (https://cdr2.com/__cypress/runner/cypress_runner.js:1830:23)\n    at Promise.attempt.Promise.try (https://cdr2.com/__cypress/runner/cypress_runner.js:4338:29)\n    at whenStable (https://cdr2.com/__cypress/runner/cypress_runner.js:143744:68)\n    at <unknown> (https://cdr2.com/__cypress/runner/cypress_runner.js:143685:14)\n    at tryCatcher (https://cdr2.com/__cypress/runner/cypress_runner.js:1830:23)\n    at Promise._settlePromiseFromHandler (https://cdr2.com/__cypress/runner/cypress_runner.js:1542:31)\n    at Promise._settlePromise (https://cdr2.com/__cypress/runner/cypress_runner.js:1599:18)\n    at Promise._settlePromise0 (https://cdr2.com/__cypress/runner/cypress_runner.js:1644:10)\n    at Promise._settlePromises (https://cdr2.com/__cypress/runner/cypress_runner.js:1724:18)\n    at Promise._fulfill (https://cdr2.com/__cypress/runner/cypress_runner.js:1668:18)\n    at <unknown> (https://cdr2.com/__cypress/runner/cypress_runner.js:5473:46)\nFrom Your Spec Code:\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/import-job-save.cy.js:54:25)",
+                "diff": null
+              },
+              "uuid": "31383b3b-96ca-45b5-b7ea-5a653b82282e",
+              "parentUUID": "17274994-afaf-4c9b-8f45-66c89f430df7",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "31383b3b-96ca-45b5-b7ea-5a653b82282e"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 17778,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}

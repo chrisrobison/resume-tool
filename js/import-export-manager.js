@@ -77,6 +77,18 @@ function setupImportJobHandlers() {
     }
 }
 
+    // Keep alias and primary URL field in sync for tests and legacy code
+    const jobUrlInput = document.getElementById('import-job-url');
+    const jobUrlAlias = document.getElementById('job-url-import');
+    if (jobUrlInput && jobUrlAlias) {
+        jobUrlInput.addEventListener('input', () => {
+            jobUrlAlias.value = jobUrlInput.value;
+        });
+        jobUrlAlias.addEventListener('input', () => {
+            jobUrlInput.value = jobUrlAlias.value;
+        });
+    }
+
 /**
  * Setup import resume modal handlers
  */
@@ -243,15 +255,17 @@ async function processJobImport() {
             showToast('API keys not configured. Proceeding without AI extraction.', 'warning');
         }
 
-        const urlMethod = document.getElementById('import-method-url');
-        const jobUrl = document.getElementById('import-job-url')?.value.trim();
+    const urlMethod = document.getElementById('import-method-url');
+    const jobUrlInput = document.getElementById('import-job-url');
+    const jobUrlAlias = document.getElementById('job-url-import');
+    const jobUrl = (jobUrlInput?.value.trim()) || (jobUrlAlias?.value.trim());
         const jobDescription = document.getElementById('import-job-description')?.value.trim();
         const customInstructions = document.getElementById('import-custom-instructions')?.value.trim();
         
         let content = '';
         let method = '';
 
-        if (urlMethod?.checked) {
+    if (urlMethod?.checked) {
             if (!jobUrl) {
                 alert('Please enter a job URL.');
                 return;

@@ -2,11 +2,20 @@
 // Displays resume data with various themes and templates
 
 import { ComponentBase } from '../js/component-base.js';
+// Signal module load for debugging
+console.info('Module loaded: components/resume-viewer-migrated.js');
 
 class ResumeViewerMigrated extends ComponentBase {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
+        // Ensure host element is visible and sized
+        try {
+            this.style.display = this.style.display || 'block';
+            if (!this.style.minHeight) this.style.minHeight = '300px';
+        } catch (e) {
+            // ignore
+        }
         
         // Component-specific properties
         this._template = 'basic';
@@ -64,6 +73,22 @@ class ResumeViewerMigrated extends ComponentBase {
         }
         
         // Initial render
+        // Try to pre-load resume from global state if present (support multiple shapes)
+        try {
+            const globalState = this.getGlobalState();
+            if (globalState?.currentResume) {
+                const cr = globalState.currentResume;
+                if (cr.data) {
+                    this.setData(cr.data, 'global-state-init');
+                } else if (cr.content) {
+                    const content = typeof cr.content === 'string' ? (() => { try { return JSON.parse(cr.content); } catch { return null; } })() : cr.content;
+                    if (content) this.setData(content, 'global-state-init');
+                }
+            }
+        } catch (e) {
+            // ignore
+        }
+
         this.render();
     }
 
@@ -77,6 +102,40 @@ class ResumeViewerMigrated extends ComponentBase {
         // Re-render when resume data changes
         if (this.isReady()) {
             this.render();
+        }
+    }
+
+    /**
+     * Handle global store changes (subscribe via ComponentBase)
+     * @param {object} event - Store change event with detail { newState }
+     */
+    handleStoreChange(event) {
+        try {
+            const payload = event && (event.detail || event) || null;
+            const newState = payload?.newState || payload || null;
+            const source = payload?.source || null;
+            // Ignore updates that originated from this component to prevent echo loops
+            if (payload?.origin && payload.origin === this._componentId) return;
+            if (!newState) return;
+
+            const currentResume = newState.currentResume || null;
+            if (currentResume && currentResume.data) {
+                // Wrapped shape: { id, data }
+                this.setData(currentResume.data, 'global-store-update');
+            } else if (currentResume && currentResume.content) {
+                // Alternate shape: resume item with .content field
+                const content = typeof currentResume.content === 'string' ? (() => {
+                    try { return JSON.parse(currentResume.content); } catch { return null; }
+                })() : currentResume.content;
+                if (content) this.setData(content, 'global-store-update');
+            } else if (currentResume === null) {
+                // Ignore store initialization (don't clear UI on store init)
+                if (source === 'initialization') return;
+                // Clear viewer if no current resume
+                this.setData(null, 'global-store-clear');
+            }
+        } catch (e) {
+            console.warn('ResumeViewerMigrated: Error handling store change', e);
         }
     }
 
@@ -1569,5 +1628,16 @@ class ResumeViewerMigrated extends ComponentBase {
 
 // Register the migrated component
 customElements.define('resume-viewer-migrated', ResumeViewerMigrated);
+
+// Backwards-compatible registration: if legacy tag name isn't defined, register it
+if (!customElements.get('resume-viewer')) {
+    try {
+        customElements.define('resume-viewer', ResumeViewerMigrated);
+        console.info('Registered legacy tag <resume-viewer> as alias for ResumeViewerMigrated');
+    } catch (e) {
+        // ignore if registration fails (name already used)
+    }
+}
+console.info('components/resume-viewer-migrated.js: customElements registered');
 
 export { ResumeViewerMigrated };

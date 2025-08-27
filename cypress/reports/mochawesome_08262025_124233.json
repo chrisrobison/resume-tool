@@ -1,0 +1,263 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 9,
+    "passes": 8,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-08-26T19:41:26.867Z",
+    "end": "2025-08-26T19:42:33.003Z",
+    "duration": 66136,
+    "testsRegistered": 9,
+    "passPercent": 88.88888888888889,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "3f251bf9-98b8-4d50-bd81-d7c1d53d0d1e",
+      "title": "",
+      "fullFile": "cypress/e2e/import-job-button.cy.js",
+      "file": "cypress/e2e/import-job-button.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "13493128-38d7-4865-99fb-4531839772d7",
+          "title": "Import Job Button Functionality",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should open import job modal when clicked",
+              "fullTitle": "Import Job Button Functionality should open import job modal when clicked",
+              "timedOut": null,
+              "duration": 7360,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Take screenshot before clicking\ncy.takeNamedScreenshot('before-import-job-click');\n// Click the Import Job button\ncy.get('#import-job-btn').should('be.visible').click();\n// Verify modal opens\ncy.openModal('import-job-modal');\ncy.get('#import-job-modal').should('not.have.class', 'hidden');\ncy.get('#import-job-modal .modal-content').should('be.visible');\n// Take screenshot of opened modal\ncy.takeNamedScreenshot('import-job-modal-opened');",
+              "err": {},
+              "uuid": "bb3d414c-2ce4-4b71-9885-8fb2df98823a",
+              "parentUUID": "13493128-38d7-4865-99fb-4531839772d7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should display API warning when no API key is configured",
+              "fullTitle": "Import Job Button Functionality should display API warning when no API key is configured",
+              "timedOut": null,
+              "duration": 4075,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Ensure no API keys are set\ncy.clearAPIKeys();\n// Open import job modal\ncy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Check for API warning\ncy.get('#import-api-warning').should('be.visible');\ncy.get('#import-api-warning').should('contain.text', 'API key required');\ncy.takeNamedScreenshot('import-job-api-warning');",
+              "err": {},
+              "uuid": "d4318fd3-8c83-46a6-a751-256757c0770f",
+              "parentUUID": "13493128-38d7-4865-99fb-4531839772d7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should hide API warning when API key is configured",
+              "fullTitle": "Import Job Button Functionality should hide API warning when API key is configured",
+              "timedOut": null,
+              "duration": 4118,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Set an API key\ncy.fixture('test-data').then(testData => {\n  cy.setAPIKey('claude', testData.testAPIKeys.claude);\n});\n// Open import job modal\ncy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// API warning should not be visible or should be hidden\ncy.get('#import-api-warning').should('not.be.visible');\ncy.takeNamedScreenshot('import-job-no-warning');",
+              "err": {},
+              "uuid": "5effabef-19d0-4523-86d9-48e2a361be53",
+              "parentUUID": "13493128-38d7-4865-99fb-4531839772d7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should allow manual job entry when modal is open",
+              "fullTitle": "Import Job Button Functionality should allow manual job entry when modal is open",
+              "timedOut": null,
+              "duration": 10578,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Fill out the manual job form\ncy.fixture('test-data').then(testData => {\n  cy.fillJobForm(testData.formTestData.validJob);\n});\ncy.takeNamedScreenshot('import-job-form-filled');",
+              "err": {},
+              "uuid": "e21b1ec1-1961-4ccd-9ce3-be9fa7b09809",
+              "parentUUID": "13493128-38d7-4865-99fb-4531839772d7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should handle URL import field",
+              "fullTitle": "Import Job Button Functionality should handle URL import field",
+              "timedOut": null,
+              "duration": 7006,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Test URL input\ncy.fixture('test-data').then(testData => {\n  cy.get('#job-url-import').should('be.visible').clear().type(testData.importJobTestData.validJobURL);\n});\ncy.takeNamedScreenshot('import-job-url-filled');",
+              "err": {},
+              "uuid": "6bd2eae9-e3e9-4905-b4f7-19793c969bb0",
+              "parentUUID": "13493128-38d7-4865-99fb-4531839772d7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should close modal when close button is clicked",
+              "fullTitle": "Import Job Button Functionality should close modal when close button is clicked",
+              "timedOut": null,
+              "duration": 6641,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Open modal\ncy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Take screenshot of open modal\ncy.takeNamedScreenshot('import-job-modal-before-close');\n// Close modal\ncy.closeModal('import-job-modal');\n// Verify modal is closed\ncy.get('#import-job-modal').should('have.class', 'hidden');\ncy.takeNamedScreenshot('import-job-modal-after-close');",
+              "err": {},
+              "uuid": "ea2e29d8-0d35-4e3e-b681-b1fbc1e2fef8",
+              "parentUUID": "13493128-38d7-4865-99fb-4531839772d7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should validate required fields",
+              "fullTitle": "Import Job Button Functionality should validate required fields",
+              "timedOut": null,
+              "duration": 6317,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\n// Try to submit with invalid data\ncy.fixture('test-data').then(testData => {\n  cy.fillJobForm(testData.formTestData.invalidJob);\n});\n// Attempt to save (if save button exists)\ncy.get('#import-job-modal').within(() => {\n  cy.get('button').contains('Save').should('be.visible');\n});\ncy.takeNamedScreenshot('import-job-validation-errors');",
+              "err": {},
+              "uuid": "498fc719-4e5b-466b-9210-4243da0d6077",
+              "parentUUID": "13493128-38d7-4865-99fb-4531839772d7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should work consistently on both job interfaces",
+              "fullTitle": "Import Job Button Functionality should work consistently on both job interfaces",
+              "timedOut": null,
+              "duration": 11890,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Test on jobs-new.html (current)\ncy.visitJobsApp('new');\ncy.waitForStore();\ncy.get('#import-job-btn').should('be.visible').click();\ncy.openModal('import-job-modal');\ncy.takeNamedScreenshot('import-job-new-interface');\ncy.closeModal('import-job-modal');\n// Test on jobs.html (legacy) if it exists\ncy.visitJobsApp('legacy');\ncy.waitForStore();\ncy.get('#import-job-btn').should('be.visible').click();\ncy.openModal('import-job-modal');\ncy.takeNamedScreenshot('import-job-legacy-interface');\ncy.closeModal('import-job-modal');",
+              "err": {},
+              "uuid": "443a39ea-935d-40ec-83a7-77cd0f4953b3",
+              "parentUUID": "13493128-38d7-4865-99fb-4531839772d7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should handle keyboard navigation",
+              "fullTitle": "Import Job Button Functionality should handle keyboard navigation",
+              "timedOut": null,
+              "duration": 5047,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#import-job-btn').focus().should('have.focus');\ncy.get('#import-job-btn').type('{enter}');\n// Modal should open\ncy.openModal('import-job-modal');\n// Test tab navigation within modal\ncy.get('#import-job-modal').within(() => {\n  cy.get('input, textarea, button, select').first().focus();\n  cy.focused().tab().tab().tab(); // Navigate through fields\n});\ncy.takeNamedScreenshot('import-job-keyboard-navigation');",
+              "err": {
+                "message": "TypeError: cy.focused(...).tab is not a function",
+                "estack": "TypeError: cy.focused(...).tab is not a function\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/import-job-button.cy.js:143:19)",
+                "diff": null
+              },
+              "uuid": "2ce15c50-944d-412d-951f-fec5167f9457",
+              "parentUUID": "13493128-38d7-4865-99fb-4531839772d7",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "bb3d414c-2ce4-4b71-9885-8fb2df98823a",
+            "d4318fd3-8c83-46a6-a751-256757c0770f",
+            "5effabef-19d0-4523-86d9-48e2a361be53",
+            "e21b1ec1-1961-4ccd-9ce3-be9fa7b09809",
+            "6bd2eae9-e3e9-4905-b4f7-19793c969bb0",
+            "ea2e29d8-0d35-4e3e-b681-b1fbc1e2fef8",
+            "498fc719-4e5b-466b-9210-4243da0d6077",
+            "443a39ea-935d-40ec-83a7-77cd0f4953b3"
+          ],
+          "failures": [
+            "2ce15c50-944d-412d-951f-fec5167f9457"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 63032,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}

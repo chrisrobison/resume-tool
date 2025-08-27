@@ -122,9 +122,24 @@ class SettingsManagerMigrated extends ComponentBase {
      * Called when store state changes
      */
     handleStoreChange(event) {
-        // React to settings-related store changes
-        if (event.detail?.source?.includes('settings') || event.detail?.source === 'updateSettings') {
-            this.loadSettings();
+        try {
+            const payload = event && (event.detail?.newState || event.detail || event) || null;
+            if (!payload) return;
+
+            if (payload.settings) {
+                // Merge and set data so component re-renders with latest settings
+                const defaultSettings = this.getDefaultSettings();
+                const merged = this.mergeSettings(defaultSettings, payload.settings);
+                this.setData(merged, 'global-store-sync');
+                return;
+            }
+
+            // Fallback: if source mentions settings, reload explicitly
+            if (event.detail?.source && typeof event.detail.source === 'string' && event.detail.source.toLowerCase().includes('settings')) {
+                this.loadSettings();
+            }
+        } catch (e) {
+            console.warn('SettingsManagerMigrated: Error handling store change', e);
         }
     }
 

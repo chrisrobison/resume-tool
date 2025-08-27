@@ -1,0 +1,244 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 8,
+    "passes": 7,
+    "pending": 0,
+    "failures": 1,
+    "start": "2025-08-26T19:15:27.647Z",
+    "end": "2025-08-26T19:17:02.324Z",
+    "duration": 94677,
+    "testsRegistered": 8,
+    "passPercent": 87.5,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "277ac1c9-be4d-4b46-91c7-726fc2eefc9a",
+      "title": "",
+      "fullFile": "cypress/e2e/basic-ui.cy.js",
+      "file": "cypress/e2e/basic-ui.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "461c9517-8a41-4c16-9e08-9b41b522031a",
+          "title": "Basic UI Functionality",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should load the application successfully",
+              "fullTitle": "Basic UI Functionality should load the application successfully",
+              "timedOut": null,
+              "duration": 11996,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('body').should('be.visible');\ncy.get('global-store-migrated').should('exist');\ncy.get('.sidebar-nav').should('be.visible');\n// Take screenshot of initial load\ncy.takeNamedScreenshot('app-initial-load');\n// Measure page load performance\ncy.measurePageLoad('Jobs Application');",
+              "err": {
+                "message": "AssertionError: Jobs Application should load in under 5 seconds: expected 5224 to be below 5000",
+                "estack": "AssertionError: Jobs Application should load in under 5 seconds: expected 5224 to be below 5000\n    at Context.eval (webpack://job-hunt-manager/./cypress/support/commands.js:145:27)",
+                "diff": "- 5224\n+ 5000\n"
+              },
+              "uuid": "15ed821c-d0d3-4511-8165-287d00f232ea",
+              "parentUUID": "461c9517-8a41-4c16-9e08-9b41b522031a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should navigate between sections",
+              "fullTitle": "Basic UI Functionality should navigate between sections",
+              "timedOut": null,
+              "duration": 12674,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const sections = ['jobs', 'resumes', 'settings'];\nsections.forEach(section => {\n  cy.navigateToSection(section);\n  cy.takeNamedScreenshot(`section-${section}`);\n  cy.wait(500); // Allow section to fully load\n});",
+              "err": {},
+              "uuid": "dc073d5a-75a4-4031-b216-7a2a7b9324b6",
+              "parentUUID": "461c9517-8a41-4c16-9e08-9b41b522031a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should display job list interface correctly",
+              "fullTitle": "Basic UI Functionality should display job list interface correctly",
+              "timedOut": null,
+              "duration": 10119,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Check that the job list interface is visible and functional\ncy.get('#items-list').should('be.visible');\ncy.get('#items-header').should('contain.text', 'Jobs');\n// The list should be empty by default (no jobs seeded)\ncy.get('.empty-state').should('be.visible');\ncy.takeNamedScreenshot('job-list-interface');",
+              "err": {},
+              "uuid": "6b082a7b-fef1-479f-87f7-841837c11e7c",
+              "parentUUID": "461c9517-8a41-4c16-9e08-9b41b522031a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should handle empty state properly",
+              "fullTitle": "Basic UI Functionality should handle empty state properly",
+              "timedOut": null,
+              "duration": 8939,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#items-list').should('be.visible');\ncy.get('.empty-state').should('be.visible');\ncy.takeNamedScreenshot('empty-state');",
+              "err": {},
+              "uuid": "49283ada-588c-4fff-927e-36753da53b0e",
+              "parentUUID": "461c9517-8a41-4c16-9e08-9b41b522031a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should display settings section",
+              "fullTitle": "Basic UI Functionality should display settings section",
+              "timedOut": null,
+              "duration": 8995,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.navigateToSection('settings');\ncy.get('#settings-panel').should('be.visible');\ncy.takeNamedScreenshot('settings-section');",
+              "err": {},
+              "uuid": "c0d04a5b-0143-4f4f-ad4c-143a5f41fc70",
+              "parentUUID": "461c9517-8a41-4c16-9e08-9b41b522031a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should be responsive on different viewports",
+              "fullTitle": "Basic UI Functionality should be responsive on different viewports",
+              "timedOut": null,
+              "duration": 14519,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const viewports = [{\n  width: 1280,\n  height: 720,\n  name: 'desktop'\n}, {\n  width: 768,\n  height: 1024,\n  name: 'tablet'\n}, {\n  width: 375,\n  height: 667,\n  name: 'mobile'\n}];\nviewports.forEach(viewport => {\n  cy.viewport(viewport.width, viewport.height);\n  cy.wait(500);\n  cy.takeNamedScreenshot(`responsive-${viewport.name}`);\n  // Check that key elements are still visible and accessible\n  cy.get('.sidebar-nav').should('be.visible');\n  cy.get('#section-title').should('be.visible');\n});",
+              "err": {},
+              "uuid": "d53ea15f-e952-45f2-851c-6e959ce601cc",
+              "parentUUID": "461c9517-8a41-4c16-9e08-9b41b522031a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should maintain application state across page reloads",
+              "fullTitle": "Basic UI Functionality should maintain application state across page reloads",
+              "timedOut": null,
+              "duration": 9537,
+              "state": "passed",
+              "speed": "medium",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Reload the page and verify it still works\ncy.reload();\ncy.waitForStore();\n// Check that the application still loads properly\ncy.get('.sidebar-nav').should('be.visible');\ncy.get('#items-list').should('be.visible');\ncy.get('#section-title').should('contain.text', 'Jobs');\ncy.takeNamedScreenshot('page-reload-test');",
+              "err": {},
+              "uuid": "50578064-8d7c-4d83-8ea4-17e291f2bdbe",
+              "parentUUID": "461c9517-8a41-4c16-9e08-9b41b522031a",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should perform basic accessibility checks",
+              "fullTitle": "Basic UI Functionality should perform basic accessibility checks",
+              "timedOut": null,
+              "duration": 10164,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.checkA11y();\ncy.takeNamedScreenshot('accessibility-check');",
+              "err": {},
+              "uuid": "487d7c68-a7a4-432f-8dc6-12a1e538615c",
+              "parentUUID": "461c9517-8a41-4c16-9e08-9b41b522031a",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "dc073d5a-75a4-4031-b216-7a2a7b9324b6",
+            "6b082a7b-fef1-479f-87f7-841837c11e7c",
+            "49283ada-588c-4fff-927e-36753da53b0e",
+            "c0d04a5b-0143-4f4f-ad4c-143a5f41fc70",
+            "d53ea15f-e952-45f2-851c-6e959ce601cc",
+            "50578064-8d7c-4d83-8ea4-17e291f2bdbe",
+            "487d7c68-a7a4-432f-8dc6-12a1e538615c"
+          ],
+          "failures": [
+            "15ed821c-d0d3-4511-8165-287d00f232ea"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 86943,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}

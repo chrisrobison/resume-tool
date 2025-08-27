@@ -67,6 +67,12 @@ class JobManagerMigrated extends ComponentBase {
         
         // Setup event listeners
         this.setupEventListeners();
+        // Listen for document-level global store events (ensure compatibility with store dispatch)
+        try {
+            document.addEventListener('global-state-changed', this.handleStoreChange);
+        } catch (e) {
+            console.warn('JobManagerMigrated: Failed to attach document global-state listener', e);
+        }
         
         // Update global state
         this.updateGlobalState({ 
@@ -85,7 +91,14 @@ class JobManagerMigrated extends ComponentBase {
         // Update internal state based on data changes
         if (newData && typeof newData === 'object') {
             if (newData.jobs !== undefined) {
-                this._jobs = { ...newData.jobs };
+                // Accept array or object
+                if (Array.isArray(newData.jobs)) {
+                    const map = {};
+                    newData.jobs.forEach(j => { if (j && j.id) map[j.id] = j; });
+                    this._jobs = map;
+                } else {
+                    this._jobs = { ...newData.jobs };
+                }
             }
             if (newData.selectedJob !== undefined) {
                 this._selectedJob = newData.selectedJob;
@@ -126,6 +139,56 @@ class JobManagerMigrated extends ComponentBase {
         
         // Re-render the component
         this.render();
+    }
+
+    /**
+     * Handle global store change events
+     * This ensures the job manager updates when the central store mutates
+     */
+    handleStoreChange(event) {
+        try {
+            const payload = event && (event.detail?.newState || event.detail || event) || null;
+            if (!payload) return;
+
+            // If jobs changed in the global state, update internal jobs and re-render
+            if (payload.jobs) {
+                if (Array.isArray(payload.jobs)) {
+                    const map = {};
+                    payload.jobs.forEach(j => { if (j && j.id) map[j.id] = j; });
+                    this._jobs = map;
+                } else {
+                    this._jobs = { ...payload.jobs };
+                }
+            }
+
+            // Sync selected job if present
+            if (payload.currentJob) {
+                this._selectedJob = payload.currentJob;
+            }
+
+            // Apply the updates via setData so lifecycle hooks run
+            this.setData({ jobs: this._jobs, selectedJob: this._selectedJob }, 'global-store-sync');
+            // Also update any open details form/select to reflect new status/value
+            setTimeout(() => {
+                try {
+                    const details = document.getElementById('details-content');
+                    if (!details) return;
+
+                    // Prefer name="status" (form-generated) or fallback to #job-status
+                    const statusField = details.querySelector('[name="status"]') || details.querySelector('#job-status');
+                    if (statusField && this._selectedJob && this._selectedJob.status) {
+                        try { statusField.value = this._selectedJob.status; } catch (e) {}
+                        // Trigger change event so any listeners update
+                        const ev = new Event('change', { bubbles: true });
+                        statusField.dispatchEvent(ev);
+                    }
+                } catch (e) {
+                    // ignore
+                }
+            }, 50);
+        } catch (e) {
+            console.warn('JobManagerMigrated: Error handling store change', e);
+        }
     }
 
     /**
@@ -194,6 +257,11 @@ class JobManagerMigrated extends ComponentBase {
         
         // Reset state
         this._autoSaveStatus = 'saved';
+        try {
+            document.removeEventListener('global-state-changed', this.handleStoreChange);
+        } catch (e) {
+            // ignore
+        }
     }
 
     /**
@@ -217,9 +285,16 @@ class JobManagerMigrated extends ComponentBase {
         try {
             // Try to get jobs from global state first
             const globalState = this.getGlobalState();
-            if (globalState?.jobs && Object.keys(globalState.jobs).length > 0) {
+            if (globalState?.jobs && (Array.isArray(globalState.jobs) ? globalState.jobs.length > 0 : Object.keys(globalState.jobs).length > 0)) {
                 console.log('Loading jobs from global state');
-                this._jobs = { ...globalState.jobs };
+                // Support both array and object shapes for jobs
+                if (Array.isArray(globalState.jobs)) {
+                    const map = {};
+                    globalState.jobs.forEach(j => { if (j && j.id) map[j.id] = j; });
+                    this._jobs = map;
+                } else {
+                    this._jobs = { ...globalState.jobs };
+                }
                 this._selectedJob = globalState.currentJob || null;
                 this.setData({
                     jobs: this._jobs,
@@ -587,13 +662,27 @@ class JobManagerMigrated extends ComponentBase {
      * View resume (integration with app manager)
      */
     viewResume(resumeId) {
-        // Try to use app manager if available
+        // Prefer app-level API
         if (window.app && typeof window.app.loadNamedResume === 'function') {
             window.app.loadNamedResume(resumeId);
-        } else {
-            // Fallback to local implementation
-            this.showToast('Resume viewer not available', 'warning');
+            return;
         }
+
+        // Try appManager flow: switch to resumes and select the resume
+        if (window.appManager && typeof window.appManager.switchSection === 'function') {
+            try {
+                window.appManager.switchSection('resumes');
+                const resume = (window.appManager.data?.resumes || []).find(r => r.id === resumeId);
+                if (resume) {
+                    window.appManager.handleItemSelection(resume);
+                }
+                return;
+            } catch (e) {
+                // continue to fallback
+            }
+        }
+
+        this.showToast('Resume viewer not available', 'warning');
     }
 
     /**
@@ -601,40 +690,99 @@ class JobManagerMigrated extends ComponentBase {
      */
     tailorResume(resumeId) {
         if (!this._selectedJob) return;
-        
-        // Try to use app manager AI features if available
+        // Try app-level API
         if (window.app && typeof window.app.generateTailoredResume === 'function') {
             window.app.generateTailoredResume(this._selectedJob, resumeId);
-        } else {
-            this.showToast('AI tailoring not available', 'warning');
+            return;
         }
+
+        // Try appManager helper (if available)
+        if (window.appManager && typeof window.appManager.generateTailoredResume === 'function') {
+            window.appManager.generateTailoredResume(this._selectedJob, resumeId);
+            return;
+        }
+
+        // As a last resort, switch to resumes section and open create/tailor flow
+        if (window.appManager && typeof window.appManager.switchSection === 'function') {
+            try {
+                window.appManager.switchSection('resumes');
+                // Select resume so user can act on it
+                const resume = (window.appManager.data?.resumes || []).find(r => r.id === resumeId);
+                if (resume && typeof window.appManager.handleItemSelection === 'function') {
+                    window.appManager.handleItemSelection(resume);
+                }
+                this.showToast('AI tailoring is available in the Resumes section', 'info');
+                return;
+            } catch (e) {
+                // fallthrough
+            }
+        }
+
+        this.showToast('AI tailoring not available', 'warning');
     }
 
     /**
      * Create new resume
      */
     createNewResume() {
-        // Try to use app manager if available
+        // Prefer app-level API
         if (window.app && typeof window.app.createNewResume === 'function') {
             window.app.createNewResume();
-        } else {
-            this.showToast('Resume editor not available', 'warning');
+            return;
         }
+
+        // Use appManager to switch to resumes and open the add modal
+        if (window.appManager && typeof window.appManager.switchSection === 'function') {
+            try {
+                window.appManager.switchSection('resumes');
+                if (typeof window.appManager.addNewItem === 'function') {
+                    window.appManager.addNewItem();
+                    return;
+                }
+            } catch (e) {
+                // fallthrough
+            }
+        }
+
+        this.showToast('Resume editor not available', 'warning');
     }
 
     /**
      * Get saved resumes for association
      */
     getSavedResumes() {
-        // Try to use app manager if available
-        if (window.app && typeof window.app.getSavedResumes === 'function') {
-            return window.app.getSavedResumes();
-        }
-        
-        // Fallback to localStorage
+        // Prefer app-level API (app or appManager)
         try {
-            const registry = localStorage.getItem('resumeRegistry');
-            return registry ? JSON.parse(registry) : [];
+            if (window.app && typeof window.app.getSavedResumes === 'function') {
+                return window.app.getSavedResumes() || [];
+            }
+
+            if (window.appManager && window.appManager.data && Array.isArray(window.appManager.data.resumes)) {
+                return window.appManager.data.resumes || [];
+            }
+
+            // Fallback to common localStorage keys used across versions
+            const tryKeys = ['resumeRegistry', 'resumes', 'jobHuntData'];
+            for (const key of tryKeys) {
+                const raw = localStorage.getItem(key);
+                if (!raw) continue;
+
+                try {
+                    const parsed = JSON.parse(raw);
+                    // jobHuntData shape: { resumes: [...] }
+                    if (key === 'jobHuntData' && parsed && Array.isArray(parsed.resumes)) {
+                        return parsed.resumes;
+                    }
+
+                    if (Array.isArray(parsed)) {
+                        return parsed;
+                    }
+                } catch (e) {
+                    // ignore parse errors and continue
+                }
+            }
+
+            return [];
         } catch (e) {
             return [];
         }
