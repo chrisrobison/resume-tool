@@ -59,12 +59,12 @@ class GlobalStoreMigrated extends ComponentBase {
      * Handle data changes
      * Called when setData() is used
      */
-    onDataChange(newData, previousData, source) {
-        console.log('GlobalStoreMigrated: State changed from', source);
-        
-        // Dispatch state change events for subscribers
-        this._dispatchStateChange(source, previousData, newData);
-        
+    onDataChange(newData, previousData, source, origin) {
+        console.log('GlobalStoreMigrated: State changed from', source, 'origin:', origin);
+
+        // Dispatch state change events for subscribers, include origin
+        this._dispatchStateChange(source, previousData, newData, origin);
+
         // Persist to storage if this is a real data change (not initial load)
         if (source !== 'storage-load' && source !== 'initialization') {
             this.saveToStorage();
@@ -232,7 +232,7 @@ class GlobalStoreMigrated extends ComponentBase {
      * @param {object} updates - State updates to apply
      * @param {string} source - Source identifier for the change
      */
-    setState(updates, source = 'external') {
+    setState(updates, source = 'external', origin = null) {
         if (typeof updates !== 'object' || updates === null) {
             console.warn('GlobalStoreMigrated.setState: updates must be an object');
             return;
@@ -241,9 +241,10 @@ class GlobalStoreMigrated extends ComponentBase {
         try {
             const currentState = this.getData() || {};
             const newState = this._deepMerge(currentState, updates);
-            
-            // Use ComponentBase setData method
-            this.setData(newState, source);
+
+            // Use ComponentBase setData method and include origin so onDataChange
+            // and _dispatchStateChange can propagate it to subscribers.
+            this.setData(newState, source, origin);
             
         } catch (error) {
             this.handleError(error, 'Failed to set state');
@@ -436,13 +437,14 @@ class GlobalStoreMigrated extends ComponentBase {
         return path.split('.').reduce((current, key) => current?.[key], obj);
     }
 
-    _dispatchStateChange(source, previousState, newState) {
+    _dispatchStateChange(source, previousState, newState, origin = null) {
         // Notify internal subscribers
         this._stateSubscribers.forEach(callback => {
             try {
                 const filter = this._subscriberFilters.get(callback);
                 const eventDetail = {
                     source,
+                    origin,
                     previousState,
                     newState,
                     timestamp: new Date().toISOString()
@@ -464,6 +466,7 @@ class GlobalStoreMigrated extends ComponentBase {
         // Emit component event
         this.emitEvent('state-changed', {
             source,
+            origin,
             previousState,
             newState,
             timestamp: new Date().toISOString()
@@ -474,6 +477,7 @@ class GlobalStoreMigrated extends ComponentBase {
             document.dispatchEvent(new CustomEvent('global-state-changed', {
                 detail: {
                     source,
+                    origin,
                     previousState,
                     newState,
                     timestamp: new Date().toISOString()

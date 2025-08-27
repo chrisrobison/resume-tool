@@ -39,6 +39,7 @@ if (!$input) {
     echo json_encode(['error' => 'Invalid JSON input']);
     exit;
 }
+file_put_contents("ai.log", "input:\n".json_encode($input)."\n--\n", FILE_APPEND);
 
 $apiType = $input['apiType'] ?? '';
 $apiKey = $input['apiKey'] ?? '';
@@ -127,7 +128,7 @@ if ($apiType === 'claude') {
     ];
     $body = [
         'model' => $model,
-        'max_tokens' => 4000,
+        'max_tokens' => 10000,
         'temperature' => 0.3,
         'messages' => [
             ['role' => 'user', 'content' => $prompt]
@@ -146,7 +147,7 @@ if ($apiType === 'claude') {
         $body = [
             'model' => $model,
             'input' => $prompt,
-            'max_output_tokens' => 4000
+            'max_output_tokens' => 10000
         ];
     } else {
         $body = [
@@ -154,7 +155,7 @@ if ($apiType === 'claude') {
             'messages' => [
                 ['role' => 'user', 'content' => $prompt]
             ],
-            'max_tokens' => 4000,
+            'max_tokens' => 10000,
             'temperature' => 0.3
         ];
     }
@@ -172,5 +173,7 @@ if ($err) {
     exit;
 }
 
+file_put_contents("ai.log", json_encode($response), FILE_APPEND);
 http_response_code($status);
 echo $response;
+

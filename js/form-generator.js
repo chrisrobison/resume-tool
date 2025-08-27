@@ -56,6 +56,64 @@ export function generateFormHTML(schema, item, section) {
 }
 
 /**
+ * Initialize interactive behaviors for a generated form container
+ * - Wires resume editor/viewer tab buttons produced by generateResumeEditorField
+ * @param {HTMLElement} container - The element where form HTML was injected
+ */
+export function initializeFormInteractions(container) {
+    if (!container || !(container instanceof Element)) return;
+
+    // Wire resume tab buttons (preview / edit / analytics)
+    container.querySelectorAll('.resume-content-container').forEach(wrapper => {
+        const btns = wrapper.querySelectorAll('.tab-btn');
+        const panels = {
+            preview: wrapper.querySelector('#preview-tab'),
+            edit: wrapper.querySelector('#edit-tab'),
+            analytics: wrapper.querySelector('#analytics-tab')
+        };
+
+        // Initialize panel display based on active class
+        Object.entries(panels).forEach(([key, panel]) => {
+            if (!panel) return;
+            try { panel.style.display = panel.classList.contains('active') ? 'block' : 'none'; } catch (e) {}
+        });
+
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tab = btn.dataset.tab;
+                // Toggle active class on buttons
+                btns.forEach(b => b.classList.toggle('active', b === btn));
+
+                // Show matching panel (also set inline display for robustness)
+                Object.entries(panels).forEach(([key, panel]) => {
+                    if (!panel) return;
+                    const isActive = key === tab;
+                    panel.classList.toggle('active', isActive);
+                    try {
+                        panel.style.setProperty('display', isActive ? 'block' : 'none', 'important');
+                    } catch (err) { /* ignore */ }
+                });
+
+                // Ensure wrapper is visible
+                try { wrapper.style.setProperty('display', wrapper.style.display || 'block', 'important'); } catch (e) {}
+
+                // If switching to preview, attempt to render preview into viewer and ensure viewer visible
+                if (tab === 'preview') {
+                    // Prefer migrated component tag, fall back to legacy
+                    const viewer = wrapper.querySelector('resume-viewer-migrated') || wrapper.querySelector('resume-viewer');
+                    if (viewer) {
+                        try { viewer.style.setProperty('display', viewer.style.display || 'block', 'important'); } catch (e) {}
+                        if (typeof viewer.render === 'function') {
+                            try { viewer.render(); } catch (e) { /* best-effort */ }
+                        }
+                    }
+                }
+            });
+        });
+    });
+}
+
+/**
  * Generate HTML for a single field
  * @param {string} key - Field key
  * @param {object} field - Field definition
@@ -191,11 +249,11 @@ function generateResumeEditorField(key, field, value) {
                         </button>
                     </div>
                     <div class="resume-viewer-container">
-                        <resume-viewer id="resume-viewer-${key}"></resume-viewer>
+                        <resume-viewer-migrated id="resume-viewer-${key}"></resume-viewer-migrated>
                     </div>
                 </div>
                 <div class="tab-panel" id="edit-tab">
-                    <resume-editor id="resume-editor-${key}"></resume-editor>
+                    <resume-editor-migrated id="resume-editor-${key}"></resume-editor-migrated>
                 </div>
                 <div class="tab-panel" id="analytics-tab">
                     <resume-analytics id="resume-analytics-${key}"></resume-analytics>

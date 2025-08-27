@@ -651,16 +651,58 @@ class AIAssistantWorkerMigrated extends ComponentBase {
             console.log('AIAssistantWorkerMigrated - Received result:', result);
             
             this._lastResult = { type: 'tailor-resume', data: result };
-            
-            // Update the resume in the global store
-            this.updateGlobalState({
-                currentResume: {
-                    ...this._currentResume,
-                    data: result.result.tailoredResume,
-                    lastModified: new Date().toISOString()
+
+            // Persist the tailored resume as a new saved resume and associate with the job
+            try {
+                const tailored = result.result.tailoredResume;
+                const timestamp = new Date().toISOString();
+                const newResume = {
+                    id: 'resume_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                    name: `${this._currentJob?.title || 'Tailored Resume'} - ${new Date().toLocaleDateString()}`,
+                    content: tailored,
+                    dateCreated: timestamp,
+                    dateModified: timestamp
+                };
+
+                // Add to global store resumes
+                const gs = window.globalStore;
+                if (gs && typeof gs.addResume === 'function') {
+                    gs.addResume(newResume);
+                    console.log('AIAssistantWorkerMigrated: Added tailored resume to global store', newResume.id);
+                } else {
+                    // Fallback: update state directly
+                    const currentRes = this.getGlobalState('resumes') || [];
+                    this.updateGlobalState({ resumes: [...currentRes, newResume] }, 'ai-assistant-add-resume');
                 }
-            }, 'ai-assistant-tailor');
-            
+
+                // Associate the new resume with the job if a job is selected
+                if (this._currentJob && this._currentJob.id) {
+                    if (gs && typeof gs.updateJob === 'function') {
+                        gs.updateJob(this._currentJob.id, { resumeId: newResume.id, dateUpdated: timestamp });
+                    } else {
+                        this.updateGlobalState({ currentJob: { ...this._currentJob, resumeId: newResume.id } }, 'ai-assistant-associate-resume');
+                    }
+                }
+
+                // Log the AI operation using logs.js
+                try {
+                    const { logApiCall } = await import('../js/logs.js');
+                    logApiCall(provider || 'unknown', 'tailor_resume', {
+                        model,
+                        resume: !!this._currentResume,
+                        jobDescriptionLength: (this._currentJob?.description || '').length || 0
+                    }, result, null, { jobId: this._currentJob?.id, resumeId: newResume.id });
+                } catch (logErr) {
+                    console.warn('AIAssistantWorkerMigrated: Failed to log API call', logErr);
+                }
+
+                // Update the currentResume pointer
+                this.updateGlobalState({ currentResume: newResume }, 'ai-assistant-tailor');
+
+            } catch (persistError) {
+                console.error('AIAssistantWorkerMigrated: Failed to persist tailored resume', persistError);
+            }
+
             // Emit successful tailor event
             this.emitEvent('resume-tailored', {
                 jobId: this._currentJob?.id,
@@ -708,7 +750,40 @@ class AIAssistantWorkerMigrated extends ComponentBase {
             });
             
             this._lastResult = { type: 'cover-letter', data: result };
-            
+
+            // Persist the generated cover letter and log the API call
+            try {
+                const coverLetter = result.result.coverLetter;
+                const entry = {
+                    id: 'cover_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
+                    jobId: this._currentJob?.id,
+                    resumeId: this._currentResume?.id,
+                    content: coverLetter,
+                    createdDate: new Date().toISOString(),
+                    provider: provider || 'unknown'
+                };
+
+                const gs = window.globalStore;
+                if (gs && typeof gs.setState === 'function') {
+                    const existing = gs.getState('coverLetters') || [];
+                    gs.setState({ coverLetters: [...existing, entry] }, 'ai-assistant-save-cover-letter');
+                } else {
+                    const existing = this.getGlobalState('coverLetters') || [];
+                    this.updateGlobalState({ coverLetters: [...existing, entry] }, 'ai-assistant-save-cover-letter');
+                }
+
+                // log API call
+                try {
+                    const { logApiCall } = await import('../js/logs.js');
+                    logApiCall(provider || 'unknown', 'generate_cover_letter', { model }, result, null, { jobId: this._currentJob?.id, resumeId: this._currentResume?.id });
+                } catch (logErr) {
+                    console.warn('AIAssistantWorkerMigrated: Failed to log cover letter API call', logErr);
+                }
+
+            } catch (persistErr) {
+                console.warn('AIAssistantWorkerMigrated: Failed to persist cover letter', persistErr);
+            }
+
             // Emit successful cover letter event
             this.emitEvent('cover-letter-generated', {
                 jobId: this._currentJob?.id,

@@ -2,6 +2,8 @@
 // Comprehensive resume editing interface with tabbed navigation, modal dialogs, and real-time preview
 
 import { ComponentBase } from '../js/component-base.js';
+// Signal module load for debugging
+console.info('Module loaded: components/resume-editor-migrated.js');
 
 class ResumeEditorMigrated extends ComponentBase {
     constructor() {
@@ -44,6 +46,13 @@ class ResumeEditorMigrated extends ComponentBase {
         this.getCurrentTab = this.getCurrentTab.bind(this);
         this.setCurrentTab = this.setCurrentTab.bind(this);
         this.generatePreview = this.generatePreview.bind(this);
+        // Ensure host element is visible and sized
+        try {
+            this.style.display = this.style.display || 'block';
+            if (!this.style.minHeight) this.style.minHeight = '300px';
+        } catch (e) {
+            // ignore
+        }
     }
 
     /**
@@ -67,6 +76,15 @@ class ResumeEditorMigrated extends ComponentBase {
         
         // Setup event listeners
         this.setupEventListeners();
+        
+        // Populate form fields and preview from the loaded resume data
+        // Do this after rendering and event wiring so DOM elements exist.
+        try {
+            this.updateAllFields();
+            this.renderPreview();
+        } catch (e) {
+            console.warn('ResumeEditorMigrated: Failed to populate fields on initialize', e);
+        }
         
         // Mark as loaded
         this._state.loaded = true;
@@ -100,8 +118,21 @@ class ResumeEditorMigrated extends ComponentBase {
             // Update metadata
             this.updateMetaLastModified();
             
-            // Save to storage if not from storage load
-            if (source !== 'storage-load' && source !== 'initialization') {
+            // Save to storage unless change originated from the global store
+            // or during initialization/storage-load. Changes that come from the
+            // global store are already authoritative and writing them back
+            // immediately causes a feedback loop (component -> store ->
+            // component). Ignore those sources to prevent recursive updates.
+            const persistenceIgnoredSources = new Set([
+                'storage-load',
+                'initialization',
+                'global-store-update',
+                'global-store-load',
+                'global-store-clear',
+                'global-state-load',
+                'global-store-sync'
+            ]);
+            if (!persistenceIgnoredSources.has(source)) {
                 this.saveToLocalStorage();
             }
         }
@@ -112,6 +143,58 @@ class ResumeEditorMigrated extends ComponentBase {
             
             // Emit change event for external components
             this.emitEvent('resume-change', { resumeData: this._resumeData });
+        }
+    }
+
+    /**
+     * Handle global store changes
+     * Update the editor when the global currentResume changes
+     */
+    handleStoreChange(event) {
+        try {
+            const payload = event && (event.detail || event) || null;
+            const newState = payload?.newState || payload || null;
+            const source = payload?.source || null;
+            // Ignore updates that originated from this component to prevent echo loops
+            if (payload?.origin && payload.origin === this._componentId) return;
+            if (!newState) return;
+
+            const currentResume = newState.currentResume || null;
+            if (currentResume && currentResume.data) {
+                console.log('ResumeEditorMigrated: Updating resume from global store change');
+                this._resumeData = { ...currentResume.data };
+                this.setData(this._resumeData, 'global-store-update');
+                
+                // Re-render fields and preview
+                if (this.isReady()) {
+                    this.updateAllFields();
+                    this.renderPreview();
+                }
+            } else if (currentResume && currentResume.content) {
+                // Alternate shape: resume item with .content field
+                const content = typeof currentResume.content === 'string' ? (() => {
+                    try { return JSON.parse(currentResume.content); } catch { return null; }
+                })() : currentResume.content;
+                if (content) {
+                    this._resumeData = { ...content };
+                    this.setData(this._resumeData, 'global-store-update');
+                    if (this.isReady()) {
+                        this.updateAllFields();
+                        this.renderPreview();
+                    }
+                }
+            } else if (currentResume === null) {
+                // Do not overwrite local data on global store initialization
+                if (source === 'initialization') {
+                    return;
+                }
+                // Clear to default if no resume selected
+                this._resumeData = this.getDefaultResumeData();
+                this.setData(this._resumeData, 'global-store-clear');
+                if (this.isReady()) this.updateAllFields();
+            }
+        } catch (e) {
+            console.warn('ResumeEditorMigrated: Error handling store change', e);
         }
     }
 
@@ -336,11 +419,24 @@ class ResumeEditorMigrated extends ComponentBase {
         try {
             // Try to get current resume from global state first
             const globalState = this.getGlobalState();
-            if (globalState?.currentResume?.data) {
-                console.log('Loading resume from global state');
-                this._resumeData = { ...globalState.currentResume.data };
-                this.setData(this._resumeData, 'global-state-load');
-                return;
+            // Support multiple shapes for currentResume: { data: {...} } or resume item { content: {...}|string }
+            if (globalState?.currentResume) {
+                const cr = globalState.currentResume;
+                if (cr.data) {
+                    console.log('Loading resume from global state (data)');
+                    this._resumeData = { ...cr.data };
+                    this.setData(this._resumeData, 'global-state-load');
+                    return;
+                }
+                if (cr.content) {
+                    console.log('Loading resume from global state (content)');
+                    const content = typeof cr.content === 'string' ? (() => { try { return JSON.parse(cr.content); } catch { return null; } })() : cr.content;
+                    if (content && this.isValidResumeData(content)) {
+                        this._resumeData = { ...content };
+                        this.setData(this._resumeData, 'global-state-load');
+                        return;
+                    }
+                }
             }
             
             // Fallback to localStorage
@@ -556,6 +652,7 @@ class ResumeEditorMigrated extends ComponentBase {
      * Update all form fields from current data
      */
     updateAllFields() {
+        console.log('ResumeEditorMigrated: updateAllFields() called, currentTab=', this._state.currentTab);
         // Update basics fields
         this.updateBasicsFields();
         
@@ -579,7 +676,10 @@ class ResumeEditorMigrated extends ComponentBase {
         fields.forEach(field => {
             const input = this.querySelector(`#${field}`);
             if (input) {
-                input.value = basics[field] || '';
+                console.log(`ResumeEditorMigrated: setting field #${field} to:`, basics[field] || '');
+                try { input.value = basics[field] || ''; } catch (e) { console.warn('Failed to set input.value for', field, e); }
+            } else {
+                console.warn(`ResumeEditorMigrated: input #${field} not found in DOM`);
             }
         });
         
@@ -589,7 +689,8 @@ class ResumeEditorMigrated extends ComponentBase {
         locationFields.forEach(field => {
             const input = this.querySelector(`#location-${field}`);
             if (input) {
-                input.value = location[field] || '';
+                console.log(`ResumeEditorMigrated: setting field #location-${field} to:`, location[field] || '');
+                try { input.value = location[field] || ''; } catch (e) { console.warn('Failed to set location input', field, e); }
             }
         });
     }
@@ -2263,5 +2364,16 @@ class ResumeEditorMigrated extends ComponentBase {
 
 // Register the migrated component
 customElements.define('resume-editor-migrated', ResumeEditorMigrated);
+
+// Backwards-compatible registration: if legacy tag name isn't defined, register it
+if (!customElements.get('resume-editor')) {
+    try {
+        customElements.define('resume-editor', ResumeEditorMigrated);
+        console.info('Registered legacy tag <resume-editor> as alias for ResumeEditorMigrated');
+    } catch (e) {
+        // ignore if registration fails (name already used)
+    }
+}
+console.info('components/resume-editor-migrated.js: customElements registered');
 
 export { ResumeEditorMigrated };

@@ -40,6 +40,25 @@ class AppManager {
         try {
             this.setupEventListeners();
             await this.syncWithGlobalStore();
+            // Listen for global store changes to sync resume components directly
+            document.addEventListener('global-state-changed', (e) => {
+                try {
+                    const payload = e.detail?.newState || e.detail || e;
+                    const currentResume = payload?.currentResume || null;
+                    if (currentResume) {
+                        // derive resume data from possible shapes
+                        const resumeData = currentResume.data || (currentResume.content ? (typeof currentResume.content === 'string' ? (() => { try { return JSON.parse(currentResume.content); } catch { return null; } })() : currentResume.content) : currentResume);
+                        if (resumeData) {
+                            const editor = document.querySelector('resume-editor-migrated') || document.querySelector('resume-editor');
+                            const viewer = document.querySelector('resume-viewer-migrated') || document.querySelector('resume-viewer');
+                            try { if (editor && typeof editor.setResumeData === 'function') editor.setResumeData(resumeData); } catch (err) {}
+                            try { if (viewer && typeof viewer.setResumeData === 'function') viewer.setResumeData(resumeData); } catch (err) {}
+                        }
+                    }
+                } catch (err) {
+                    console.warn('AppManager: Error syncing resume components from global state change', err);
+                }
+            });
             this.switchSection('jobs');
             
             console.log('AppManager: Application initialized successfully');
@@ -217,6 +236,19 @@ class AppManager {
             }
 
             this.renderItemDetails(item);
+            // If selecting a resume item, set resume components directly
+            try {
+                if (this.currentSection === 'resumes') {
+                    const resumeData = item?.data || item?.content || item || null;
+                    const parsed = typeof resumeData === 'string' ? (() => { try { return JSON.parse(resumeData); } catch { return null; } })() : resumeData;
+                    if (parsed) {
+                        const editor = document.querySelector('resume-editor-migrated') || document.querySelector('resume-editor');
+                        const viewer = document.querySelector('resume-viewer-migrated') || document.querySelector('resume-viewer');
+                        try { if (editor && typeof editor.setResumeData === 'function') editor.setResumeData(parsed); } catch (err) {}
+                        try { if (viewer && typeof viewer.setResumeData === 'function') viewer.setResumeData(parsed); } catch (err) {}
+                    }
+                }
+            } catch (e) { /* ignore */ }
             
         } catch (error) {
             console.error('AppManager: Failed to handle item selection:', error);
@@ -239,6 +271,13 @@ class AppManager {
 
             const html = formGenerator.generateFormHTML(schema, item, this.currentSection);
             content.innerHTML = html;
+
+            // Initialize dynamic form interactions (tabs, resume viewer/editor wiring)
+            try {
+                formGenerator.initializeFormInteractions(content);
+            } catch (e) {
+                console.warn('AppManager: Failed to initialize form interactions', e);
+            }
             
         } catch (error) {
             console.error('AppManager: Failed to render item details:', error);

@@ -5,9 +5,13 @@ let storeInstance = null;
 
 export function getStore() {
     if (!storeInstance) {
-        storeInstance = document.querySelector('global-store-migrated');
-        if (!storeInstance) {
-            console.warn('global-store-migrated component not found in DOM');
+        const candidate = document.querySelector('global-store-migrated');
+        // Ensure the candidate has the expected interface before returning it.
+        if (candidate && typeof candidate.getState === 'function' && typeof candidate.setState === 'function') {
+            storeInstance = candidate;
+        } else {
+            // Not ready yet
+            return null;
         }
     }
     return storeInstance;
@@ -15,13 +19,18 @@ export function getStore() {
 
 export function getState(path = null) {
     const store = getStore();
-    return store ? store.getState(path) : null;
+    try {
+        return store ? store.getState(path) : null;
+    } catch (e) {
+        console.warn('store.getState threw an error, treating store as not ready', e);
+        return null;
+    }
 }
 
-export function setState(updates, source = 'store-utility') {
+export function setState(updates, source = 'store-utility', origin = null) {
     const store = getStore();
     if (store) {
-        store.setState(updates, source);
+        store.setState(updates, source, origin);
     }
 }
 

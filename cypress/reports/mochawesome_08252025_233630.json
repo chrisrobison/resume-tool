@@ -1,0 +1,163 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 4,
+    "passes": 4,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-08-26T06:36:16.666Z",
+    "end": "2025-08-26T06:36:30.417Z",
+    "duration": 13751,
+    "testsRegistered": 4,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "5697cb46-6282-436f-bd6c-2a7bc1be6d60",
+      "title": "",
+      "fullFile": "cypress/e2e/simple-test.cy.js",
+      "file": "cypress/e2e/simple-test.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "29a76cfc-4402-4646-9885-8bf6f70f8abc",
+          "title": "Simple Application Test",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should load the application",
+              "fullTitle": "Simple Application Test should load the application",
+              "timedOut": null,
+              "duration": 4140,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('body').should('be.visible');\ncy.title().should('not.be.empty');",
+              "err": {},
+              "uuid": "d950e876-fec2-4a19-9fe0-c513014e09dd",
+              "parentUUID": "29a76cfc-4402-4646-9885-8bf6f70f8abc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should find the Import Job button",
+              "fullTitle": "Simple Application Test should find the Import Job button",
+              "timedOut": null,
+              "duration": 2654,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#import-job-btn').should('be.visible');",
+              "err": {},
+              "uuid": "409031e9-42d0-4297-933e-615f1e192a56",
+              "parentUUID": "29a76cfc-4402-4646-9885-8bf6f70f8abc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should open import job modal when clicked",
+              "fullTitle": "Simple Application Test should open import job modal when clicked",
+              "timedOut": null,
+              "duration": 3222,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "// Click the Import Job button\ncy.get('#import-job-btn').click();\n// Check if a modal appears (look for common modal selectors)\ncy.get('#import-job-modal, .modal, [id*=\"import\"], [class*=\"modal\"]').should('exist').and('be.visible');",
+              "err": {},
+              "uuid": "7332394a-abe2-4539-95c0-2284e3f8d173",
+              "parentUUID": "29a76cfc-4402-4646-9885-8bf6f70f8abc",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should have basic navigation elements",
+              "fullTitle": "Simple Application Test should have basic navigation elements",
+              "timedOut": null,
+              "duration": 2933,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.get('#main-nav, nav, [id*=\"nav\"]').should('exist');",
+              "err": {},
+              "uuid": "b2affc03-026a-4144-ac41-52ee4c0e6699",
+              "parentUUID": "29a76cfc-4402-4646-9885-8bf6f70f8abc",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "d950e876-fec2-4a19-9fe0-c513014e09dd",
+            "409031e9-42d0-4297-933e-615f1e192a56",
+            "7332394a-abe2-4539-95c0-2284e3f8d173",
+            "b2affc03-026a-4144-ac41-52ee4c0e6699"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 12949,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}

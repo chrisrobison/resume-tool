@@ -1,0 +1,405 @@
+{
+  "stats": {
+    "suites": 6,
+    "tests": 11,
+    "passes": 9,
+    "pending": 0,
+    "failures": 2,
+    "start": "2025-08-26T06:28:20.239Z",
+    "end": "2025-08-26T06:30:40.026Z",
+    "duration": 139787,
+    "testsRegistered": 11,
+    "passPercent": 81.81818181818183,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "8f048349-061d-4771-98b1-19f9d7508ffa",
+      "title": "",
+      "fullFile": "cypress/e2e/component-functionality.cy.js",
+      "file": "cypress/e2e/component-functionality.cy.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "bce7381b-6e0d-4841-9ce0-b515bf62ffc4",
+          "title": "Component Functionality Tests",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [],
+          "suites": [
+            {
+              "uuid": "1820cf9c-8fd3-44e3-adc4-d58d2610c075",
+              "title": "Job Manager Component",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should create a new job successfully",
+                  "fullTitle": "Component Functionality Tests Job Manager Component should create a new job successfully",
+                  "timedOut": null,
+                  "duration": 10802,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Use generic Add button (migrated UI)\ncy.get('#add-item-btn').should('be.visible').click();\ncy.openModal('form-modal');\n// Fill job form using form field names\ncy.fixture('test-data').then(testData => {\n  const job = testData.formTestData.validJob;\n  cy.get('#form-modal').within(() => {\n    cy.get('form [name=\"company\"]').clear().type(job.company);\n    cy.get('form [name=\"position\"]').clear().type(job.position);\n    cy.get('form [name=\"location\"]').clear().type(job.location);\n    cy.get('form [name=\"description\"]').clear().type(job.description || '');\n    cy.get('form [name=\"url\"]').clear().type(job.url || '');\n  });\n});\ncy.takeNamedScreenshot('job-manager-create-job');\n// Save job (generic form save)\ncy.get('#form-save').click();\n// Verify job appears in list (card renderer uses .item-card)\ncy.get('.item-card').should('contain.text', 'Test Company');\ncy.takeNamedScreenshot('job-manager-job-created');",
+                  "err": {},
+                  "uuid": "7d23c327-e551-449f-8928-2e1ef0c51f77",
+                  "parentUUID": "1820cf9c-8fd3-44e3-adc4-d58d2610c075",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should update job status",
+                  "fullTitle": "Component Functionality Tests Job Manager Component should update job status",
+                  "timedOut": null,
+                  "duration": 16975,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Seed test data first\ncy.fixture('test-data').then(testData => {\n  cy.seedJobData([testData.testJobs[0]]);\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Click on job to open details (cards are .item-card)\ncy.get('.item-card').first().click();\n// Ensure current job is set in global store; if not, set it from the jobs list\ncy.window().then(win => {\n  const gs = win.globalStore;\n  let current = gs.getState().currentJob;\n  if (!current) {\n    const jobs = gs.getState().jobs || [];\n    if (jobs && jobs.length > 0) {\n      current = jobs[0];\n      gs.setState({\n        currentJob: current\n      }, 'test-select-job');\n    }\n  }\n  if (current && current.id) {\n    gs.updateJob(current.id, {\n      status: 'interviewing'\n    });\n  }\n});\ncy.takeNamedScreenshot('job-manager-status-change');\n// Verify details select changed\ncy.get('#details-content').find('[name=\"status\"]').should('have.value', 'interviewing');\n// Confirm the status persisted in the global store\ncy.window().then(win => {\n  const gs = win.globalStore;\n  const jobs = gs.getState().jobs || [];\n  const found = (jobs || []).some(j => j.status === 'interviewing');\n  expect(found).to.equal(true);\n});",
+                  "err": {
+                    "message": "AssertionError: Timed out retrying after 10000ms: expected '<select.form-input>' to have value 'interviewing', but the value was 'applied'",
+                    "estack": "AssertionError: Timed out retrying after 10000ms: expected '<select.form-input>' to have value 'interviewing', but the value was 'applied'\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:67:57)",
+                    "diff": "- 'applied'\n+ 'interviewing'\n"
+                  },
+                  "uuid": "550760bb-1cc9-4916-b697-d9ce5b22b536",
+                  "parentUUID": "1820cf9c-8fd3-44e3-adc4-d58d2610c075",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should filter jobs by status",
+                  "fullTitle": "Component Functionality Tests Job Manager Component should filter jobs by status",
+                  "timedOut": null,
+                  "duration": 6111,
+                  "state": "passed",
+                  "speed": "medium",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Seed multiple jobs with different statuses\ncy.fixture('test-data').then(testData => {\n  cy.seedJobData(testData.testJobs);\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Instead of relying on a UI filter (migrated UI has no global #status-filter),\n// verify counts by inspecting rendered item cards and their status badges.\ncy.fixture('test-data').then(testData => {\n  const jobs = testData.testJobs;\n  const counts = jobs.reduce((acc, j) => {\n    acc[j.status] = (acc[j.status] || 0) + 1;\n    return acc;\n  }, {});\n  // Wait for cards to render\n  cy.get('.item-card').should('have.length', jobs.length);\n  // For each status in the fixture, assert the rendered badge count\n  Object.entries(counts).forEach(([status, expected]) => {\n    cy.get('.item-card').then(cards => {\n      const matchCount = [...cards].filter(c => {\n        var _c$querySelector;\n        return ((_c$querySelector = c.querySelector(`.status-badge`)) === null || _c$querySelector === void 0 || (_c$querySelector = _c$querySelector.textContent) === null || _c$querySelector === void 0 ? void 0 : _c$querySelector.trim()) === status;\n      }).length;\n      expect(matchCount).to.equal(expected);\n    });\n  });\n});\ncy.takeNamedScreenshot('job-manager-filter-by-badge-counts');",
+                  "err": {},
+                  "uuid": "2acf72e7-20e6-47b4-bbf8-b4b5ec0bb0d6",
+                  "parentUUID": "1820cf9c-8fd3-44e3-adc4-d58d2610c075",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [
+                "7d23c327-e551-449f-8928-2e1ef0c51f77",
+                "2acf72e7-20e6-47b4-bbf8-b4b5ec0bb0d6"
+              ],
+              "failures": [
+                "550760bb-1cc9-4916-b697-d9ce5b22b536"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 33888,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "015bf245-e205-4c01-8e47-4e880be2871b",
+              "title": "Resume Editor Component",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should create a new resume",
+                  "fullTitle": "Component Functionality Tests Resume Editor Component should create a new resume",
+                  "timedOut": null,
+                  "duration": 24293,
+                  "state": "failed",
+                  "speed": null,
+                  "pass": false,
+                  "fail": true,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Use migrated UI: navigate to resumes and click generic Add button\ncy.get('#section-title').should('contain.text', 'Resumes');\ncy.get('#add-item-btn').should('be.visible').click();\n// The form for 'resumes' will include a text field for the resume name\ncy.get('#form-modal').within(() => {\n  cy.get('form [name=\"name\"]').clear().type('Test User');\n  cy.get('#form-save').click();\n});\n// Verify resume was saved (card renderer .item-card used for resumes)\ncy.get('.item-card').should('contain.text', 'Test User');\ncy.takeNamedScreenshot('resume-editor-resume-saved');",
+                  "err": {
+                    "message": "CypressError: Timed out retrying after 10000ms: `cy.clear()` failed because this element is not visible:\n\n`<input type=\"text\" class=\"form-input\" name=\"name\" value=\"\" required=\"\" placeholder=\"My Resume\" oninput=\"window.formGenerator?.validateFieldOnInput('name')\" onblur=\"window.formGenerator?.validateFieldOnBlur('name')\">`\n\nThis element `<input.form-input>` is not visible because its parent `<div.modal>` has CSS property: `display: none`\n\nFix this problem, or use `{force: true}` to disable error checking.\n\nhttps://on.cypress.io/element-cannot-be-interacted-with",
+                    "estack": "CypressError: Timed out retrying after 10000ms: `cy.clear()` failed because this element is not visible:\n\n`<input type=\"text\" class=\"form-input\" name=\"name\" value=\"\" required=\"\" placeholder=\"My Resume\" oninput=\"window.formGenerator?.validateFieldOnInput('name')\" onblur=\"window.formGenerator?.validateFieldOnBlur('name')\">`\n\nThis element `<input.form-input>` is not visible because its parent `<div.modal>` has CSS property: `display: none`\n\nFix this problem, or use `{force: true}` to disable error checking.\n\nhttps://on.cypress.io/element-cannot-be-interacted-with\n    at runVisibilityCheck (http://localhost:8080/__cypress/runner/cypress_runner.js:144957:58)\n    at Object.isStrictlyVisible (http://localhost:8080/__cypress/runner/cypress_runner.js:144971:10)\n    at runAllChecks (http://localhost:8080/__cypress/runner/cypress_runner.js:113271:26)\n    at retryActionability (http://localhost:8080/__cypress/runner/cypress_runner.js:113339:16)\n    at tryCatcher (http://localhost:8080/__cypress/runner/cypress_runner.js:1830:23)\n    at Promise.attempt.Promise.try (http://localhost:8080/__cypress/runner/cypress_runner.js:4338:29)\n    at whenStable (http://localhost:8080/__cypress/runner/cypress_runner.js:143744:68)\n    at <unknown> (http://localhost:8080/__cypress/runner/cypress_runner.js:143685:14)\n    at tryCatcher (http://localhost:8080/__cypress/runner/cypress_runner.js:1830:23)\n    at Promise._settlePromiseFromHandler (http://localhost:8080/__cypress/runner/cypress_runner.js:1542:31)\n    at Promise._settlePromise (http://localhost:8080/__cypress/runner/cypress_runner.js:1599:18)\n    at Promise._settlePromise0 (http://localhost:8080/__cypress/runner/cypress_runner.js:1644:10)\n    at Promise._settlePromises (http://localhost:8080/__cypress/runner/cypress_runner.js:1724:18)\n    at Promise._fulfill (http://localhost:8080/__cypress/runner/cypress_runner.js:1668:18)\n    at <unknown> (http://localhost:8080/__cypress/runner/cypress_runner.js:5473:46)\nFrom Your Spec Code:\n    at Context.eval (webpack://job-hunt-manager/./cypress/e2e/component-functionality.cy.js:123:37)",
+                    "diff": null
+                  },
+                  "uuid": "f0003561-1871-4f27-8ae0-b75264a16c5b",
+                  "parentUUID": "015bf245-e205-4c01-8e47-4e880be2871b",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should add work experience (via seeded resume)",
+                  "fullTitle": "Component Functionality Tests Resume Editor Component should add work experience (via seeded resume)",
+                  "timedOut": null,
+                  "duration": 18594,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Seed a resume that already includes work experience and verify it's rendered\ncy.fixture('test-data').then(testData => {\n  // Ensure the fixture's resume includes at least one work entry and a recognizable name\n  const r = testData.testResumes[0];\n  r.name = r.name || 'Seeded Co';\n  if (!r.content) r.content = {};\n  if (!r.content.work || r.content.work.length === 0) {\n    r.content = r.content || {};\n    r.content.work = [{\n      name: 'Seeded Co',\n      position: 'Engineer',\n      startDate: '2020-01-01'\n    }];\n  }\n  cy.seedResumeData([r]);\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\ncy.navigateToSection('resumes');\n// Open the resume and verify that work entries are shown in the resume card or details\ncy.get('.item-card').first().click();\ncy.get('.item-card').first().should('contain.text', 'Seeded Co');\ncy.takeNamedScreenshot('resume-editor-seeded-work');",
+                  "err": {},
+                  "uuid": "dbb6ce3f-68a6-4db0-8d36-1db17e469dc0",
+                  "parentUUID": "015bf245-e205-4c01-8e47-4e880be2871b",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [
+                "dbb6ce3f-68a6-4db0-8d36-1db17e469dc0"
+              ],
+              "failures": [
+                "f0003561-1871-4f27-8ae0-b75264a16c5b"
+              ],
+              "pending": [],
+              "skipped": [],
+              "duration": 42887,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "d0dec6fb-97c7-4ff3-a7e6-d4f739dbe636",
+              "title": "Settings Manager Component",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should configure API keys",
+                  "fullTitle": "Component Functionality Tests Settings Manager Component should configure API keys",
+                  "timedOut": null,
+                  "duration": 10692,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.waitForComponent('settings-manager-migrated');\n// Seed settings via global store in localStorage so component renders enabled inputs\ncy.window().then(win => {\n  const defaultState = JSON.parse(win.localStorage.getItem('global-store-state') || '{}');\n  defaultState.settings = defaultState.settings || {};\n  defaultState.settings.apiProviders = defaultState.settings.apiProviders || {};\n  defaultState.settings.apiProviders.claude = {\n    apiKey: 'test-claude-key',\n    model: 'claude-3-5-sonnet-20241022',\n    enabled: true\n  };\n  defaultState.settings.apiProviders.openai = {\n    apiKey: 'test-openai-key',\n    model: 'gpt-4o',\n    enabled: true\n  };\n  defaultState.settings.preferences = defaultState.settings.preferences || {};\n  defaultState.settings.preferences.theme = 'modern';\n  win.localStorage.setItem('global-store-state', JSON.stringify(defaultState));\n});\n// Re-render page state and navigate to settings\ncy.reload();\ncy.waitForStore();\ncy.navigateToSection('settings');\n// Programmatically seed settings via the global store, reload, then verify the component reflects them\ncy.window().then(win => {\n  const gs = win.globalStore;\n  const settings = {\n    settings: {\n      apiProviders: {\n        claude: {\n          apiKey: 'test-claude-key',\n          model: 'claude-3-5-sonnet-20241022',\n          enabled: true\n        },\n        openai: {\n          apiKey: 'test-openai-key',\n          model: 'gpt-4o',\n          enabled: true\n        }\n      },\n      preferences: {\n        theme: 'modern'\n      }\n    }\n  };\n  gs.setState(settings, 'test-seed');\n});\n// Reload to ensure component reads the updated global store state\ncy.reload();\ncy.waitForStore();\ncy.navigateToSection('settings');\n// Verify settings component shows the seeded API keys\ncy.get('settings-manager-migrated').shadow().within(() => {\n  cy.get('#claude-api-key', {\n    timeout: 5000\n  }).should('have.value', 'test-claude-key');\n  cy.get('#openai-api-key').should('have.value', 'test-openai-key');\n  cy.takeNamedScreenshot('settings-manager-api-keys');\n  // Test API connection for Claude (button should be enabled)\n  cy.get('[data-test-provider=\"claude\"]').click();\n  cy.get('#claude-test-result').should('exist');\n});\ncy.takeNamedScreenshot('settings-manager-api-test');",
+                  "err": {},
+                  "uuid": "9c447c80-a9cb-44f1-bd06-ddc5327c0095",
+                  "parentUUID": "d0dec6fb-97c7-4ff3-a7e6-d4f739dbe636",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should change theme settings",
+                  "fullTitle": "Component Functionality Tests Settings Manager Component should change theme settings",
+                  "timedOut": null,
+                  "duration": 5925,
+                  "state": "passed",
+                  "speed": "medium",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.waitForComponent('settings-manager-migrated');\n// Switch to Preferences tab inside the settings component, then change theme\ncy.get('settings-manager-migrated').shadow().within(() => {\n  cy.get('.tab-btn[data-tab=\"preferences\"]').click();\n  cy.get('#theme-select').should('exist');\n  cy.get('#theme-select').select('dark');\n  cy.takeNamedScreenshot('settings-manager-theme-dark');\n  // Ensure 'modern' option exists before selecting\n  cy.get('#theme-select').find('option').then(opts => {\n    const texts = [...opts].map(o => o.value || o.text);\n    if (texts.includes('modern') || texts.includes('Modern')) {\n      cy.get('#theme-select').select('modern');\n      cy.takeNamedScreenshot('settings-manager-theme-modern');\n    }\n  });\n});",
+                  "err": {},
+                  "uuid": "bb610851-27cc-4118-a752-e4571f810c5f",
+                  "parentUUID": "d0dec6fb-97c7-4ff3-a7e6-d4f739dbe636",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [
+                "9c447c80-a9cb-44f1-bd06-ddc5327c0095",
+                "bb610851-27cc-4118-a752-e4571f810c5f"
+              ],
+              "failures": [],
+              "pending": [],
+              "skipped": [],
+              "duration": 16617,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "5a58a1cb-a3da-41e9-b51c-5dccf7d994d0",
+              "title": "Global Store Component",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should maintain state across components",
+                  "fullTitle": "Component Functionality Tests Global Store Component should maintain state across components",
+                  "timedOut": null,
+                  "duration": 10743,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Add a job via migrated generic Add button\ncy.get('#add-item-btn').click();\ncy.openModal('form-modal');\ncy.fixture('test-data').then(testData => {\n  const job = testData.formTestData.validJob;\n  cy.get('#form-modal').within(() => {\n    cy.get('form [name=\"company\"]').clear().type(job.company);\n    cy.get('form [name=\"position\"]').clear().type(job.position);\n    cy.get('form [name=\"location\"]').clear().type(job.location);\n  });\n  cy.get('#form-save').click();\n});\n// Navigate to different section and back\ncy.navigateToSection('resumes');\ncy.navigateToSection('jobs');\n// Verify job still exists (item cards)\ncy.get('.item-card').should('contain.text', 'Test Company');\ncy.takeNamedScreenshot('global-store-state-persistence');",
+                  "err": {},
+                  "uuid": "6d5727d3-75d9-4e78-9738-c14309590059",
+                  "parentUUID": "5a58a1cb-a3da-41e9-b51c-5dccf7d994d0",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should handle state updates across components",
+                  "fullTitle": "Component Functionality Tests Global Store Component should handle state updates across components",
+                  "timedOut": null,
+                  "duration": 15181,
+                  "state": "passed",
+                  "speed": "slow",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Seed test data\ncy.fixture('test-data').then(testData => {\n  cy.seedJobData([testData.testJobs[0]]);\n  cy.seedResumeData([testData.testResumes[0]]);\n});\ncy.visitJobsApp('new');\ncy.waitForStore();\n// Check initial statistics via item-card count\ncy.get('.item-card').should('have.length', 1);\n// Add another job via migrated UI\ncy.get('#add-item-btn').click();\ncy.openModal('form-modal');\ncy.fixture('test-data').then(testData => {\n  const job = testData.formTestData.validJob;\n  cy.get('#form-modal').within(() => {\n    cy.get('form [name=\"company\"]').clear().type(job.company + ' 2');\n    cy.get('form [name=\"position\"]').clear().type(job.position);\n    cy.get('form [name=\"location\"]').clear().type(job.location);\n    cy.get('#form-save').click();\n  });\n});\n// Verify statistics updated via item-card count\ncy.get('.item-card').should('have.length.greaterThan', 1);\ncy.takeNamedScreenshot('global-store-state-updates');",
+                  "err": {},
+                  "uuid": "8c262b5c-e199-4256-9df3-9a98d398f2d6",
+                  "parentUUID": "5a58a1cb-a3da-41e9-b51c-5dccf7d994d0",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [
+                "6d5727d3-75d9-4e78-9738-c14309590059",
+                "8c262b5c-e199-4256-9df3-9a98d398f2d6"
+              ],
+              "failures": [],
+              "pending": [],
+              "skipped": [],
+              "duration": 25924,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            },
+            {
+              "uuid": "ee50397f-cf05-4b3a-b2e8-ece641525087",
+              "title": "Modal System",
+              "fullFile": "",
+              "file": "",
+              "beforeHooks": [],
+              "afterHooks": [],
+              "tests": [
+                {
+                  "title": "should handle multiple modals",
+                  "fullTitle": "Component Functionality Tests Modal System should handle multiple modals",
+                  "timedOut": null,
+                  "duration": 8684,
+                  "state": "passed",
+                  "speed": "medium",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "// Open job modal via migrated UI\ncy.get('#add-item-btn').click();\ncy.openModal('form-modal');\ncy.takeNamedScreenshot('modal-system-job-modal');\ncy.closeModal('form-modal');\n// Open import job modal\ncy.get('#import-job-btn').click();\ncy.openModal('import-job-modal');\ncy.takeNamedScreenshot('modal-system-import-modal');\ncy.closeModal('import-job-modal');",
+                  "err": {},
+                  "uuid": "6bf66d9a-4c9e-4ba1-9ad0-c4e872fe61dc",
+                  "parentUUID": "ee50397f-cf05-4b3a-b2e8-ece641525087",
+                  "isHook": false,
+                  "skipped": false
+                },
+                {
+                  "title": "should handle modal overlays properly",
+                  "fullTitle": "Component Functionality Tests Modal System should handle modal overlays properly",
+                  "timedOut": null,
+                  "duration": 5744,
+                  "state": "passed",
+                  "speed": "medium",
+                  "pass": true,
+                  "fail": false,
+                  "pending": false,
+                  "context": null,
+                  "code": "cy.get('#add-item-btn').click();\ncy.openModal('form-modal');\n// Check overlay behavior (backdrop) — click the active modal backdrop element\ncy.get('#form-modal').should('be.visible').click({\n  force: true\n});\n// Modal should close when clicking backdrop\ncy.get('#form-modal').should('have.class', 'hidden');\ncy.takeNamedScreenshot('modal-system-overlay-close');",
+                  "err": {},
+                  "uuid": "2b1cb361-9f38-45a0-b656-36bc7d1d83fa",
+                  "parentUUID": "ee50397f-cf05-4b3a-b2e8-ece641525087",
+                  "isHook": false,
+                  "skipped": false
+                }
+              ],
+              "suites": [],
+              "passes": [
+                "6bf66d9a-4c9e-4ba1-9ad0-c4e872fe61dc",
+                "2b1cb361-9f38-45a0-b656-36bc7d1d83fa"
+              ],
+              "failures": [],
+              "pending": [],
+              "skipped": [],
+              "duration": 14428,
+              "root": false,
+              "rootEmpty": false,
+              "_timeout": 2000
+            }
+          ],
+          "passes": [],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 0,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.0.1"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.3"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/reports",
+        "overwrite": false,
+        "html": false,
+        "json": true,
+        "timestamp": "mmddyyyy_HHMMss"
+      },
+      "version": "6.2.0"
+    }
+  }
+}

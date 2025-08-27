@@ -196,6 +196,24 @@ export function openFormModal(section, item = null, saveCallback = null) {
             modal.bodyElement.innerHTML = `<form id="generic-form">${formHTML}</form>`;
         }
 
+        // If the form contains resume editor/viewer elements, try to pre-load data into them
+        try {
+            if (section === 'resumes' && modal.bodyElement) {
+                // The resume field uses id patterns like resume-editor-content and resume-viewer-content
+                const editorEl = modal.bodyElement.querySelector('resume-editor-migrated, resume-editor');
+                const viewerEl = modal.bodyElement.querySelector('resume-viewer-migrated, resume-viewer');
+                const resumeSource = item?.data || item?.content || item || null;
+                const parsed = typeof resumeSource === 'string' ? (() => { try { return JSON.parse(resumeSource); } catch { return null; } })() : resumeSource;
+                if (parsed) {
+                    if (editorEl && typeof editorEl.setResumeData === 'function') {
+                        try { editorEl.setResumeData(parsed); } catch (e) { /* ignore */ }
+                    }
+                    if (viewerEl && typeof viewerEl.setResumeData === 'function') {
+                        try { viewerEl.setResumeData(parsed); } catch (e) { /* ignore */ }
+                    }
+                }
+            }
+        } catch (e) { /* non-fatal */ }
         // Show modal
         showModal('form-modal');
         
@@ -288,8 +306,18 @@ export function showModal(modalId) {
         // Hide other modals first
         hideAllModals();
 
-        // Show the requested modal
+        // Show the requested modal (ensure it is visible even if global CSS is strict)
         modal.element.classList.remove('hidden');
+        try {
+            // Backdrop often uses flex layout for centering
+            modal.element.style.setProperty('display', 'flex', 'important');
+            // Ensure inner modal element is displayed (some legacy code may hide it)
+            const inner = modal.element.querySelector('.modal');
+            if (inner) {
+                inner.style.removeProperty('display');
+                inner.style.display = 'block';
+            }
+        } catch (e) {}
         currentModal = modalId;
 
         // Focus first input if it's a form modal
@@ -300,6 +328,24 @@ export function showModal(modalId) {
                     firstInput.focus();
                 }
             }, 100);
+        }
+
+        // Special-case behavior for import modal: if no API keys are configured,
+        // prefer the description import flow so users can paste job descriptions.
+        try {
+            if (modalId === 'import-job-modal') {
+                const hasAPIKey = !!(localStorage.getItem('claude_api_key') || localStorage.getItem('openai_api_key') || localStorage.getItem('api_key'));
+                if (!hasAPIKey) {
+                    const descRadio = document.getElementById('import-method-description');
+                    const urlSection = document.getElementById('import-url-section');
+                    const descSection = document.getElementById('import-description-section');
+                    if (descRadio) descRadio.checked = true;
+                    if (urlSection) urlSection.classList.add('hidden');
+                    if (descSection) descSection.classList.remove('hidden');
+                }
+            }
+        } catch (e) {
+            // Non-fatal
         }
 
         console.log(`ModalManager: Showed modal: ${modalId}`);
@@ -324,6 +370,19 @@ export function closeModal(modalId) {
         }
 
         modal.element.classList.add('hidden');
+        try {
+            // Remove any inline display override left by showModal so the backdrop
+            // doesn't remain interactable/cover other elements.
+            modal.element.style.removeProperty('display');
+            modal.element.style.display = '';
+            const inner = modal.element.querySelector('.modal');
+            if (inner) {
+                inner.style.removeProperty('display');
+                inner.style.display = '';
+            }
+        } catch (e) {
+            // Non-fatal
+        }
         
         if (currentModal === modalId) {
             currentModal = null;
@@ -349,6 +408,17 @@ export function hideAllModals() {
         modalRegistry.forEach((modal, modalId) => {
             if (modal.element) {
                 modal.element.classList.add('hidden');
+                try {
+                    modal.element.style.removeProperty('display');
+                    modal.element.style.display = '';
+                } catch (e) {}
+                try {
+                    const inner = modal.element.querySelector('.modal');
+                    if (inner) {
+                        inner.style.removeProperty('display');
+                        inner.style.display = '';
+                    }
+                } catch (e) {}
             }
         });
         

@@ -175,25 +175,27 @@ export class ComponentBase extends HTMLElement {
      * Set component data
      * @param {any} data - Data to set
      * @param {string} source - Source of the data change
+     * @param {string|null} origin - Optional origin identifier for the change (componentId)
      */
-    setData(data, source = 'external') {
+    setData(data, source = 'external', origin = null) {
         try {
             const previousData = this._data;
             this._data = data;
-            
-            // Notify of data change
-            this.onDataChange(data, previousData, source);
-            
+
+            // Notify of data change (pass origin so subscribers can ignore echoes)
+            this.onDataChange(data, previousData, source, origin);
+
             // Emit data change event
             this.emitEvent('data-changed', {
                 componentId: this._componentId,
                 data: data,
                 previousData: previousData,
-                source: source
+                source: source,
+                origin: origin
             });
-            
+
             console.log(`ComponentBase: ${this._componentName} data updated from ${source}`);
-            
+
         } catch (error) {
             this.handleError(error, 'Failed to set component data');
         }
@@ -383,10 +385,11 @@ export class ComponentBase extends HTMLElement {
      * @param {object} updates - State updates
      * @param {string} source - Source identifier
      */
-    updateGlobalState(updates, source = null) {
+    updateGlobalState(updates, source = null, origin = null) {
         try {
             const stateSource = source || `${this._componentName}-${this._componentId}`;
-            setState(updates, stateSource);
+            const stateOrigin = origin || this._componentId;
+            setState(updates, stateSource, stateOrigin);
         } catch (error) {
             this.handleError(error, 'Failed to update global state');
         }
