@@ -3,6 +3,7 @@
 
 import { ComponentBase } from '../js/component-base.js';
 import aiService from '../js/ai-service.js';
+import { addResume, setCurrentResume, updateJob } from '../js/store.js';
 
 class AIAssistantWorkerMigrated extends ComponentBase {
     constructor() {
@@ -654,7 +655,43 @@ class AIAssistantWorkerMigrated extends ComponentBase {
 
             // Persist the tailored resume as a new saved resume and associate with the job
             try {
-                const tailored = result.result.tailoredResume;
+                // Robustly extract the tailored resume from the AI response. Different AI shapes
+                // may return the object under different keys or as a JSON string.
+                let tailored = null;
+                const payload = result?.result ?? result;
+
+                if (payload && typeof payload === 'object') {
+                    tailored = payload.tailoredResume || payload.tailored_resume || payload.tailored || null;
+                    // Sometimes the assistant returns the tailored resume directly under 'result'
+                    if (!tailored && payload.result && typeof payload.result === 'object') {
+                        tailored = payload.result.tailoredResume || payload.result.tailored || null;
+                    }
+                }
+
+                // If it's still a string, try to parse JSON
+                if (!tailored && typeof payload === 'string') {
+                    try {
+                        const parsed = JSON.parse(payload);
+                        tailored = parsed.tailoredResume || parsed;
+                    } catch (e) {
+                        // ignore parse error
+                    }
+                }
+
+                if (!tailored) {
+                    // As a last resort, try to parse JSON from any string fields
+                    const maybeText = JSON.stringify(result);
+                    try {
+                        const parsed = JSON.parse(maybeText);
+                        tailored = parsed?.tailoredResume || parsed;
+                    } catch (e) {
+                        // give up
+                        tailored = null;
+                    }
+                }
+
+                if (!tailored) throw new Error('AI response did not contain a tailored resume');
+
                 const timestamp = new Date().toISOString();
                 const newResume = {
                     id: 'resume_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
@@ -664,24 +701,30 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                     dateModified: timestamp
                 };
 
-                // Add to global store resumes
-                const gs = window.globalStore;
-                if (gs && typeof gs.addResume === 'function') {
-                    gs.addResume(newResume);
-                    console.log('AIAssistantWorkerMigrated: Added tailored resume to global store', newResume.id);
-                } else {
-                    // Fallback: update state directly
+                // Add to global store using helper functions
+                try {
+                    addResume(newResume);
+                    console.log('AIAssistantWorkerMigrated: Added tailored resume via store helper', newResume.id);
+                } catch (e) {
+                    // Fallback to direct state update
                     const currentRes = this.getGlobalState('resumes') || [];
                     this.updateGlobalState({ resumes: [...currentRes, newResume] }, 'ai-assistant-add-resume');
                 }
 
                 // Associate the new resume with the job if a job is selected
                 if (this._currentJob && this._currentJob.id) {
-                    if (gs && typeof gs.updateJob === 'function') {
-                        gs.updateJob(this._currentJob.id, { resumeId: newResume.id, dateUpdated: timestamp });
-                    } else {
+                    try {
+                        updateJob(this._currentJob.id, { resumeId: newResume.id, dateUpdated: timestamp });
+                    } catch (e) {
                         this.updateGlobalState({ currentJob: { ...this._currentJob, resumeId: newResume.id } }, 'ai-assistant-associate-resume');
                     }
+                }
+
+                // Update the currentResume pointer
+                try {
+                    setCurrentResume(newResume);
+                } catch (e) {
+                    this.updateGlobalState({ currentResume: newResume }, 'ai-assistant-tailor');
                 }
 
                 // Log the AI operation using logs.js

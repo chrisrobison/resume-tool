@@ -1,6 +1,8 @@
 // AI Service - Main thread interface for AI Worker
 // Provides a clean API for components to interact with AI functionality
 
+import { getState } from './store.js';
+
 class AIService {
     constructor() {
         this.worker = null;
@@ -254,6 +256,20 @@ class AIService {
                 reject,
                 onProgress
             });
+
+            // Augment data with settings-driven route if not provided
+            try {
+                const settings = getState('settings');
+                const provider = data && data.provider;
+                if (provider && (!data.route || typeof data.route !== 'string')) {
+                    const providerCfg = settings?.apiProviders?.[provider];
+                    if (providerCfg && providerCfg.route) {
+                        data.route = providerCfg.route;
+                    }
+                }
+            } catch (e) {
+                // Non-fatal: proceed without settings
+            }
 
             // Send request to worker
             this.worker.postMessage({

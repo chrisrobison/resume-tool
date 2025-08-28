@@ -44,7 +44,7 @@ class AIWorker {
             // Debug logging
             console.log('Worker handleTailorResume - Received data:', data);
             
-            const { resume, jobDescription, provider, apiKey, model, includeAnalysis = false } = data;
+            const { resume, jobDescription, provider, apiKey, model, includeAnalysis = false, route = 'auto' } = data;
             
             // Set metadata for logging
             this.currentOperation = 'tailor_resume';
@@ -69,7 +69,7 @@ class AIWorker {
             
             this.postProgress('Sending request to AI service...', requestId);
             
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model);
+            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
             
             this.postProgress('Processing AI response...', requestId);
             
@@ -92,8 +92,11 @@ class AIWorker {
     async handleGenerateCoverLetter(data, requestId) {
         try {
             this.postProgress('Starting cover letter generation...', requestId);
+            // Set metadata for logging/proxy
+            this.currentOperation = 'generate_cover_letter';
+            this.currentRequestData = { resume: data?.resume, jobDescription: data?.jobDescription, jobInfo: data?.jobInfo, includeAnalysis: data?.includeAnalysis };
             
-            const { resume, jobDescription, jobInfo, provider, apiKey, model, includeAnalysis = true } = data;
+            const { resume, jobDescription, jobInfo, provider, apiKey, model, includeAnalysis = true, route = 'auto' } = data;
             
             if (!resume || !jobDescription || !provider || !apiKey) {
                 throw new Error('Missing required parameters for cover letter generation');
@@ -103,7 +106,7 @@ class AIWorker {
             
             this.postProgress('Generating cover letter with AI...', requestId);
             
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model);
+            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
             
             this.postProgress('Processing cover letter response...', requestId);
             
@@ -125,8 +128,11 @@ class AIWorker {
     async handleAnalyzeMatch(data, requestId) {
         try {
             this.postProgress('Starting job-resume match analysis...', requestId);
+            // Set metadata for logging/proxy
+            this.currentOperation = 'analyze_match';
+            this.currentRequestData = { resume: data?.resume, jobDescription: data?.jobDescription };
             
-            const { resume, jobDescription, provider, apiKey, model } = data;
+            const { resume, jobDescription, provider, apiKey, model, route = 'auto' } = data;
             
             if (!resume || !jobDescription || !provider || !apiKey) {
                 throw new Error('Missing required parameters for match analysis');
@@ -136,7 +142,7 @@ class AIWorker {
             
             this.postProgress('Analyzing match with AI...', requestId);
             
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model);
+            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
             
             this.postProgress('Processing match analysis...', requestId);
             
@@ -157,8 +163,11 @@ class AIWorker {
     async handleParseJob(data, requestId) {
         try {
             this.postProgress('Starting job parsing...', requestId);
+            // Set metadata for logging/proxy
+            this.currentOperation = 'parse-job';
+            this.currentRequestData = { url: data?.url, description: data?.description, instructions: data?.instructions };
 
-            const { url, description, instructions, provider, apiKey, model } = data;
+            const { url, description, instructions, provider, apiKey, model, route = 'auto' } = data;
 
             if (!provider || !apiKey) {
                 throw new Error('Missing provider or apiKey for parse-job');
@@ -176,11 +185,15 @@ class AIWorker {
                 // Ask the server proxy to fetch the URL and run the AI on the fetched content
                 prompt += "Fetch the page content from the provided URL on the server and extract the job posting information. Use the page text to populate the fields.\n";
                 const metadata = { operation: 'parse-job', targetUrl: url };
+                // If route explicitly requests direct, avoid server-side fetch
+                if (route === 'direct') {
+                    throw new Error('Direct parsing from URL is not supported from the browser due to CORS; use Proxy or Auto');
+                }
                 aiResponse = await this.callServerAPI(provider, apiKey, prompt, requestId, metadata, model);
             } else if (description) {
                 prompt += `Job description:\n${description}\n`;
                 // Use direct AI request for raw description
-                aiResponse = await this.makeAIRequest(provider, apiKey, prompt, requestId, model);
+                aiResponse = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
             } else {
                 throw new Error('No URL or description provided for parse-job');
             }
@@ -305,7 +318,11 @@ class AIWorker {
         try {
             this.postProgress('Testing API key...', requestId);
             
-            const { provider, apiKey, model } = data;
+            // Set metadata for logging/proxy
+            this.currentOperation = 'test-api-key';
+            this.currentRequestData = { provider: data?.provider };
+
+            const { provider, apiKey, model, route = 'auto' } = data;
             
             if (!provider || !apiKey) {
                 throw new Error('Missing provider or API key');
@@ -314,7 +331,7 @@ class AIWorker {
             // Simple test prompt
             const testPrompt = 'Respond with exactly: "API key test successful"';
             
-            const result = await this.makeAIRequest(provider, apiKey, testPrompt, requestId, model);
+            const result = await this.makeAIRequest(provider, apiKey, testPrompt, requestId, model, route);
             
             this.postSuccess({
                 type: 'api-test',
@@ -329,10 +346,10 @@ class AIWorker {
         }
     }
 
-    async makeAIRequest(provider, apiKey, prompt, requestId, model) {
+    async makeAIRequest(provider, apiKey, prompt, requestId, model, route = 'auto') {
         const maxRetries = 2;
         let attempt = 0;
-        
+
         while (attempt < maxRetries) {
             try {
                 attempt++;
@@ -345,10 +362,28 @@ class AIWorker {
                     includeAnalysis: this.currentRequestData?.includeAnalysis
                 };
 
+                // Route handling:
+                // - 'auto' : try direct then fallback to server proxy (existing behavior)
+                // - 'direct': force direct API call from browser; do not fallback to proxy
+                // - 'proxy': always use server-side ai-proxy
                 if (provider === 'claude') {
-                    return await this.callClaudeAPI(apiKey, prompt, requestId, apiMetadata, model);
+                    if (route === 'proxy') {
+                        return await this.callServerAPI('claude', apiKey, prompt, requestId, apiMetadata, model);
+                    } else if (route === 'direct') {
+                        // Force direct; bubble up errors instead of falling back
+                        return await this.callClaudeAPIDirect(apiKey, prompt, model);
+                    } else {
+                        // auto: existing behavior (try direct, fallback to server)
+                        return await this.callClaudeAPI(apiKey, prompt, requestId, apiMetadata, model);
+                    }
                 } else if (provider === 'openai') {
-                    return await this.callOpenAIAPI(apiKey, prompt, requestId, apiMetadata, model);
+                    if (route === 'proxy') {
+                        return await this.callServerAPI('openai', apiKey, prompt, requestId, apiMetadata, model);
+                    } else if (route === 'direct') {
+                        return await this.callOpenAIAPIDirect(apiKey, prompt, model);
+                    } else {
+                        return await this.callOpenAIAPI(apiKey, prompt, requestId, apiMetadata, model);
+                    }
                 } else {
                     throw new Error(`Unsupported AI provider: ${provider}`);
                 }

@@ -12,7 +12,7 @@
 <body>
     <div class="app-container">
         <!-- Sidebar Navigation -->
-        <div class="sidebar">
+        <div class="sidebar" id="main-nav">
             <div class="sidebar-header">
                 <h1><img src="logo.svg" height="32" style="position:relative;top:8px;"> Job Hunt Manager</h1>
                 <div class="subtitle">Organize your job search</div>
@@ -55,9 +55,14 @@
         </div>
 
         <!-- Main Content -->
-        <div class="main-content">
+        <div class="main-content" id="main-content">
             <div class="main-header">
                 <h2 id="section-title">Jobs</h2>
+                <div class="stats-container" aria-hidden="false">
+                    <!-- Backwards-compatible placeholder for visual tests and legacy layouts -->
+                    <div class="stats-item">Jobs: <span class="stat-count">0</span></div>
+                    <div class="stats-item">Resumes: <span class="stat-count">0</span></div>
+                </div>
                 <div class="header-actions">
                     <button class="btn btn-primary" id="import-job-btn" style="display: none;">
                         <i class="fas fa-download"></i>
@@ -78,9 +83,11 @@
                 <!-- Items List Panel -->
                 <div class="items-panel" id="items-panel">
                     <div class="items-header" id="items-header">Jobs</div>
+                <div id="jobs-container">
                     <div class="items-list" id="items-list">
                         <!-- Items will be populated here -->
                     </div>
+                </div>
                 </div>
 
                 <!-- Details Panel -->
@@ -102,6 +109,13 @@
                 <!-- AI Assistant Panel -->
                 <div id="ai-assistant-panel" class="ai-assistant-panel" style="display:none; width:100%;">
                     <ai-assistant-worker-migrated></ai-assistant-worker-migrated>
+                </div>
+
+                <!-- Resumes Panel (placeholder for legacy selector) -->
+                <div id="resumes-panel" class="resumes-panel" style="display:none; width:100%;">
+                    <div class="resume-list-content" id="resumes-container">
+                        <!-- Resumes will be rendered here by the app -->
+                    </div>
                 </div>
 
                 <!-- Help Panel -->

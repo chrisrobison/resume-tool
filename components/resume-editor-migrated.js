@@ -1332,24 +1332,27 @@ class ResumeEditorMigrated extends ComponentBase {
         // this is a simplified version. The full implementation would include
         // comprehensive event handling for all tabs, modals, forms, etc.
         
-        // Tab navigation
+        // Tab navigation (use closest to handle clicks on inner elements)
         this.addEventListener('click', (e) => {
-            if (e.target.matches('.tab')) {
-                this.switchTab(e.target.dataset.tab);
+            const tabEl = e.target.closest && e.target.closest('.tab');
+            if (tabEl && this.contains(tabEl)) {
+                this.switchTab(tabEl.dataset.tab);
             }
         });
         
-        // Modal triggers
+        // Modal triggers (use closest for robustness)
         this.addEventListener('click', (e) => {
-            if (e.target.matches('[data-modal]')) {
-                this.showModal(e.target.dataset.modal);
+            const modalTrigger = e.target.closest && e.target.closest('[data-modal]');
+            if (modalTrigger && this.contains(modalTrigger)) {
+                this.showModal(modalTrigger.dataset.modal);
             }
         });
         
         // Close modal buttons
         this.addEventListener('click', (e) => {
-            if (e.target.matches('.close-modal') || e.target.matches('[data-dismiss="modal"]')) {
-                const modal = e.target.closest('.modal');
+            const closeBtn = e.target.closest && (e.target.closest('.close-modal') || e.target.closest('[data-dismiss="modal"]'));
+            if (closeBtn && this.contains(closeBtn)) {
+                const modal = closeBtn.closest('.modal');
                 if (modal) {
                     this.hideModal(modal.id);
                 }
@@ -1983,24 +1986,23 @@ class ResumeEditorMigrated extends ComponentBase {
                     font-weight: 500;
                 }
 
-                .tab:hover {
+                resume-editor-migrated .tab:hover {
                     background: #e9ecef;
                     color: #333;
                 }
-
-                .tab.active {
+                resume-editor-migrated .tab.active {
                     background: white;
                     color: #007bff;
                     border-bottom-color: #007bff;
                 }
 
-                .tab-content {
+                resume-editor-migrated .tab-content {
                     display: none;
                     padding: 30px;
                     min-height: 500px;
                 }
 
-                .tab-content.active {
+                resume-editor-migrated .tab-content.active {
                     display: block;
                 }
 
@@ -2322,12 +2324,13 @@ class ResumeEditorMigrated extends ComponentBase {
                         flex-wrap: wrap;
                     }
 
-                    .tab {
+                    resume-editor-migrated .tab {
                         padding: 12px 15px;
                         font-size: 14px;
                     }
 
-                    .tab-content {
+                    resume-editor-migrated .tab-content {
+                        display: none;
                         padding: 20px 15px;
                     }
 
