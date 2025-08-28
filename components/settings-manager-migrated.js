@@ -225,11 +225,13 @@ class SettingsManagerMigrated extends ComponentBase {
                 claude: {
                     apiKey: '',
                     model: 'claude-3-5-sonnet-20241022',
+                    route: 'auto',
                     enabled: false
                 },
                 openai: {
                     apiKey: '',
                     model: 'gpt-4o',
+                    route: 'auto',
                     enabled: false
                 }
             },
@@ -387,6 +389,14 @@ class SettingsManagerMigrated extends ComponentBase {
                         <label for="${key}-model">Model</label>
                         <select id="${key}-model" data-provider="${key}" data-field="model">
                             ${this.renderModelOptions(key, config.model)}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="${key}-route">Connection Route</label>
+                        <select id="${key}-route" data-provider="${key}" data-field="route">
+                            <option value="auto" ${(!config.route || config.route === 'auto') ? 'selected' : ''}>Auto (try direct, fallback to proxy)</option>
+                            <option value="direct" ${config.route === 'direct' ? 'selected' : ''}>Direct (connect from browser)</option>
+                            <option value="proxy" ${config.route === 'proxy' ? 'selected' : ''}>Server Proxy (send to ai-proxy)</option>
                         </select>
                     </div>
                 </div>
@@ -719,12 +729,14 @@ class SettingsManagerMigrated extends ComponentBase {
         providers.forEach((key) => {
             const apiKeyEl = this.shadowRoot.getElementById(`${key}-api-key`);
             const modelEl = this.shadowRoot.getElementById(`${key}-model`);
+            const routeEl = this.shadowRoot.getElementById(`${key}-route`);
             const toggleEl = this.shadowRoot.querySelector(`.toggle-switch[data-provider="${key}"]`);
 
             if (!settings.apiProviders[key]) settings.apiProviders[key] = {};
             const cfg = settings.apiProviders[key];
             if (apiKeyEl) cfg.apiKey = apiKeyEl.value || '';
             if (modelEl) cfg.model = modelEl.value || cfg.model || '';
+            if (routeEl) cfg.route = routeEl.value || cfg.route || 'auto';
             if (toggleEl) cfg.enabled = toggleEl.classList.contains('active');
         });
 
