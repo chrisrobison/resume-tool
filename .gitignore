@@ -5,3 +5,8 @@ resume-editor
 .env
 .aider*
 *.log
+
+# Cypress artifacts (screenshots, videos, reports)
+cypress/screenshots/
+cypress/videos/
+cypress/reports/
