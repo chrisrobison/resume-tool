@@ -11,20 +11,20 @@ Suggested branch name
 
 High-level checklist
 -------------------
-- [ ] Update `cypress` baseUrl for local development (or document override)
+ - [x] Update `cypress` baseUrl for local development (or document override)
   - Suggestion: update `cypress.config.js` to read `process.env.CYPRESS_BASE_URL || 'http://localhost:8080'`
   - Verification: `CYPRESS_BASE_URL=http://localhost:8080 npx cypress run --spec 'cypress/e2e/basic-ui.cy.js'`
-- [ ] Add a CI-friendly static server script and update `package.json`
+ - [x] Add a CI-friendly static server script and update `package.json`
   - Suggestion: add `serve-static` script using `npx serve -s . -l 8080` or add lightweight `http-server` as devDependency.
   - Verification: `npm run serve:bg` should start server in background in CI-friendly way
 - [ ] Remove committed `.env` from repository and ensure `.env` is in `.gitignore`
   - Commands: `git rm --cached .env && git commit -m "chore: remove .env from repo (#ID)"`
   - Update: ensure `.env.example` documents required keys
-- [ ] Document AI proxy usage and local test flow in `TESTING.md`
+ - [x] Document AI proxy usage and local test flow in `TESTING.md`
   - Add short instructions showing how to run `server/` or `ai-proxy.php` for `parse-job` flows
-- [ ] Stabilize visual tests or mark them flaky
+ - [x] Stabilize visual tests or mark them flaky
   - Make `visual-regression.cy.js` opt-in or add retry/stabilization steps
-- [ ] Quick security sweep
+ - [x] Quick security sweep
   - Scan repo for any accidental keys, remove them, update README with guidance for keys
 
 Recommended small commits (one-liners)
@@ -46,4 +46,3 @@ Notes
 - This file is a draft checklist and does not apply any code changes. After you approve the checklist I can open a branch and create the actual PR with the small commits described above.
 
 Maintainers: please review and tell me which items you want implemented automatically.
-
