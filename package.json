@@ -11,8 +11,8 @@
     "test:firefox": "cypress run --browser firefox",
     "test:screenshots": "cypress run --spec '**/screenshots/**'",
     "test:visual": "cypress run --spec '**/visual-regression/**'",
-    "serve": "python -m http.server 8080",
-    "serve:bg": "python -m http.server 8080 &",
+    "serve": "npx serve -s . -l 8080",
+    "serve:bg": "npx serve -s . -l 8080 &",
     "test:ci": "npm run serve:bg && sleep 2 && npm run test:headless",
     "test:report": "npm run test:headless && npm run report:merge && npm run report:generate && npm run report:open",
     "test:report:single": "npx cypress run --spec \"cypress/e2e/basic-ui.cy.js\" --headless && npm run report:merge && npm run report:generate && npm run report:open",
@@ -20,7 +20,7 @@
     "report:generate": "marge cypress/reports/merged-report.json --reportDir cypress/reports/html --inline",
     "report:open": "echo 'HTML Report available at: https://cdr2.com/job-tool/cypress/reports/html/merged-report.html'",
     "pretest": "npm run serve:bg && sleep 2",
-    "posttest": "pkill -f 'python.*server' || true",
+    "posttest": "pkill -f 'serve' || pkill -f 'python' || true",
     "clean:reports": "rm -rf cypress/reports cypress/screenshots cypress/videos",
     "test:verify": "echo 'Run: npm run serve:bg && npm run test:open' to verify tests manually"
   },
@@ -49,7 +49,7 @@
     "node": ">=14.0.0"
   },
   "cypress": {
-    "baseUrl": "https://cdr2.com/job-tool",
+    "baseUrl": "http://localhost:8080",
     "viewportWidth": 1280,
     "viewportHeight": 720,
     "screenshotOnRunFailure": true,
