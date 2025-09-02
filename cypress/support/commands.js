@@ -4,7 +4,9 @@
 
 // Job Hunt Manager specific commands
 Cypress.Commands.add('visitJobsApp', (version = 'new') => {
-  const url = version === 'new' ? '/jobs-new.html' : '/jobs.html';
+  // Use root (`/`) for the new app; many static servers rewrite or redirect
+  // requests for `jobs-new.html`. Serving `/` (index.html) is more robust.
+  const url = version === 'new' ? '/' : '/jobs.html';
   cy.visit(url);
   // Wait for app initialization; be flexible about selectors (legacy vs new layout)
   // Allow longer timeouts for CI environments
