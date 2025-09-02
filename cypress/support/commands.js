@@ -4,15 +4,36 @@
 
 // Job Hunt Manager specific commands
 Cypress.Commands.add('visitJobsApp', (version = 'new') => {
-  // Use root (`/`) for the new app; many static servers rewrite or redirect
-  // requests for `jobs-new.html`. Serving `/` (index.html) is more robust.
-  const url = version === 'new' ? '/' : '/jobs.html';
-  cy.visit(url);
-  // Wait for app initialization; be flexible about selectors (legacy vs new layout)
-  // Allow longer timeouts for CI environments
-  cy.get('body', { timeout: 20000 }).should('be.visible');
-  cy.get('#main-nav, nav, [id*="nav"], .sidebar', { timeout: 20000 }).should('exist');
-  cy.get('#main-content, .main-content, #app, main', { timeout: 20000 }).should('exist');
+  // Probe multiple possible entry paths and visit the first that responds 2xx/3xx.
+  const candidates = version === 'new'
+    ? ['/', '/jobs-new.html', '/index.html', '/jobs.html']
+    : ['/jobs.html', '/index.html', '/'];
+
+  function tryVisit(index = 0) {
+    if (index >= candidates.length) {
+      // Last resort: attempt visiting root and allow Cypress to report the error
+      return cy.visit(candidates[0]);
+    }
+
+    const candidate = candidates[index];
+    cy.log(`visitJobsApp: probing ${candidate}`);
+    cy.request({ url: candidate, failOnStatusCode: false }).then((resp) => {
+      if (resp.status >= 200 && resp.status < 400) {
+        cy.log(`visitJobsApp: using ${candidate} (status ${resp.status})`);
+        cy.visit(candidate);
+
+        // Wait for app initialization; be flexible about selectors (legacy vs new layout)
+        cy.get('body', { timeout: 20000 }).should('be.visible');
+        cy.get('#main-nav, nav, [id*="nav"], .sidebar', { timeout: 20000 }).should('exist');
+        cy.get('#main-content, .main-content, #app, main', { timeout: 20000 }).should('exist');
+      } else {
+        cy.log(`visitJobsApp: ${candidate} returned ${resp.status}, trying next`);
+        return tryVisit(index + 1);
+      }
+    });
+  }
+
+  return tryVisit(0);
 });
 
 // Navigation commands
