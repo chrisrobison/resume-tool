@@ -50,6 +50,16 @@ const LLM = {
         const filename = options.filename || 'model.bin';
         const url = `https://huggingface.co/${modelId}/resolve/main/${filename}`;
 
+        // Ask service worker to precache this URL (best-effort)
+        try {
+            const url = `https://huggingface.co/${modelId}/resolve/main/${filename}`;
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'precache-urls', urls: [url] });
+            }
+        } catch (e) {
+            // ignore
+        }
+
         // Fetch and cache via Cache API (if available)
         let blob = null;
         try {
