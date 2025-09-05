@@ -218,3 +218,13 @@ Cypress.Commands.add('checkA11y', () => {
   cy.get('h1, h2, h3, h4, h5, h6').should('exist'); // Check for headings
   cy.get('button').should('exist'); // Check for interactive elements
 });
+
+// Basic tabbing support so tests can call cy.focused().tab()
+// This avoids adding an external plugin dependency in the test environment.
+Cypress.Commands.add('tab', { prevSubject: 'element' }, (subject) => {
+  // Trigger a Tab keydown/keyup on the provided element and return the newly focused element
+  // Use small timeout to allow browser focus movement
+  cy.wrap(subject).trigger('keydown', { key: 'Tab', keyCode: 9, which: 9, bubbles: true });
+  cy.wait(10);
+  return cy.focused();
+});

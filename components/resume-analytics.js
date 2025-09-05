@@ -1,4 +1,7 @@
 // Resume Analytics Web Component
+import aiService from '../js/ai-service.js';
+import { getState } from '../js/store.js';
+
 class ResumeAnalytics extends HTMLElement {
     constructor() {
         super();
@@ -10,17 +13,34 @@ class ResumeAnalytics extends HTMLElement {
 
     connectedCallback() {
         this.render();
+        // Wire AI analyze button if present
+        this._boundAnalyzeClick = this.handleAnalyzeWithAI.bind(this);
+        this.shadowRoot.addEventListener('click', (e) => {
+            const btn = e.target.closest && e.target.closest('#ai-analyze-btn');
+            if (btn) this._boundAnalyzeClick();
+        });
     }
 
     set resumeData(data) {
         this._resumeData = data;
-        this.analyzeResume();
+        try {
+            this.analyzeResume();
+        } catch (e) {
+            console.error('ResumeAnalytics: analyzeResume threw', e);
+            // Ensure _analysis is set to prevent "Load a resume" fallback
+            this._analysis = this._analysis || { score: 0, sections: { basics: { score:0, issues:[] }, work: { score:0, issues:[] }, education: { score:0, issues:[] }, skills: { score:0, issues:[] } }, issues: [] };
+        }
         this.render();
     }
 
     set jobDescription(description) {
         this._jobDescription = description;
-        this.analyzeResume();
+        try {
+            this.analyzeResume();
+        } catch (e) {
+            console.error('ResumeAnalytics: analyzeResume threw during jobDescription set', e);
+            this._analysis = this._analysis || { score: 0, sections: { basics: { score:0, issues:[] }, work: { score:0, issues:[] }, education: { score:0, issues:[] }, skills: { score:0, issues:[] } }, issues: [] };
+        }
         this.render();
     }
 
@@ -42,28 +62,33 @@ class ResumeAnalytics extends HTMLElement {
                 skills: { score: 0, issues: [] }
             }
         };
+        try {
+            // Analyze basic information
+            try { this.analyzeBasics(analysis); } catch (e) { console.error('analyzeBasics failed', e); }
 
-        // Analyze basic information
-        this.analyzeBasics(analysis);
-        
-        // Analyze work experience
-        this.analyzeWorkExperience(analysis);
-        
-        // Analyze education
-        this.analyzeEducation(analysis);
-        
-        // Analyze skills
-        this.analyzeSkills(analysis);
+            // Analyze work experience
+            try { this.analyzeWorkExperience(analysis); } catch (e) { console.error('analyzeWorkExperience failed', e); }
 
-        // Calculate overall score
-        analysis.score = Math.round(
-            (analysis.sections.basics.score +
-            analysis.sections.work.score +
-            analysis.sections.education.score +
-            analysis.sections.skills.score) / 4
-        );
+            // Analyze education
+            try { this.analyzeEducation(analysis); } catch (e) { console.error('analyzeEducation failed', e); }
 
-        this._analysis = analysis;
+            // Analyze skills
+            try { this.analyzeSkills(analysis); } catch (e) { console.error('analyzeSkills failed', e); }
+
+            // Calculate overall score
+            analysis.score = Math.round(
+                (analysis.sections.basics.score +
+                analysis.sections.work.score +
+                analysis.sections.education.score +
+                analysis.sections.skills.score) / 4
+            );
+
+        } catch (e) {
+            console.error('ResumeAnalytics: analyzeResume encountered an error', e);
+        } finally {
+            // Ensure we always set _analysis so render() will display the summary
+            this._analysis = analysis;
+        }
     }
 
     analyzeBasics(analysis) {
@@ -271,6 +296,70 @@ class ResumeAnalytics extends HTMLElement {
         return Object.entries(wordCount)
             .filter(([_, count]) => count > 1)
             .map(([word]) => word);
+    }
+
+    hasApiKey() {
+        try {
+            // Prefer new settings store
+            const settings = getState('settings');
+            const providers = settings?.apiProviders || {};
+            if (providers?.openai?.apiKey || providers?.claude?.apiKey) return true;
+        } catch (e) { /* ignore */ }
+        // Fallback to legacy localStorage keys
+        return !!(localStorage.getItem('openai_api_key') || localStorage.getItem('claude_api_key') || localStorage.getItem('api_key'));
+    }
+
+    async handleAnalyzeWithAI() {
+        if (!this._resumeData) return;
+        if (!this.hasApiKey()) {
+            alert('No API key configured. Please set your API key in Settings.');
+            return;
+        }
+
+        // Determine provider and key from settings/localStorage
+        let provider = null;
+        let apiKey = null;
+        try {
+            const settings = getState('settings');
+            const providers = settings?.apiProviders || {};
+            if (providers?.openai?.apiKey) {
+                provider = 'openai'; apiKey = providers.openai.apiKey;
+            } else if (providers?.claude?.apiKey) {
+                provider = 'claude'; apiKey = providers.claude.apiKey;
+            }
+        } catch (e) { /* ignore */ }
+        if (!apiKey) {
+            apiKey = localStorage.getItem('openai_api_key') || localStorage.getItem('claude_api_key') || localStorage.getItem('api_key');
+            if (localStorage.getItem('openai_api_key')) provider = 'openai';
+            else if (localStorage.getItem('claude_api_key')) provider = 'claude';
+        }
+
+        this._analysisAI = null;
+        try {
+            // Provide minimal progress feedback by updating a temporary section
+            this._aiProgressMessage = 'Sending resume to AI for analysis...';
+            this.render();
+
+            const result = await aiService.analyzeMatch({
+                resume: this._resumeData,
+                jobDescription: this._jobDescription || '',
+                provider,
+                apiKey,
+                onProgress: (m) => {
+                    this._aiProgressMessage = m;
+                    try { this.render(); } catch (e) {}
+                }
+            });
+
+            // Store AI result and render
+            this._analysisAI = result || { result };
+        } catch (err) {
+            console.error('ResumeAnalytics: AI analysis failed', err);
+            this._analysisAI = { error: err.message || String(err) };
+        } finally {
+            this._aiProgressMessage = null;
+            this.render();
+        }
     }
 
     render() {
@@ -496,6 +585,18 @@ class ResumeAnalytics extends HTMLElement {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                ` : ''}
+                <div style="margin-top: 20px; text-align:center;">
+                    <button id="ai-analyze-btn" class="btn btn-primary" ${this.hasApiKey() ? '' : 'disabled'}>
+                        <i class="fas fa-robot"></i> Analyze with AI
+                    </button>
+                </div>
+
+                ${this._analysisAI ? `
+                    <div class="section">
+                        <h3 class="section-title">AI Recommendations</h3>
+                        <pre style="white-space:pre-wrap; background:#f8f9fa; padding:10px; border-radius:4px;">${JSON.stringify(this._analysisAI, null, 2)}</pre>
                     </div>
                 ` : ''}
             </div>

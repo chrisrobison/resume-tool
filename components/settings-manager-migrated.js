@@ -92,6 +92,8 @@ class SettingsManagerMigrated extends ComponentBase {
         // Validate API providers
         if (settings.apiProviders) {
             Object.entries(settings.apiProviders).forEach(([provider, config]) => {
+                // Browser LLM does not require an API key
+                if (provider === 'browser') return;
                 if (config.enabled && !config.apiKey) {
                     errors.push(`${provider} is enabled but missing API key`);
                 }
@@ -105,7 +107,7 @@ class SettingsManagerMigrated extends ComponentBase {
                 errors.push('Invalid theme selected');
             }
             
-            const validProviders = ['claude', 'openai'];
+            const validProviders = ['claude', 'openai', 'browser'];
             if (settings.preferences.defaultProvider && !validProviders.includes(settings.preferences.defaultProvider)) {
                 errors.push('Invalid default provider selected');
             }
@@ -233,6 +235,12 @@ class SettingsManagerMigrated extends ComponentBase {
                     model: 'gpt-4o',
                     route: 'auto',
                     enabled: false
+                },
+                browser: {
+                    apiKey: '',
+                    model: 'Llama-3.1-8B-Instruct-q4f32_1-MLC',
+                    route: 'browser',
+                    enabled: false
                 }
             },
             preferences: {
@@ -344,6 +352,7 @@ class SettingsManagerMigrated extends ComponentBase {
                     
                     ${this.renderApiProvider('claude', 'Claude (Anthropic)', providers.claude)}
                     ${this.renderApiProvider('openai', 'OpenAI (GPT-5)', providers.openai)}
+                    ${this.renderApiProvider('browser', 'Browser LLM (Local)', providers.browser)}
                 </div>
                 
                 <div class="setting-group">
@@ -353,6 +362,7 @@ class SettingsManagerMigrated extends ComponentBase {
                         <select id="default-provider">
                             <option value="claude" ${settings.preferences?.defaultProvider === 'claude' ? 'selected' : ''}>Claude</option>
                             <option value="openai" ${settings.preferences?.defaultProvider === 'openai' ? 'selected' : ''}>OpenAI</option>
+                            <option value="browser" ${settings.preferences?.defaultProvider === 'browser' ? 'selected' : ''}>Browser LLM (Local)</option>
                         </select>
                     </div>
                 </div>
@@ -381,9 +391,14 @@ class SettingsManagerMigrated extends ComponentBase {
                 
                 <div class="form-row">
                     <div class="form-group">
+                        ${key === 'browser' ? `
+                        <label>Browser LLM</label>
+                        <div class="help-text">Uses a local WebLLM runtime (no API key required)</div>
+                        ` : `
                         <label for="${key}-api-key">API Key</label>
                         <input type="password" id="${key}-api-key" value="${config.apiKey || ''}" 
                                placeholder="Enter your ${name} API key" data-provider="${key}" data-field="apiKey">
+                        `}
                     </div>
                     <div class="form-group">
                         <label for="${key}-model">Model</label>
@@ -401,8 +416,8 @@ class SettingsManagerMigrated extends ComponentBase {
                     </div>
                 </div>
                 
-                <div>
-                    <button class="btn btn-primary" data-test-provider="${key}" ${!config.apiKey || isTesting ? 'disabled' : ''}>
+                    <div>
+                    <button class="btn btn-primary" data-test-provider="${key}" ${isTesting ? 'disabled' : ''}>
                         ${isTesting ? '<span class="spinner"></span>' : ''} Test Connection
                     </button>
                 </div>
@@ -434,6 +449,12 @@ class SettingsManagerMigrated extends ComponentBase {
                 { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
                 { value: 'gpt-4', label: 'GPT-4' },
                 { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+            ]
+            ,
+            browser: [
+                { value: 'local-ggml', label: 'Local ggml model (custom)' },
+                { value: 'llama2-7b', label: 'LLaMA 2 - 7B (HF)' },
+                { value: 'vicuna-13b', label: 'Vicuna - 13B (HF)' }
             ]
         };
         

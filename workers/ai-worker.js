@@ -56,12 +56,12 @@ class AIWorker {
             console.log('Worker - provider:', provider);
             console.log('Worker - apiKey:', !!apiKey, apiKey?.substring(0, 10) + '...');
             
-            if (!resume || !jobDescription || !provider || !apiKey) {
+            if (!resume || !jobDescription || !provider || (provider !== 'browser' && !apiKey)) {
                 const missing = [];
                 if (!resume) missing.push('resume');
                 if (!jobDescription) missing.push('jobDescription');
                 if (!provider) missing.push('provider');
-                if (!apiKey) missing.push('apiKey');
+                if (provider !== 'browser' && !apiKey) missing.push('apiKey');
                 throw new Error(`Missing required parameters for resume tailoring: ${missing.join(', ')}`);
             }
 
@@ -98,7 +98,7 @@ class AIWorker {
             
             const { resume, jobDescription, jobInfo, provider, apiKey, model, includeAnalysis = true, route = 'auto' } = data;
             
-            if (!resume || !jobDescription || !provider || !apiKey) {
+            if (!resume || !jobDescription || !provider || (provider !== 'browser' && !apiKey)) {
                 throw new Error('Missing required parameters for cover letter generation');
             }
 
@@ -134,7 +134,7 @@ class AIWorker {
             
             const { resume, jobDescription, provider, apiKey, model, route = 'auto' } = data;
             
-            if (!resume || !jobDescription || !provider || !apiKey) {
+            if (!resume || !jobDescription || !provider || (provider !== 'browser' && !apiKey)) {
                 throw new Error('Missing required parameters for match analysis');
             }
 
@@ -169,7 +169,7 @@ class AIWorker {
 
             const { url, description, instructions, provider, apiKey, model, route = 'auto' } = data;
 
-            if (!provider || !apiKey) {
+            if (!provider || (provider !== 'browser' && !apiKey)) {
                 throw new Error('Missing provider or apiKey for parse-job');
             }
 
@@ -324,7 +324,7 @@ class AIWorker {
 
             const { provider, apiKey, model, route = 'auto' } = data;
             
-            if (!provider || !apiKey) {
+            if (!provider || (provider !== 'browser' && !apiKey)) {
                 throw new Error('Missing provider or API key');
             }
 
@@ -366,6 +366,11 @@ class AIWorker {
                 // - 'auto' : try direct then fallback to server proxy (existing behavior)
                 // - 'direct': force direct API call from browser; do not fallback to proxy
                 // - 'proxy': always use server-side ai-proxy
+                // Special-case: Browser LLM provider or explicit browser route
+                if (provider === 'browser' || route === 'browser') {
+                    return await this.callBrowserLLM(prompt, requestId, model);
+                }
+
                 if (provider === 'claude') {
                     if (route === 'proxy') {
                         return await this.callServerAPI('claude', apiKey, prompt, requestId, apiMetadata, model);
@@ -396,6 +401,40 @@ class AIWorker {
                 this.postProgress(`Attempt ${attempt} failed, retrying... (${error.message})`, requestId);
                 await this.sleep(1000 * attempt); // Exponential backoff
             }
+        }
+    }
+
+    async callBrowserLLM(prompt, requestId, model) {
+        try {
+            this.postProgress('Running prompt on local browser LLM...', requestId);
+
+            // Ensure worker-side browser LLM bridge is available
+            try {
+                // workers/browser-llm.js creates self.BrowserLLM shim
+                importScripts('/workers/browser-llm.js');
+            } catch (e) {
+                // If importScripts fails (e.g., path issue), try to proceed since the file may already be evaluated
+            }
+
+            if (!self.BrowserLLM || typeof self.BrowserLLM.generate !== 'function') {
+                throw new Error('Browser LLM runtime unavailable in worker. Provide a runtime at /vendor/web-llm/worker-llm.js');
+            }
+
+            // Optionally load model first (best-effort)
+            try {
+                if (model) {
+                    await self.BrowserLLM.loadModel(model, { source: 'huggingface' }).catch(() => {});
+                }
+            } catch (e) {
+                // Non-fatal: continue to generation
+            }
+
+            const out = await self.BrowserLLM.generate(prompt, { model });
+            // Post log for telemetry
+            this.postLog({ type: 'api_response', apiType: 'browser-llm', response: typeof out === 'string' ? out.substring(0, 2000) : out, processingTime: 0 });
+            return out;
+        } catch (e) {
+            throw new Error('Browser LLM error: ' + e.message);
         }
     }
 

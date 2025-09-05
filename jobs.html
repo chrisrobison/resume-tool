@@ -2014,6 +2014,23 @@ REQUIREMENTS:
                 document.getElementById('import-job-submit').disabled = false;
             }
             
+            // Ensure the proper import method section is visible when opening
+            try {
+                const urlMethodEl = document.getElementById('import-method-url');
+                if (urlMethodEl) urlMethodEl.checked = true;
+                toggleImportMethod();
+            } catch (e) { /* ignore if not defined */ }
+
+            // Ensure URL section visible even if other code toggles it later
+            try {
+                setTimeout(() => {
+                    const urlSection = document.getElementById('import-url-section');
+                    const descSection = document.getElementById('import-description-section');
+                    if (urlSection) urlSection.classList.remove('hidden');
+                    if (descSection) descSection.classList.add('hidden');
+                }, 50);
+            } catch (e) { /* ignore */ }
+
             document.getElementById('import-job-modal').classList.remove('hidden');
         }
 

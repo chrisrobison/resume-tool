@@ -117,8 +117,8 @@
   ],
   
   "testAPIKeys": {
-    "claude": "",
-    "openai": ""
+    "claude": "test-claude-key",
+    "openai": "test-openai-key"
   },
   
   "importJobTestData": {

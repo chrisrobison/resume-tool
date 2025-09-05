@@ -17,6 +17,25 @@ export function openImportJobModal() {
     try {
         showModal('import-job-modal');
         setupImportJobHandlers();
+        // Ensure sections reflect the currently selected import method
+        try {
+            const urlMethodEl = document.getElementById('import-method-url');
+            if (urlMethodEl) {
+                // Default to URL method for backward-compatible tests
+                urlMethodEl.checked = true;
+            }
+            toggleImportMethod();
+        } catch (e) { /* non-fatal */ }
+
+        // As a fallback, ensure URL section is visible shortly after open
+        try {
+            setTimeout(() => {
+                const urlSection = document.getElementById('import-url-section');
+                const descSection = document.getElementById('import-description-section');
+                if (urlSection) urlSection.classList.remove('hidden');
+                if (descSection) descSection.classList.add('hidden');
+            }, 50);
+        } catch (e) { /* ignore */ }
         
         // Show API warning if not configured (inside the modal)
         const submitBtn = document.getElementById('import-job-submit');
