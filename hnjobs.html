@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+  <meta charset="utf-8" />
+  <title>Who’s Hiring · SF · RSS Viewer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    :root{
+      --background-color:#fff;
+      --text-color:#111;
+      --header-background:#222;
+      --header-color:#fff;
+      --muted:#667085;
+      --card:#f7f7f8;
+      --accent:#0ea5e9;
+      box-sizing:border-box;
+      font-family:"Lexend","Helvetica Neue","Helvetica",sans-serif;
+      font-size:18px;
+    }
+    *,*::before,*::after{ box-sizing:inherit; }
+    body{
+      background:var(--background-color);
+      color:var(--text-color);
+      margin:0;
+      min-height:100svh;
+      display:flex;
+      flex-direction:column;
+    }
+    header{
+      background:var(--header-background);
+      color:var(--header-color);
+      padding:12px 16px;
+      position:sticky; top:0; z-index:5;
+      box-shadow:0 2px 10px rgba(0,0,0,.15);
+    }
+    .bar{
+      display:grid;
+      grid-template-columns: 1fr auto auto;
+      gap:10px;
+      align-items:center;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .brand{
+      display:flex; gap:.6rem; align-items:center; font-weight:700;
+      letter-spacing:.2px;
+    }
+    .brand i{ color:var(--accent); }
+    .controls{ display:flex; gap:.5rem; align-items:center; }
+    .controls input[type="search"]{
+      width:100%;
+      padding:.65rem .8rem;
+      border-radius:14px;
+      border:1px solid #2e2e2e;
+      background:#111;
+      color:#eee;
+      outline:none;
+    }
+    .controls .btn, select{
+      padding:.6rem .8rem;
+      border-radius:12px;
+      border:1px solid #2e2e2e;
+      background:#151515;
+      color:#eee;
+    }
+    main{ width:100%; display:flex; justify-content:center; }
+    .wrap{ width:min(1100px,100%); padding:14px; }
+    .meta{ display:flex; gap:1rem; align-items:center; color:var(--muted); font-size:.9rem; padding:6px 2px 14px; }
+    .list{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    @media (min-width:720px){
+      .list{ grid-template-columns:1fr 1fr; }
+    }
+    .card{
+      background:var(--card);
+      border:1px solid #e7e7ea;
+      border-radius:18px;
+      padding:14px 14px 12px;
+      display:flex; flex-direction:column; gap:8px;
+      transition:transform .08s ease, box-shadow .08s ease;
+    }
+    .card:hover{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.08); }
+    .title{
+      font-weight:700; line-height:1.25; font-size:1.02rem; letter-spacing:.2px;
+    }
+    .title a{ color:inherit; text-decoration:none; }
+    .title a:hover{ text-decoration:underline; }
+    .desc{ color:#333; font-size:.96rem; line-height:1.35; max-height:8.2em; overflow:hidden; }
+    .tags{ display:flex; flex-wrap:wrap; gap:.35rem; margin-top:2px; }
+    .tag{
+      font-size:.72rem; color:#0a0a0a; background:#e5f3fb; border:1px solid #c8e7f7;
+      padding:.2rem .45rem; border-radius:999px;
+    }
+    .foot{
+      display:flex; justify-content:space-between; align-items:center;
+      gap:.5rem; color:var(--muted); font-size:.84rem; margin-top:2px;
+    }
+    .links{ display:flex; gap:.5rem; flex-wrap:wrap; }
+    .pill{
+      display:inline-flex; align-items:center; gap:.35rem;
+      padding:.35rem .55rem; border-radius:999px; border:1px solid #d9d9df; background:#fff; color:#111; text-decoration:none; font-size:.8rem;
+    }
+    .empty{
+      padding:28px 10px; color:var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div class="brand">
+        <i class="fa-solid fa-rss"></i>
+        <span>Hacker News · Who’s Hiring · SF</span>
+      </div>
+      <div class="controls">
+        <input id="q" type="search" placeholder="Filter: title, description, tags…" autocomplete="off" />
+      </div>
+      <div class="controls">
+        <select id="sort">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="az">Title A→Z</option>
+          <option value="za">Title Z→A</option>
+        </select>
+        <button id="refresh" class="btn"><i class="fa-solid fa-rotate"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div class="meta"><span id="count">Loading…</span><span id="updated"></span></div>
+      <section id="list" class="list" aria-live="polite"></section>
+      <div id="empty" class="empty" hidden>No matches.</div>
+    </div>
+  </main>
+
+  <script>
+    // Config
+    const FEED_URL = "https://hnrss.org/whoishiring/jobs?count=50&q=San%20Francisco";
+
+    // Helpers
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const timeAgo = (d) => {
+      const diff = (Date.now() - d.getTime()) / 1000;
+      const t = (n, u) => `${Math.floor(n)} ${u}${Math.floor(n)===1?"":"s"} ago`;
+      if (diff < 60) return t(diff, "second");
+      if (diff < 3600) return t(diff/60, "minute");
+      if (diff < 86400) return t(diff/3600, "hour");
+      return t(diff/86400, "day");
+    };
+    const strip = (html) => {
+      // quick sanitizer to plain text for filtering
+      const tmp = document.createElement("div");
+      tmp.innerHTML = html;
+      return tmp.textContent || tmp.innerText || "";
+    };
+    const uniq = (arr) => [...new Set(arr.filter(Boolean))];
+
+    // Robust fetch with CORS fallback
+    async function fetchText(url){
+      try{
+        const r = await fetch(url, {mode:"cors"});
+        if(!r.ok) throw new Error(r.statusText);
+        return await r.text();
+      }catch(e){
+        // Fallback via AllOrigins (raw)
+        const p = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+        const r2 = await fetch(p);
+        if(!r2.ok) throw new Error("Fetch failed");
+        return await r2.text();
+      }
+    }
+
+    function parseRSS(xmlText){
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(xmlText, "application/xml");
+      // Error handling
+      const err = xml.querySelector("parsererror");
+      if (err) throw new Error("Invalid RSS/XML");
+
+      const items = [...xml.querySelectorAll("item")].map((it, idx) => {
+        const title = it.querySelector("title")?.textContent?.trim() || "(no title)";
+        const link  = it.querySelector("link")?.textContent?.trim() || "";
+        const pub   = new Date(it.querySelector("pubDate")?.textContent || Date.now());
+        const desc  = it.querySelector("description")?.textContent || "";
+        const cats  = uniq([...it.querySelectorAll("category")].map(c => c.textContent.trim()));
+        // Try to detect an external/original URL inside description’s first anchor
+        let originalUrl = "";
+        const aMatch = desc.match(/href="(https?:\/\/[^"]+)"/i);
+        if (aMatch) originalUrl = aMatch[1];
+
+        return {
+          id: it.querySelector("guid")?.textContent || link || ("idx:"+idx),
+          title, link, pub, desc, cats, originalUrl,
+          plain: (title + " " + strip(desc) + " " + cats.join(" ")).toLowerCase()
+        };
+      });
+
+      return items;
+    }
+
+    function render(items){
+      const list = $("#list");
+      const empty = $("#empty");
+      list.innerHTML = "";
+
+      if (!items.length){
+        empty.hidden = false;
+        $("#count").textContent = "0 posts";
+        return;
+      }
+      empty.hidden = true;
+
+      const frag = document.createDocumentFragment();
+      for (const it of items){
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const title = document.createElement("div");
+        title.className = "title";
+        title.innerHTML = `<a href="${it.link}" target="_blank" rel="noopener noreferrer">${it.title}</a>`;
+
+        const desc = document.createElement("div");
+        desc.className = "desc";
+        // show a lightly sanitized version (links preserved). Limit height via CSS.
+        desc.innerHTML = it.desc;
+
+        const tags = document.createElement("div");
+        tags.className = "tags";
+        for (const c of it.cats.slice(0, 6)){
+          const t = document.createElement("span");
+          t.className = "tag";
+          t.textContent = c;
+          tags.appendChild(t);
+        }
+
+        const foot = document.createElement("div");
+        foot.className = "foot";
+        const when = document.createElement("span");
+        when.textContent = timeAgo(it.pub);
+
+        const links = document.createElement("div");
+        links.className = "links";
+        const hn = document.createElement("a");
+        hn.className = "pill"; hn.href = it.link; hn.target = "_blank"; hn.rel="noopener noreferrer";
+        hn.innerHTML = `<i class="fa-brands fa-hacker-news-square"></i> HN thread`;
+        links.appendChild(hn);
+        if (it.originalUrl && !it.originalUrl.includes("news.ycombinator.com")){
+          const orig = document.createElement("a");
+          orig.className = "pill"; orig.href = it.originalUrl; orig.target = "_blank"; orig.rel="noopener noreferrer";
+          orig.innerHTML = `<i class="fa-solid fa-arrow-up-right-from-square"></i> Original`;
+          links.appendChild(orig);
+        }
+
+        foot.append(when, links);
+        card.append(title, desc, tags, foot);
+        frag.appendChild(card);
+      }
+      list.appendChild(frag);
+      $("#count").textContent = `${items.length} posts`;
+    }
+
+    function applyFilters(){
+      const query = $("#q").value.trim().toLowerCase();
+      const sort = $("#sort").value;
+      let view = window.__items.slice();
+
+      if (query){
+        view = view.filter(it => it.plain.includes(query));
+      }
+      switch (sort){
+        case "newest": view.sort((a,b)=> b.pub - a.pub); break;
+        case "oldest": view.sort((a,b)=> a.pub - b.pub); break;
+        case "az": view.sort((a,b)=> a.title.localeCompare(b.title)); break;
+        case "za": view.sort((a,b)=> b.title.localeCompare(a.title)); break;
+      }
+      render(view);
+    }
+
+    async function load(){
+      $("#count").textContent = "Loading…";
+      const text = await fetchText(FEED_URL);
+      const items = parseRSS(text);
+      window.__items = items;
+      $("#updated").textContent = "Last updated: " + new Date().toLocaleString();
+      applyFilters();
+    }
+
+    // Wire up UI
+    $("#q").addEventListener("input", applyFilters);
+    $("#sort").addEventListener("change", applyFilters);
+    $("#refresh").addEventListener("click", load);
+
+    // Boot
+    load().catch(err=>{
+      console.error(err);
+      $("#count").textContent = "Failed to load feed";
+      $("#empty").hidden = false;
+      $("#empty").textContent = "Could not load the RSS feed. Check network/CORS.";
+    });
+  </script>
+</body>
+</html>

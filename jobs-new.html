@@ -200,6 +200,14 @@
         </div>
     </div>
 
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js').then(reg => {
+                console.log('Service worker registered:', reg.scope);
+            }).catch(err => console.warn('Service worker registration failed:', err));
+        }
+    </script>
+
     <!-- Generic Form Modal -->
     <div class="modal-backdrop hidden" id="form-modal">
         <div class="modal">
