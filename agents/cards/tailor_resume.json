@@ -1,0 +1,14 @@
+{
+  "name": "tailor_resume",
+  "title": "Tailor Resume",
+  "description": "Tailor a resume to a specific job description with quantified, ATS-friendly edits.",
+  "model": "gpt-4o-mini",
+  "input": {
+    "resume": { "type": "string", "description": "Current resume text or Markdown", "required": true },
+    "jobDescription": { "type": "string", "description": "Full job description text", "required": true },
+    "focus": { "type": "string", "description": "Optional focus areas or target keywords", "required": false },
+    "format": { "type": "string", "description": "Desired output format: markdown|bullets|plain", "required": false }
+  },
+  "template": "You are a professional resume editor. Rewrite the resume so it strongly aligns with the job description while remaining truthful and verifiable.\n\nGuidelines:\n- Keep achievements quantified and impact-oriented.\n- Use clear section headings; preserve reverse-chronological work history.\n- Integrate role-specific keywords naturally for ATS.\n- Do not invent experience; if a gap exists, suggest phrasing or projects to bridge it.\n- Remove irrelevant content.\n\nResume (original):\n{{resume}}\n\nJob Description:\n{{jobDescription}}\n\nFocus (optional):\n{{focus}}\n\nOutput format: {{format}}\n\nReturn ONLY the tailored resume in the requested format (default: markdown)."
+}
+

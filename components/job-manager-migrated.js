@@ -36,6 +36,7 @@ class JobManagerMigrated extends ComponentBase {
         this.handleTabSwitch = this.handleTabSwitch.bind(this);
         this.handleFormInput = this.handleFormInput.bind(this);
         this.handleResumeAction = this.handleResumeAction.bind(this);
+        this.handleStoreChange = this.handleStoreChange.bind(this);
         
         // Public API methods
         this.getAllJobs = this.getAllJobs.bind(this);

@@ -1,0 +1,16 @@
+{
+  "name": "create_cover_letter",
+  "title": "Create Cover Letter",
+  "description": "Generate a tailored, concise cover letter.",
+  "model": "gpt-4o-mini",
+  "input": {
+    "resume": { "type": "string", "description": "Resume text or highlights", "required": true },
+    "jobDescription": { "type": "string", "description": "Job description", "required": true },
+    "companyName": { "type": "string", "description": "Company name", "required": true },
+    "roleTitle": { "type": "string", "description": "Role title", "required": true },
+    "tone": { "type": "string", "description": "Tone, e.g., professional, enthusiastic, direct", "required": false },
+    "length": { "type": "string", "description": "Length guideline: short|medium|long", "required": false }
+  },
+  "template": "Write a tailored cover letter for the {{roleTitle}} role at {{companyName}}.\n\nConstraints:\n- 3 to 5 short paragraphs; clear and skimmable.\n- Use the specified tone: {{tone}} (default: professional).\n- Embed 1–2 quantified accomplishments relevant to the role.\n- Avoid fluff and cliches; be specific.\n\nInputs:\nResume:\n{{resume}}\n\nJob Description:\n{{jobDescription}}\n\nLength preference: {{length}}\n\nReturn ONLY the letter text in Markdown."
+}
+

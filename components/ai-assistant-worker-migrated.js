@@ -624,27 +624,23 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         this.render();
         
         try {
-            const { provider, apiKey, model } = this.getApiConfig();
-            console.log('AIAssistantWorkerMigrated - Using provider:', provider);
-            console.log('AIAssistantWorkerMigrated - API key length:', apiKey?.length);
-            
+            const providerList = this.getApiConfig();
+            console.log('AIAssistantWorkerMigrated - Provider list:', providerList);
+
             console.log('AIAssistantWorkerMigrated - About to call aiService.tailorResume...');
-            
+
             const resumeData = this._currentResume.content || this._currentResume.data;
             const jobDesc = this._currentJob.description || this._currentJob.jobDetails;
-            
+
             console.log('AIAssistantWorkerMigrated - Sending parameters:');
-            console.log('  - resume:', !!resumeData, resumeData);
+            console.log('  - resume:', !!resumeData);
             console.log('  - jobDescription:', !!jobDesc, jobDesc?.substring(0, 100) + '...');
-            console.log('  - provider:', provider);
-            console.log('  - apiKey:', !!apiKey, apiKey?.substring(0, 10) + '...');
-            
+            console.log('  - providerList length:', providerList.length);
+
             const result = await aiService.tailorResume({
                 resume: resumeData,
                 jobDescription: jobDesc,
-                provider,
-                apiKey,
-                model,
+                providerList,
                 includeAnalysis: true,
                 onProgress: this.handleProgress
             });
@@ -730,8 +726,10 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                 // Log the AI operation using logs.js
                 try {
                     const { logApiCall } = await import('../js/logs.js');
-                    logApiCall(provider || 'unknown', 'tailor_resume', {
-                        model,
+                    const usedProvider = result.usedProvider || result.provider || 'unknown';
+                    const usedModel = result.usedModel || 'unknown';
+                    logApiCall(usedProvider, 'tailor_resume', {
+                        model: usedModel,
                         resume: !!this._currentResume,
                         jobDescriptionLength: (this._currentJob?.description || '').length || 0
                     }, result, null, { jobId: this._currentJob?.id, resumeId: newResume.id });
@@ -775,8 +773,8 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         this.render();
         
         try {
-            const { provider, apiKey, model } = this.getApiConfig();
-            
+            const providerList = this.getApiConfig();
+
             const result = await aiService.generateCoverLetter({
                 resume: this._currentResume.content || this._currentResume.data,
                 jobDescription: this._currentJob.description || this._currentJob.jobDetails,
@@ -785,9 +783,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                     company: this._currentJob.company,
                     location: this._currentJob.location
                 },
-                provider,
-                apiKey,
-                model,
+                providerList,
                 includeAnalysis: true,
                 onProgress: this.handleProgress
             });
@@ -797,13 +793,15 @@ class AIAssistantWorkerMigrated extends ComponentBase {
             // Persist the generated cover letter and log the API call
             try {
                 const coverLetter = result.result.coverLetter;
+                const usedProvider = result.usedProvider || result.provider || 'unknown';
+                const usedModel = result.usedModel || 'unknown';
                 const entry = {
                     id: 'cover_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
                     jobId: this._currentJob?.id,
                     resumeId: this._currentResume?.id,
                     content: coverLetter,
                     createdDate: new Date().toISOString(),
-                    provider: provider || 'unknown'
+                    provider: usedProvider
                 };
 
                 const gs = window.globalStore;
@@ -818,7 +816,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                 // log API call
                 try {
                     const { logApiCall } = await import('../js/logs.js');
-                    logApiCall(provider || 'unknown', 'generate_cover_letter', { model }, result, null, { jobId: this._currentJob?.id, resumeId: this._currentResume?.id });
+                    logApiCall(usedProvider, 'generate_cover_letter', { model: usedModel }, result, null, { jobId: this._currentJob?.id, resumeId: this._currentResume?.id });
                 } catch (logErr) {
                     console.warn('AIAssistantWorkerMigrated: Failed to log cover letter API call', logErr);
                 }
@@ -855,14 +853,12 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         this.render();
         
         try {
-            const { provider, apiKey, model } = this.getApiConfig();
-            
+            const providerList = this.getApiConfig();
+
             const result = await aiService.analyzeMatch({
                 resume: this._currentResume.content || this._currentResume.data,
                 jobDescription: this._currentJob.description || this._currentJob.jobDetails,
-                provider,
-                apiKey,
-                model,
+                providerList,
                 onProgress: this.handleProgress
             });
             
@@ -1126,65 +1122,109 @@ class AIAssistantWorkerMigrated extends ComponentBase {
     }
 
     /**
-     * Get API configuration
+     * Get API configuration - returns ordered list of providers to try
+     * @returns {Array} Array of provider configs in priority order
      */
     getApiConfig() {
-        // Check localStorage first (current implementation in jobs.html)
+        const providerList = [];
+
+        // Check localStorage first (legacy support)
         const apiKey = localStorage.getItem('api_key');
         const apiType = localStorage.getItem('api_type') || 'claude';
-        
+
         console.log('AIAssistantWorkerMigrated getApiConfig - localStorage API Key exists:', !!apiKey);
         console.log('AIAssistantWorkerMigrated getApiConfig - localStorage API Type:', apiType);
-        
+
         if (apiKey && apiKey.trim().length > 0) {
             console.log('AIAssistantWorkerMigrated getApiConfig - Using localStorage config');
             const provider = apiType === 'chatgpt' ? 'openai' : apiType;
-            // Fallback model defaults when using legacy localStorage path
-            const defaultModels = { claude: 'claude-3-5-sonnet-20241022', openai: 'gpt-4o' };
-            return { 
+            const defaultModels = { claude: 'claude-3-5-sonnet-20241022', openai: 'gpt-4o', browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC' };
+            providerList.push({
                 provider,
                 apiKey: apiKey.trim(),
-                model: defaultModels[provider] || 'gpt-4o'
-            };
+                model: defaultModels[provider] || 'gpt-4o',
+                route: 'auto'
+            });
         }
-        
-        // Check newer settings structure for future compatibility
+
+        // Check newer settings structure
         const settings = this.getGlobalState('settings');
         if (settings && settings.apiProviders) {
             const providers = settings.apiProviders;
-            const defaultProvider = settings.preferences?.defaultProvider || 'claude';
-            
-            console.log('AIAssistantWorkerMigrated getApiConfig - Default provider:', defaultProvider);
+            const providerPriority = settings.preferences?.providerPriority || ['claude', 'openai', 'browser'];
+
+            console.log('AIAssistantWorkerMigrated getApiConfig - Provider priority:', providerPriority);
             console.log('AIAssistantWorkerMigrated getApiConfig - Providers:', providers);
-            
-            // First try the default provider if it's enabled and has a key
-            if (providers[defaultProvider] && 
-                providers[defaultProvider].enabled && 
-                providers[defaultProvider].apiKey && 
-                providers[defaultProvider].apiKey.trim().length > 0) {
-                console.log(`AIAssistantWorkerMigrated getApiConfig - Using default provider: ${defaultProvider}`);
-                return { 
-                    provider: defaultProvider, 
-                    apiKey: providers[defaultProvider].apiKey.trim(),
-                    model: providers[defaultProvider].model || (defaultProvider === 'openai' ? 'gpt-4o' : 'claude-3-5-sonnet-20241022')
+
+            // Build provider list in priority order
+            for (const providerName of providerPriority) {
+                const config = providers[providerName];
+
+                // Skip if not configured, not enabled, or missing API key (browser provider doesn't need key)
+                if (!config || !config.enabled) continue;
+                if (providerName !== 'browser' && (!config.apiKey || config.apiKey.trim().length === 0)) continue;
+
+                // Don't add duplicate if already in list from localStorage
+                if (providerList.some(p => p.provider === providerName)) continue;
+
+                const defaultModels = {
+                    claude: 'claude-3-5-sonnet-20241022',
+                    openai: 'gpt-4o',
+                    browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC'
                 };
+
+                providerList.push({
+                    provider: providerName,
+                    apiKey: config.apiKey ? config.apiKey.trim() : '',
+                    model: config.model || defaultModels[providerName] || 'gpt-4o',
+                    route: config.route || 'auto'
+                });
+
+                console.log(`AIAssistantWorkerMigrated getApiConfig - Added provider to list: ${providerName}`);
             }
-            
-            // Fallback: try any enabled provider with a key
+
+            // Fallback: add any remaining enabled providers not in priority list
             for (const [providerName, config] of Object.entries(providers)) {
-                if (config && config.enabled && config.apiKey && config.apiKey.trim().length > 0) {
-                    console.log(`AIAssistantWorkerMigrated getApiConfig - Using fallback provider: ${providerName}`);
-                    return { 
-                        provider: providerName, 
-                        apiKey: config.apiKey.trim(),
-                        model: config.model || (providerName === 'openai' ? 'gpt-4o' : 'claude-3-5-sonnet-20241022')
-                    };
-                }
+                if (!config || !config.enabled) continue;
+                if (providerName !== 'browser' && (!config.apiKey || config.apiKey.trim().length === 0)) continue;
+                if (providerList.some(p => p.provider === providerName)) continue;
+
+                const defaultModels = {
+                    claude: 'claude-3-5-sonnet-20241022',
+                    openai: 'gpt-4o',
+                    browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC'
+                };
+
+                providerList.push({
+                    provider: providerName,
+                    apiKey: config.apiKey ? config.apiKey.trim() : '',
+                    model: config.model || defaultModels[providerName] || 'gpt-4o',
+                    route: config.route || 'auto'
+                });
+
+                console.log(`AIAssistantWorkerMigrated getApiConfig - Added fallback provider: ${providerName}`);
             }
         }
-        
-        console.log('AIAssistantWorkerMigrated getApiConfig - No valid API key found');
-        throw new Error('No valid API key configured. Please set your API key in Settings.');
+
+        if (providerList.length === 0) {
+            console.log('AIAssistantWorkerMigrated getApiConfig - No valid API providers found');
+            throw new Error('No valid API providers configured. Please set your API keys in Settings.');
+        }
+
+        console.log('AIAssistantWorkerMigrated getApiConfig - Final provider list:', providerList);
+        return providerList;
+    }
+
+    /**
+     * Get single API configuration (legacy support)
+     * Returns the first provider from the list
+     */
+    getSingleApiConfig() {
+        const providerList = this.getApiConfig();
+        if (providerList.length === 0) {
+            throw new Error('No valid API providers configured');
+        }
+        return providerList[0];
     }
 
     // Selection Modal Methods

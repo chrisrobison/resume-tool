@@ -1,0 +1,17 @@
+{
+  "name": "find_jobs",
+  "title": "Find Jobs",
+  "description": "Find open roles given keywords, location, and preferences.",
+  "model": "gpt-4o-mini",
+  "input": {
+    "keywords": { "type": "string", "description": "Comma-separated keywords or titles", "required": true },
+    "location": { "type": "string", "description": "City/region or 'remote'", "required": false },
+    "seniority": { "type": "string", "description": "e.g., junior, mid, senior, lead", "required": false },
+    "remote": { "type": "boolean", "description": "Prefer remote/hybrid roles", "required": false },
+    "minSalary": { "type": "number", "description": "Minimum salary target (annual USD)", "required": false },
+    "sources": { "type": "string", "description": "CSV of sources: hn, greenhouse, lever, indeed, linkedin", "required": false },
+    "limit": { "type": "number", "description": "Max results to return", "required": false }
+  },
+  "template": "You are a job search research assistant. Using any available tools or sources specified, compile a list of open roles matching the criteria.\n\nCriteria:\n- Keywords: {{keywords}}\n- Location: {{location}}\n- Seniority: {{seniority}}\n- Remote-preferred: {{remote}}\n- Minimum salary (USD): {{minSalary}}\n- Sources: {{sources}}\n- Limit: {{limit}}\n\nReturn a concise JSON array of up to `limit` items with this shape:\n[\n  {\n    \"title\": string,\n    \"company\": string,\n    \"location\": string,\n    \"type\": \"remote\"|\"hybrid\"|\"onsite\",\n    \"salary\": string,\n    \"source\": string,\n    \"url\": string,\n    \"highlights\": string[]\n  }\n]\nOnly return valid minified JSON. If no results, return []."
+}
+

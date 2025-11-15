@@ -1,0 +1,13 @@
+{
+  "name": "job_match_analysis",
+  "title": "Job Match Analysis",
+  "description": "Score and explain how well a resume matches a job description.",
+  "model": "gpt-4o-mini",
+  "input": {
+    "resume": { "type": "string", "description": "Resume text or Markdown", "required": true },
+    "jobDescription": { "type": "string", "description": "Job description text", "required": true },
+    "weights": { "type": "string", "description": "Optional JSON of weights per category (skills, experience, education, keywords).", "required": false }
+  },
+  "template": "You are an ATS evaluation expert. Compare the resume to the job description and compute a 0-100 fit score.\n\nWeights (JSON string, optional): {{weights}}\n\nReturn STRICT JSON with this shape:\n{\n  \"overallScore\": number,\n  \"categoryScores\": {\n    \"skills\": number,\n    \"experience\": number,\n    \"education\": number,\n    \"keywords\": number\n  },\n  \"strengths\": string[],\n  \"gaps\": string[],\n  \"keywordMatches\": string[],\n  \"recommendedEdits\": string[]\n}\n\nResume:\n{{resume}}\n\nJob Description:\n{{jobDescription}}\n\nOnly return valid minified JSON."
+}
+

@@ -92,6 +92,8 @@ class SettingsManagerMigrated extends ComponentBase {
         // Validate API providers
         if (settings.apiProviders) {
             Object.entries(settings.apiProviders).forEach(([provider, config]) => {
+                // Browser LLM does not require an API key
+                if (provider === 'browser') return;
                 if (config.enabled && !config.apiKey) {
                     errors.push(`${provider} is enabled but missing API key`);
                 }
@@ -105,7 +107,7 @@ class SettingsManagerMigrated extends ComponentBase {
                 errors.push('Invalid theme selected');
             }
             
-            const validProviders = ['claude', 'openai'];
+            const validProviders = ['claude', 'openai', 'browser'];
             if (settings.preferences.defaultProvider && !validProviders.includes(settings.preferences.defaultProvider)) {
                 errors.push('Invalid default provider selected');
             }
@@ -233,11 +235,18 @@ class SettingsManagerMigrated extends ComponentBase {
                     model: 'gpt-4o',
                     route: 'auto',
                     enabled: false
+                },
+                browser: {
+                    apiKey: '',
+                    model: 'Llama-3.1-8B-Instruct-q4f32_1-MLC',
+                    route: 'browser',
+                    enabled: false
                 }
             },
             preferences: {
                 theme: 'light',
                 defaultProvider: 'claude',
+                providerPriority: ['claude', 'openai', 'browser'],
                 autoSave: true,
                 showProgressDetails: true,
                 includeAnalysisInRequests: true
@@ -335,26 +344,61 @@ class SettingsManagerMigrated extends ComponentBase {
      */
     renderApiTab(settings) {
         const providers = settings.apiProviders || {};
-        
+        const providerPriority = settings.preferences?.providerPriority || ['claude', 'openai', 'browser'];
+
         return `
             <div class="tab-panel">
                 <div class="setting-group">
                     <h3>AI Service Providers</h3>
                     <p>Configure your AI service providers for resume tailoring, cover letter generation, and match analysis.</p>
-                    
+
                     ${this.renderApiProvider('claude', 'Claude (Anthropic)', providers.claude)}
                     ${this.renderApiProvider('openai', 'OpenAI (GPT-5)', providers.openai)}
+                    ${this.renderApiProvider('browser', 'Browser LLM (Local)', providers.browser)}
                 </div>
-                
+
                 <div class="setting-group">
-                    <h3>Default Provider</h3>
-                    <div class="form-group">
-                        <label for="default-provider">Primary AI Provider</label>
-                        <select id="default-provider">
-                            <option value="claude" ${settings.preferences?.defaultProvider === 'claude' ? 'selected' : ''}>Claude</option>
-                            <option value="openai" ${settings.preferences?.defaultProvider === 'openai' ? 'selected' : ''}>OpenAI</option>
-                        </select>
+                    <h3>Provider Priority</h3>
+                    <p>When a provider fails, the system will automatically try the next one in this order. Use arrows to reorder.</p>
+                    <div class="provider-priority-list">
+                        ${providerPriority.map((providerKey, index) => this.renderProviderPriorityItem(providerKey, index, providerPriority.length, providers)).join('')}
                     </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Render a single provider priority item
+     */
+    renderProviderPriorityItem(providerKey, index, totalCount, providers) {
+        const providerNames = {
+            claude: 'Claude (Anthropic)',
+            openai: 'OpenAI',
+            browser: 'Browser LLM (Local)'
+        };
+
+        const name = providerNames[providerKey] || providerKey;
+        const isEnabled = providers[providerKey]?.enabled || false;
+        const hasApiKey = providerKey === 'browser' || (providers[providerKey]?.apiKey && providers[providerKey].apiKey.length > 0);
+
+        return `
+            <div class="provider-priority-item ${!isEnabled ? 'disabled' : ''}" data-provider="${providerKey}">
+                <div class="priority-number">${index + 1}</div>
+                <div class="priority-info">
+                    <div class="priority-name">${name}</div>
+                    <div class="priority-status">
+                        ${isEnabled ? '<span class="status-badge enabled">Enabled</span>' : '<span class="status-badge disabled">Disabled</span>'}
+                        ${isEnabled && !hasApiKey ? '<span class="status-badge warning">No API Key</span>' : ''}
+                    </div>
+                </div>
+                <div class="priority-controls">
+                    <button class="arrow-btn" data-action="move-up" data-provider="${providerKey}" ${index === 0 ? 'disabled' : ''}>
+                        ↑
+                    </button>
+                    <button class="arrow-btn" data-action="move-down" data-provider="${providerKey}" ${index === totalCount - 1 ? 'disabled' : ''}>
+                        ↓
+                    </button>
                 </div>
             </div>
         `;
@@ -381,9 +425,14 @@ class SettingsManagerMigrated extends ComponentBase {
                 
                 <div class="form-row">
                     <div class="form-group">
+                        ${key === 'browser' ? `
+                        <label>Browser LLM</label>
+                        <div class="help-text">Uses a local WebLLM runtime (no API key required)</div>
+                        ` : `
                         <label for="${key}-api-key">API Key</label>
                         <input type="password" id="${key}-api-key" value="${config.apiKey || ''}" 
                                placeholder="Enter your ${name} API key" data-provider="${key}" data-field="apiKey">
+                        `}
                     </div>
                     <div class="form-group">
                         <label for="${key}-model">Model</label>
@@ -401,8 +450,8 @@ class SettingsManagerMigrated extends ComponentBase {
                     </div>
                 </div>
                 
-                <div>
-                    <button class="btn btn-primary" data-test-provider="${key}" ${!config.apiKey || isTesting ? 'disabled' : ''}>
+                    <div>
+                    <button class="btn btn-primary" data-test-provider="${key}" ${isTesting ? 'disabled' : ''}>
                         ${isTesting ? '<span class="spinner"></span>' : ''} Test Connection
                     </button>
                 </div>
@@ -434,6 +483,12 @@ class SettingsManagerMigrated extends ComponentBase {
                 { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
                 { value: 'gpt-4', label: 'GPT-4' },
                 { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+            ]
+            ,
+            browser: [
+                { value: 'local-ggml', label: 'Local ggml model (custom)' },
+                { value: 'llama2-7b', label: 'LLaMA 2 - 7B (HF)' },
+                { value: 'vicuna-13b', label: 'Vicuna - 13B (HF)' }
             ]
         };
         
@@ -586,12 +641,19 @@ class SettingsManagerMigrated extends ComponentBase {
                 this.handleApiTest(e.target.dataset.testProvider);
             }
         });
-        
+
+        // Provider priority reordering
+        this.shadowRoot.addEventListener('click', (e) => {
+            if (e.target.dataset.action === 'move-up' || e.target.dataset.action === 'move-down') {
+                this.handleProviderReorder(e.target.dataset.action, e.target.dataset.provider);
+            }
+        });
+
         // Form field changes
         this.shadowRoot.addEventListener('change', (e) => {
             this.handleFieldChange(e);
         });
-        
+
         // Toggle switches
         this.shadowRoot.addEventListener('click', (e) => {
             if (e.target.dataset.toggle) {
@@ -715,6 +777,37 @@ class SettingsManagerMigrated extends ComponentBase {
             // Persist immediately so users see it saved
             this.saveSettings();
         }
+    }
+
+    /**
+     * Handle provider priority reordering
+     */
+    handleProviderReorder(action, providerKey) {
+        const settings = { ...this.getData() };
+        const providerPriority = settings.preferences?.providerPriority || ['claude', 'openai', 'browser'];
+
+        const currentIndex = providerPriority.indexOf(providerKey);
+        if (currentIndex === -1) return; // Provider not found
+
+        let newIndex = currentIndex;
+        if (action === 'move-up' && currentIndex > 0) {
+            newIndex = currentIndex - 1;
+        } else if (action === 'move-down' && currentIndex < providerPriority.length - 1) {
+            newIndex = currentIndex + 1;
+        } else {
+            return; // Can't move (already at boundary)
+        }
+
+        // Swap positions
+        const newPriority = [...providerPriority];
+        [newPriority[currentIndex], newPriority[newIndex]] = [newPriority[newIndex], newPriority[currentIndex]];
+
+        // Update settings
+        if (!settings.preferences) settings.preferences = {};
+        settings.preferences.providerPriority = newPriority;
+
+        this.setData(settings, 'provider-reorder');
+        this.render(); // Re-render to show new order
     }
 
     /**
@@ -1045,9 +1138,121 @@ class SettingsManagerMigrated extends ComponentBase {
                 border-top-color: transparent;
                 animation: spin 1s ease-in-out infinite;
             }
-            
+
             @keyframes spin {
                 to { transform: rotate(360deg); }
+            }
+
+            /* Provider Priority List Styles */
+            .provider-priority-list {
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                overflow: hidden;
+                background: white;
+            }
+
+            .provider-priority-item {
+                display: flex;
+                align-items: center;
+                padding: 15px;
+                border-bottom: 1px solid #f0f0f0;
+                transition: background 0.2s;
+            }
+
+            .provider-priority-item:last-child {
+                border-bottom: none;
+            }
+
+            .provider-priority-item.disabled {
+                opacity: 0.6;
+            }
+
+            .priority-number {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: #007bff;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                font-size: 16px;
+                margin-right: 15px;
+                flex-shrink: 0;
+            }
+
+            .priority-info {
+                flex: 1;
+            }
+
+            .priority-name {
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 4px;
+            }
+
+            .priority-status {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .status-badge {
+                display: inline-block;
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 500;
+            }
+
+            .status-badge.enabled {
+                background: #d4edda;
+                color: #155724;
+            }
+
+            .status-badge.disabled {
+                background: #f8d7da;
+                color: #721c24;
+            }
+
+            .status-badge.warning {
+                background: #fff3cd;
+                color: #856404;
+            }
+
+            .priority-controls {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .arrow-btn {
+                width: 32px;
+                height: 32px;
+                border: 1px solid #007bff;
+                background: white;
+                color: #007bff;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: bold;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .arrow-btn:hover:not(:disabled) {
+                background: #007bff;
+                color: white;
+            }
+
+            .arrow-btn:disabled {
+                opacity: 0.3;
+                cursor: not-allowed;
+                border-color: #ccc;
+                color: #ccc;
             }
         `;
     }
