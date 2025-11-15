@@ -40,50 +40,62 @@ class AIWorker {
     async handleTailorResume(data, requestId) {
         try {
             this.postProgress('Starting resume tailoring...', requestId);
-            
+
             // Debug logging
             console.log('Worker handleTailorResume - Received data:', data);
-            
-            const { resume, jobDescription, provider, apiKey, model, includeAnalysis = false, route = 'auto' } = data;
-            
+
+            const { resume, jobDescription, providerList, provider, apiKey, model, includeAnalysis = false, route = 'auto' } = data;
+
             // Set metadata for logging
             this.currentOperation = 'tailor_resume';
             this.currentRequestData = { resume, jobDescription, includeAnalysis };
-            
+
             // Debug individual parameters
             console.log('Worker - resume:', !!resume);
             console.log('Worker - jobDescription:', !!jobDescription, jobDescription?.substring(0, 100));
-            console.log('Worker - provider:', provider);
-            console.log('Worker - apiKey:', !!apiKey, apiKey?.substring(0, 10) + '...');
-            
-            if (!resume || !jobDescription || !provider || (provider !== 'browser' && !apiKey)) {
+            console.log('Worker - providerList:', providerList);
+            console.log('Worker - provider (legacy):', provider);
+
+            // Validate inputs
+            if (!resume || !jobDescription) {
                 const missing = [];
                 if (!resume) missing.push('resume');
                 if (!jobDescription) missing.push('jobDescription');
-                if (!provider) missing.push('provider');
-                if (provider !== 'browser' && !apiKey) missing.push('apiKey');
                 throw new Error(`Missing required parameters for resume tailoring: ${missing.join(', ')}`);
             }
 
+            // Handle both new (providerList) and legacy (provider/apiKey/model) formats
+            let providers = providerList;
+            if (!providers || providers.length === 0) {
+                // Legacy format fallback
+                if (provider) {
+                    providers = [{ provider, apiKey: apiKey || '', model: model || '', route: route || 'auto' }];
+                } else {
+                    throw new Error('No AI providers configured');
+                }
+            }
+
             let prompt = this.buildTailorResumePrompt(resume, jobDescription, includeAnalysis);
-            
+
             this.postProgress('Sending request to AI service...', requestId);
-            
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
-            
+
+            const { result, usedProvider, usedModel } = await this.makeAIRequestWithFallback(providers, prompt, requestId);
+
             this.postProgress('Processing AI response...', requestId);
-            
+
             const parsedResult = this.parseAIResponse(result, 'tailor-resume');
-            
+
             this.postSuccess({
                 type: 'tailor-resume',
                 result: parsedResult,
                 originalResume: resume,
                 jobDescription: jobDescription,
-                provider: provider,
+                provider: usedProvider,
+                usedProvider,
+                usedModel,
                 timestamp: new Date().toISOString()
             }, requestId);
-            
+
         } catch (error) {
             this.postError(`Resume tailoring failed: ${error.message}`, requestId);
         }
@@ -95,31 +107,43 @@ class AIWorker {
             // Set metadata for logging/proxy
             this.currentOperation = 'generate_cover_letter';
             this.currentRequestData = { resume: data?.resume, jobDescription: data?.jobDescription, jobInfo: data?.jobInfo, includeAnalysis: data?.includeAnalysis };
-            
-            const { resume, jobDescription, jobInfo, provider, apiKey, model, includeAnalysis = true, route = 'auto' } = data;
-            
-            if (!resume || !jobDescription || !provider || (provider !== 'browser' && !apiKey)) {
+
+            const { resume, jobDescription, jobInfo, providerList, provider, apiKey, model, includeAnalysis = true, route = 'auto' } = data;
+
+            if (!resume || !jobDescription) {
                 throw new Error('Missing required parameters for cover letter generation');
             }
 
+            // Handle both new (providerList) and legacy formats
+            let providers = providerList;
+            if (!providers || providers.length === 0) {
+                if (provider) {
+                    providers = [{ provider, apiKey: apiKey || '', model: model || '', route: route || 'auto' }];
+                } else {
+                    throw new Error('No AI providers configured');
+                }
+            }
+
             let prompt = this.buildCoverLetterPrompt(resume, jobDescription, jobInfo, includeAnalysis);
-            
+
             this.postProgress('Generating cover letter with AI...', requestId);
-            
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
-            
+
+            const { result, usedProvider, usedModel } = await this.makeAIRequestWithFallback(providers, prompt, requestId);
+
             this.postProgress('Processing cover letter response...', requestId);
-            
+
             const parsedResult = this.parseAIResponse(result, 'cover-letter');
-            
+
             this.postSuccess({
                 type: 'cover-letter',
                 result: parsedResult,
                 jobInfo: jobInfo,
-                provider: provider,
+                provider: usedProvider,
+                usedProvider,
+                usedModel,
                 timestamp: new Date().toISOString()
             }, requestId);
-            
+
         } catch (error) {
             this.postError(`Cover letter generation failed: ${error.message}`, requestId);
         }
@@ -131,30 +155,42 @@ class AIWorker {
             // Set metadata for logging/proxy
             this.currentOperation = 'analyze_match';
             this.currentRequestData = { resume: data?.resume, jobDescription: data?.jobDescription };
-            
-            const { resume, jobDescription, provider, apiKey, model, route = 'auto' } = data;
-            
-            if (!resume || !jobDescription || !provider || (provider !== 'browser' && !apiKey)) {
+
+            const { resume, jobDescription, providerList, provider, apiKey, model, route = 'auto' } = data;
+
+            if (!resume || !jobDescription) {
                 throw new Error('Missing required parameters for match analysis');
             }
 
+            // Handle both new (providerList) and legacy formats
+            let providers = providerList;
+            if (!providers || providers.length === 0) {
+                if (provider) {
+                    providers = [{ provider, apiKey: apiKey || '', model: model || '', route: route || 'auto' }];
+                } else {
+                    throw new Error('No AI providers configured');
+                }
+            }
+
             let prompt = this.buildMatchAnalysisPrompt(resume, jobDescription);
-            
+
             this.postProgress('Analyzing match with AI...', requestId);
-            
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
-            
+
+            const { result, usedProvider, usedModel } = await this.makeAIRequestWithFallback(providers, prompt, requestId);
+
             this.postProgress('Processing match analysis...', requestId);
-            
+
             const parsedResult = this.parseAIResponse(result, 'match-analysis');
-            
+
             this.postSuccess({
                 type: 'match-analysis',
                 result: parsedResult,
-                provider: provider,
+                provider: usedProvider,
+                usedProvider,
+                usedModel,
                 timestamp: new Date().toISOString()
             }, requestId);
-            
+
         } catch (error) {
             this.postError(`Match analysis failed: ${error.message}`, requestId);
         }
@@ -317,22 +353,22 @@ class AIWorker {
     async handleTestApiKey(data, requestId) {
         try {
             this.postProgress('Testing API key...', requestId);
-            
+
             // Set metadata for logging/proxy
             this.currentOperation = 'test-api-key';
             this.currentRequestData = { provider: data?.provider };
 
             const { provider, apiKey, model, route = 'auto' } = data;
-            
+
             if (!provider || (provider !== 'browser' && !apiKey)) {
                 throw new Error('Missing provider or API key');
             }
 
             // Simple test prompt
             const testPrompt = 'Respond with exactly: "API key test successful"';
-            
+
             const result = await this.makeAIRequest(provider, apiKey, testPrompt, requestId, model, route);
-            
+
             this.postSuccess({
                 type: 'api-test',
                 success: true,
@@ -340,10 +376,121 @@ class AIWorker {
                 provider: provider,
                 timestamp: new Date().toISOString()
             }, requestId);
-            
+
         } catch (error) {
             this.postError(`API key test failed: ${error.message}`, requestId);
         }
+    }
+
+    /**
+     * Make AI request with automatic provider fallback
+     * Tries each provider in order until one succeeds
+     * @param {Array} providers - Array of provider configs: [{provider, apiKey, model, route}]
+     * @param {string} prompt - The prompt to send
+     * @param {number} requestId - Request ID for progress updates
+     * @returns {Promise<{result, usedProvider, usedModel}>} The result and provider info
+     */
+    async makeAIRequestWithFallback(providers, prompt, requestId) {
+        const errors = [];
+
+        for (let i = 0; i < providers.length; i++) {
+            const providerConfig = providers[i];
+            const { provider, apiKey, model, route } = providerConfig;
+
+            try {
+                this.postProgress(`Trying provider ${i + 1}/${providers.length}: ${provider}...`, requestId);
+
+                const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
+
+                // Success! Return result with provider info
+                this.postProgress(`Successfully connected using ${provider}`, requestId);
+                return {
+                    result,
+                    usedProvider: provider,
+                    usedModel: model || 'default'
+                };
+
+            } catch (error) {
+                console.error(`Provider ${provider} failed:`, error.message);
+                errors.push({ provider, error: error.message });
+
+                // Intelligent error handling - decide whether to try next provider
+                const errorType = this.classifyError(error);
+
+                if (errorType === 'authentication') {
+                    // Auth failed - try next provider immediately
+                    this.postProgress(`${provider} authentication failed, trying next provider...`, requestId);
+                    continue;
+                }
+
+                if (errorType === 'rate_limit') {
+                    // Rate limited - try next provider (could add delay if we want)
+                    this.postProgress(`${provider} rate limited, trying next provider...`, requestId);
+                    continue;
+                }
+
+                if (errorType === 'cors' || errorType === 'network') {
+                    // Network/CORS issue - try next provider
+                    this.postProgress(`${provider} connection failed, trying next provider...`, requestId);
+                    continue;
+                }
+
+                if (errorType === 'invalid_request') {
+                    // Invalid request - likely won't work with other providers either, but try anyway
+                    this.postProgress(`${provider} rejected request, trying next provider...`, requestId);
+                    continue;
+                }
+
+                // Unknown error - try next provider
+                this.postProgress(`${provider} failed with unknown error, trying next provider...`, requestId);
+                continue;
+            }
+        }
+
+        // All providers failed - throw comprehensive error
+        const errorSummary = errors.map(e => `${e.provider}: ${e.error}`).join('; ');
+        throw new Error(`All ${providers.length} AI providers failed. Errors: ${errorSummary}`);
+    }
+
+    /**
+     * Classify error type for intelligent fallback
+     * @param {Error} error - The error to classify
+     * @returns {string} Error type: authentication, rate_limit, cors, network, invalid_request, unknown
+     */
+    classifyError(error) {
+        const message = (error.message || '').toLowerCase();
+
+        // Authentication errors (401, 403, invalid API key)
+        if (message.includes('401') || message.includes('403') ||
+            message.includes('unauthorized') || message.includes('invalid api key') ||
+            message.includes('authentication') || message.includes('api key')) {
+            return 'authentication';
+        }
+
+        // Rate limiting errors (429)
+        if (message.includes('429') || message.includes('rate limit') ||
+            message.includes('too many requests') || message.includes('quota')) {
+            return 'rate_limit';
+        }
+
+        // CORS errors
+        if (message.includes('cors') || message.includes('cross-origin')) {
+            return 'cors';
+        }
+
+        // Network errors
+        if (message.includes('network') || message.includes('fetch failed') ||
+            message.includes('connection') || message.includes('timeout')) {
+            return 'network';
+        }
+
+        // Invalid request errors (400, 422)
+        if (message.includes('400') || message.includes('422') ||
+            message.includes('invalid') || message.includes('bad request')) {
+            return 'invalid_request';
+        }
+
+        return 'unknown';
     }
 
     async makeAIRequest(provider, apiKey, prompt, requestId, model, route = 'auto') {
