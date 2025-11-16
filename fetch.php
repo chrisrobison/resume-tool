@@ -2,7 +2,7 @@
 /** proxy.php — Minimal CORS relay (GET/POST) with auth, allowlist, SSRF guard, rate limit **/
 
 // ========= CONFIG =========
-const APP_ORIGINS = [ 'https://yourapp.example', 'http://localhost:3000' ];
+const APP_ORIGINS = [ 'https://cdr2.com', 'http://localhost:3000' ];
 
 // Per-host security policy
 const HOST_RULES = [
