@@ -145,7 +145,11 @@ class AIAssistantWorker extends ComponentBase {
     handleStoreChange(event) {
         // React to relevant store changes
         const source = event.detail?.source || '';
-        if (source.includes('job') || source.includes('Job') || 
+        const detail = event.detail || {};
+
+        console.log('AIAssistantWorker: Store change received', { source, hasCurrentJob: !!detail.currentJob, hasCurrentResume: !!detail.currentResume });
+
+        if (source.includes('job') || source.includes('Job') ||
             source.includes('resume') || source.includes('Resume') ||
             source.includes('settings') || source.includes('Settings')) {
             console.log('AIAssistantWorker: Relevant state change detected, updating...', source);
@@ -174,24 +178,48 @@ class AIAssistantWorker extends ComponentBase {
     async updateFromStore() {
         try {
             const state = this.getGlobalState();
-            console.log('AIAssistantWorker updating from store. State:', state);
-            
+            console.log('AIAssistantWorker: Updating from store', {
+                hasState: !!state,
+                hasCurrentJob: !!state?.currentJob,
+                hasCurrentResume: !!state?.currentResume,
+                isReady: this.isReady()
+            });
+
             const previousJob = this._currentJob;
             const previousResume = this._currentResume;
-            
+
             this._currentJob = state?.currentJob || null;
             this._currentResume = state?.currentResume || null;
-            
-            console.log('AIAssistantWorker current job:', this._currentJob);
-            console.log('AIAssistantWorker current resume:', this._currentResume);
-            
+
+            // Log the actual selections
+            if (this._currentJob) {
+                console.log('AIAssistantWorker: Current job set -', this._currentJob.title || this._currentJob.position || 'Untitled');
+            } else {
+                console.log('AIAssistantWorker: No current job selected');
+            }
+
+            if (this._currentResume) {
+                console.log('AIAssistantWorker: Current resume set -', this._currentResume.name || 'Untitled');
+            } else {
+                console.log('AIAssistantWorker: No current resume selected');
+            }
+
             // Only re-render if job or resume changed
             if (this._currentJob !== previousJob || this._currentResume !== previousResume) {
+                console.log('AIAssistantWorker: Selection changed, re-rendering');
                 if (this.isReady()) {
                     this.render();
+                } else {
+                    console.warn('AIAssistantWorker: Component not ready for render, deferring...');
+                    // Defer render until component is ready
+                    setTimeout(() => {
+                        if (this.isReady()) {
+                            this.render();
+                        }
+                    }, 100);
                 }
             }
-            
+
         } catch (error) {
             this.handleError(error, 'Failed to update from store');
         }
