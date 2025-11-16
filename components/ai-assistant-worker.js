@@ -14,7 +14,8 @@ class AIAssistantWorker extends ComponentBase {
         this._currentJob = null;
         this._currentResume = null;
         this._isProcessing = false;
-        this._currentProgress = '';
+        this._currentProgress = ''; // For compatibility - kept for simple display
+        this._progressLog = []; // Array of {timestamp, message} objects
         this._lastResult = null;
         
         // Bind methods for external access and event handling
@@ -277,10 +278,14 @@ class AIAssistantWorker extends ComponentBase {
                     <h3>Requirements Status</h3>
                     ${this.renderRequirements()}
                 </div>
-                
+
                 ${this._isProcessing ? this.renderProgress() : ''}
+
+                <!-- AI Activity Log -->
+                ${this.renderProgressLog()}
+
                 ${this._lastResult ? this.renderResult() : ''}
-                
+
                 <div class="actions">
                     <div class="action-group">
                         <button class="action-btn primary" id="tailor-resume" ${this.canTailorResume() ? '' : 'disabled'}>
@@ -427,6 +432,63 @@ class AIAssistantWorker extends ComponentBase {
                 </div>
             </div>
         `;
+    }
+
+    /**
+     * Render progress log (new interactive console)
+     */
+    renderProgressLog() {
+        const hasMessages = this._progressLog.length > 0;
+
+        return `
+            <div class="progress-log ${hasMessages ? '' : 'empty'}">
+                <div class="progress-log-header">
+                    <h4>AI Activity Log</h4>
+                    <div class="progress-log-controls">
+                        ${hasMessages ? `
+                            <button class="btn-small" id="clear-log" title="Clear log">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="progress-log-messages">
+                    ${hasMessages ?
+                        this._progressLog.map(entry => {
+                            const time = this.formatTime(entry.timestamp);
+                            return `
+                                <div class="log-entry">
+                                    <span class="log-time">${time}</span>
+                                    <span class="log-message">${this.escapeHtml(entry.message)}</span>
+                                </div>
+                            `;
+                        }).join('')
+                        :
+                        `<div class="log-empty">No activity yet. Start an AI operation to see progress here.</div>`
+                    }
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Format timestamp for log display
+     */
+    formatTime(date) {
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+        const ms = date.getMilliseconds().toString().padStart(3, '0');
+        return `${hours}:${minutes}:${seconds}.${ms}`;
+    }
+
+    /**
+     * Escape HTML for safe display
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     /**
@@ -581,6 +643,9 @@ class AIAssistantWorker extends ComponentBase {
                     break;
                 case 'cancel-resume-selection':
                     this.hideResumeSelectionModal();
+                    break;
+                case 'clear-log':
+                    this.clearProgressLog();
                     break;
                 default:
                     console.log('AIAssistantWorker: Unknown button clicked:', target.id);
@@ -1027,6 +1092,36 @@ class AIAssistantWorker extends ComponentBase {
      */
     handleProgress(message) {
         this._currentProgress = message;
+
+        // Add to progress log with timestamp
+        this._progressLog.push({
+            timestamp: new Date(),
+            message: message
+        });
+
+        // Keep log size reasonable (max 100 entries)
+        if (this._progressLog.length > 100) {
+            this._progressLog.shift();
+        }
+
+        if (this.isReady()) {
+            this.render();
+
+            // Auto-scroll to bottom of log after render
+            setTimeout(() => {
+                const logContainer = this.shadowRoot.querySelector('.progress-log-messages');
+                if (logContainer) {
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+            }, 0);
+        }
+    }
+
+    /**
+     * Clear progress log
+     */
+    clearProgressLog() {
+        this._progressLog = [];
         if (this.isReady()) {
             this.render();
         }
@@ -1914,6 +2009,125 @@ class AIAssistantWorker extends ComponentBase {
             
             .hidden {
                 display: none;
+            }
+
+            /* Progress Log Styles */
+            .progress-log {
+                background: #f8f9fa;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                margin: 20px 0;
+                overflow: hidden;
+            }
+
+            .progress-log.empty {
+                border-style: dashed;
+            }
+
+            .progress-log-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                background: #e9ecef;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            .progress-log-header h4 {
+                margin: 0;
+                font-size: 14px;
+                font-weight: 600;
+                color: #495057;
+            }
+
+            .progress-log-controls {
+                display: flex;
+                gap: 8px;
+            }
+
+            .btn-small {
+                padding: 4px 10px;
+                font-size: 12px;
+                border: 1px solid #6c757d;
+                background: white;
+                color: #6c757d;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .btn-small:hover {
+                background: #dc3545;
+                border-color: #dc3545;
+                color: white;
+            }
+
+            .btn-small i {
+                font-size: 10px;
+            }
+
+            .progress-log-messages {
+                max-height: 300px;
+                min-height: 120px;
+                overflow-y: auto;
+                padding: 12px 16px;
+                background: #ffffff;
+                font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+                font-size: 12px;
+                line-height: 1.6;
+            }
+
+            .progress-log-messages::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .progress-log-messages::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            .progress-log-messages::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 4px;
+            }
+
+            .progress-log-messages::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
+            .log-entry {
+                display: flex;
+                gap: 12px;
+                padding: 4px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+            .log-entry:last-child {
+                border-bottom: none;
+            }
+
+            .log-time {
+                color: #6c757d;
+                font-weight: 600;
+                white-space: nowrap;
+                flex-shrink: 0;
+                min-width: 115px;
+            }
+
+            .log-message {
+                color: #212529;
+                flex: 1;
+                word-wrap: break-word;
+            }
+
+            .log-empty {
+                color: #6c757d;
+                font-style: italic;
+                text-align: center;
+                padding: 40px 20px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
         `;
     }
