@@ -3,11 +3,11 @@ const LLM_CACHE = 'browser-llm-models';
 
 // Files we attempt to pre-cache during install. Keep small and safe.
 const PRECACHE_URLS = [
-  '/',
-  '/index.html',
-  '/jobs-new.html',
-  '/logo.svg',
-  '/styles.css'
+  '/job-tool/',
+  '/job-tool/index.html',
+  '/job-tool/jobs-new.html',
+  '/job-tool/logo.svg',
+  '/job-tool/styles.css'
 ];
 
 self.addEventListener('install', (event) => {
@@ -63,7 +63,7 @@ self.addEventListener('fetch', (event) => {
   // App shell navigation: return cached index.html for navigation requests
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      caches.open(APP_CACHE).then(cache => cache.match('/index.html')).then(resp => resp || fetch(event.request))
+      caches.open(APP_CACHE).then(cache => cache.match('/job-tool/index.html')).then(resp => resp || fetch(event.request))
     );
     return;
   }
