@@ -690,36 +690,51 @@ Provide honest, constructive analysis that will help the candidate understand th
 
     parseAIResponse(response, type) {
         try {
+            console.log('Worker parseAIResponse - Type:', type);
+            console.log('Worker parseAIResponse - Response length:', response?.length);
+            console.log('Worker parseAIResponse - Response preview:', response?.substring(0, 200));
+
             // Extract JSON from response if it's wrapped in markdown or text
             const jsonMatch = response.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
+                console.error('Worker parseAIResponse - No JSON found in response:', response);
                 throw new Error('No JSON found in AI response');
             }
 
+            console.log('Worker parseAIResponse - Found JSON, parsing...');
             const parsed = JSON.parse(jsonMatch[0]);
-            
+            console.log('Worker parseAIResponse - Parsed successfully, keys:', Object.keys(parsed));
+
             // Validate based on response type
             switch (type) {
                 case 'tailor-resume':
-                    if (!parsed.tailoredResume || !parsed.changes) {
-                        throw new Error('Invalid tailor resume response format');
+                    if (!parsed.tailoredResume && !parsed.tailored_resume && !parsed.tailored) {
+                        console.error('Worker parseAIResponse - Missing tailoredResume in parsed object:', parsed);
+                        throw new Error('Invalid tailor resume response format: missing tailoredResume field');
+                    }
+                    if (!parsed.changes) {
+                        console.warn('Worker parseAIResponse - Missing changes field, but continuing');
                     }
                     break;
                 case 'cover-letter':
-                    if (!parsed.coverLetter) {
-                        throw new Error('Invalid cover letter response format');
+                    if (!parsed.coverLetter && !parsed.cover_letter) {
+                        console.error('Worker parseAIResponse - Missing coverLetter in parsed object:', parsed);
+                        throw new Error('Invalid cover letter response format: missing coverLetter field');
                     }
                     break;
                 case 'match-analysis':
                     if (!parsed.analysis || typeof parsed.analysis.overallScore !== 'number') {
-                        throw new Error('Invalid match analysis response format');
+                        console.error('Worker parseAIResponse - Invalid analysis in parsed object:', parsed);
+                        throw new Error('Invalid match analysis response format: missing or invalid analysis field');
                     }
                     break;
             }
-            
+
+            console.log('Worker parseAIResponse - Validation passed');
             return parsed;
-            
+
         } catch (error) {
+            console.error('Worker parseAIResponse - Error:', error.message);
             throw new Error(`Failed to parse AI response: ${error.message}`);
         }
     }
@@ -953,7 +968,9 @@ Provide honest, constructive analysis that will help the candidate understand th
             }
 
             const data = await response.json();
-            
+
+            console.log('Worker callServerAPI - Raw response from server:', data);
+
             // Handle different response formats from server
             if (typeof data === 'string') {
                 return data;
@@ -961,9 +978,29 @@ Provide honest, constructive analysis that will help the candidate understand th
                 return data.result;
             } else if (data.response) {
                 return data.response;
-            } else {
-                return JSON.stringify(data);
+            } else if (data.content && Array.isArray(data.content) && data.content.length > 0) {
+                // Anthropic API response format from ai-proxy.php
+                // Extract the actual text content from Claude's response
+                const textContent = data.content.find(c => c.type === 'text');
+                if (textContent && textContent.text) {
+                    console.log('Worker callServerAPI - Extracted Claude content.text');
+                    return textContent.text;
+                }
+            } else if (data.choices && Array.isArray(data.choices) && data.choices.length > 0) {
+                // OpenAI API response format from ai-proxy.php
+                const choice = data.choices[0];
+                if (choice.message && choice.message.content) {
+                    console.log('Worker callServerAPI - Extracted OpenAI message.content');
+                    return choice.message.content;
+                } else if (choice.text) {
+                    console.log('Worker callServerAPI - Extracted OpenAI choice.text');
+                    return choice.text;
+                }
             }
+
+            // Fallback: return as stringified JSON
+            console.log('Worker callServerAPI - No recognized format, returning stringified data');
+            return JSON.stringify(data);
             
         } catch (error) {
             throw error;
