@@ -3,7 +3,7 @@
 
 import { ComponentBase } from '../js/component-base.js';
 
-class GlobalStoreMigrated extends ComponentBase {
+class GlobalStore extends ComponentBase {
     constructor() {
         super();
         
@@ -40,7 +40,7 @@ class GlobalStoreMigrated extends ComponentBase {
      * Replaces connectedCallback()
      */
     async onInitialize() {
-        console.log('GlobalStoreMigrated: Initializing global state store');
+        console.log('GlobalStore: Initializing global state store');
         
         // Initialize the default state structure
         await this.initializeState();
@@ -60,7 +60,7 @@ class GlobalStoreMigrated extends ComponentBase {
      * Called when setData() is used
      */
     onDataChange(newData, previousData, source, origin) {
-        console.log('GlobalStoreMigrated: State changed from', source, 'origin:', origin);
+        console.log('GlobalStore: State changed from', source, 'origin:', origin);
 
         // Dispatch state change events for subscribers, include origin
         this._dispatchStateChange(source, previousData, newData, origin);
@@ -76,7 +76,7 @@ class GlobalStoreMigrated extends ComponentBase {
      * Reload state from storage
      */
     async onRefresh(force = false) {
-        console.log('GlobalStoreMigrated: Refreshing state from storage');
+        console.log('GlobalStore: Refreshing state from storage');
         
         if (force) {
             // Force reload from storage
@@ -147,7 +147,7 @@ class GlobalStoreMigrated extends ComponentBase {
      * Clear subscribers and global references
      */
     onCleanup() {
-        console.log('GlobalStoreMigrated: Cleaning up global store');
+        console.log('GlobalStore: Cleaning up global store');
         
         // Clear all subscribers
         this._stateSubscribers.clear();
@@ -234,7 +234,7 @@ class GlobalStoreMigrated extends ComponentBase {
      */
     setState(updates, source = 'external', origin = null) {
         if (typeof updates !== 'object' || updates === null) {
-            console.warn('GlobalStoreMigrated.setState: updates must be an object');
+            console.warn('GlobalStore.setState: updates must be an object');
             return;
         }
 
@@ -275,7 +275,7 @@ class GlobalStoreMigrated extends ComponentBase {
      */
     subscribe(callback, filter = null) {
         if (typeof callback !== 'function') {
-            console.warn('GlobalStoreMigrated.subscribe: callback must be a function');
+            console.warn('GlobalStore.subscribe: callback must be a function');
             return () => {};
         }
 
@@ -414,7 +414,7 @@ class GlobalStoreMigrated extends ComponentBase {
      */
     debug() {
         const state = this.getData();
-        console.log('GlobalStoreMigrated State:', state);
+        console.log('GlobalStore State:', state);
         return state;
     }
 
@@ -503,7 +503,7 @@ class GlobalStoreMigrated extends ComponentBase {
                         const parsed = JSON.parse(existing);
                         if (parsed?.settings && Object.keys(parsed.settings).length > 0) {
                             settingsSafe = parsed.settings;
-                            console.warn('GlobalStoreMigrated: Prevented overwrite of settings with empty object; preserved existing saved settings.');
+                            console.warn('GlobalStore: Prevented overwrite of settings with empty object; preserved existing saved settings.');
                         }
                     }
                 } catch (e) {
@@ -550,7 +550,7 @@ class GlobalStoreMigrated extends ComponentBase {
     }
 }
 
-// Register the migrated component
-customElements.define('global-store-migrated', GlobalStoreMigrated);
+// Register the component
+customElements.define('global-store', GlobalStore);
 
-export { GlobalStoreMigrated };
+export { GlobalStore };

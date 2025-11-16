@@ -100,7 +100,7 @@ export function initializeFormInteractions(container) {
                 // If switching to preview, attempt to render preview into viewer and ensure viewer visible
                 if (tab === 'preview') {
                     // Prefer migrated component tag, fall back to legacy
-                    const viewer = wrapper.querySelector('resume-viewer-migrated') || wrapper.querySelector('resume-viewer');
+                    const viewer = wrapper.querySelector('resume-viewer') || wrapper.querySelector('resume-viewer');
                     if (viewer) {
                         try { viewer.style.setProperty('display', viewer.style.display || 'block', 'important'); } catch (e) {}
                         if (typeof viewer.render === 'function') {
@@ -249,11 +249,11 @@ function generateResumeEditorField(key, field, value) {
                         </button>
                     </div>
                     <div class="resume-viewer-container">
-                        <resume-viewer-migrated id="resume-viewer-${key}"></resume-viewer-migrated>
+                        <resume-viewer id="resume-viewer-${key}"></resume-viewer>
                     </div>
                 </div>
                 <div class="tab-panel" id="edit-tab">
-                    <resume-editor-migrated id="resume-editor-${key}"></resume-editor-migrated>
+                    <resume-editor id="resume-editor-${key}"></resume-editor>
                 </div>
                 <div class="tab-panel" id="analytics-tab">
                     <resume-analytics id="resume-analytics-${key}"></resume-analytics>

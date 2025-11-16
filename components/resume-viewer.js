@@ -3,9 +3,9 @@
 
 import { ComponentBase } from '../js/component-base.js';
 // Signal module load for debugging
-console.info('Module loaded: components/resume-viewer-migrated.js');
+console.info('Module loaded: components/resume-viewer.js');
 
-class ResumeViewerMigrated extends ComponentBase {
+class ResumeViewer extends ComponentBase {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -51,7 +51,7 @@ class ResumeViewerMigrated extends ComponentBase {
      * Component initialization after dependencies are ready
      */
     async onInitialize() {
-        console.log('ResumeViewerMigrated: Initializing resume viewer');
+        console.log('ResumeViewer: Initializing resume viewer');
         
         // Load initial data if available from attributes
         const dataUrl = this.getAttribute('data-url');
@@ -97,7 +97,7 @@ class ResumeViewerMigrated extends ComponentBase {
      * Called when setData() is used or resume data is updated
      */
     onDataChange(newData, previousData, source) {
-        console.log('ResumeViewerMigrated: Resume data changed from', source);
+        console.log('ResumeViewer: Resume data changed from', source);
         
         // Re-render when resume data changes
         if (this.isReady()) {
@@ -134,14 +134,14 @@ class ResumeViewerMigrated extends ComponentBase {
                 // If viewer has local data, preserve it
                 const localData = this.getData();
                 if (localData && typeof localData === 'object' && Object.keys(localData).length > 0) {
-                    console.log('ResumeViewerMigrated: Preserving local data (store requested clear)');
+                    console.log('ResumeViewer: Preserving local data (store requested clear)');
                     return;
                 }
                 // Clear viewer if no current resume
                 this.setData(null, 'global-store-clear');
             }
         } catch (e) {
-            console.warn('ResumeViewerMigrated: Error handling store change', e);
+            console.warn('ResumeViewer: Error handling store change', e);
         }
     }
 
@@ -150,7 +150,7 @@ class ResumeViewerMigrated extends ComponentBase {
      * Re-render with current data and settings
      */
     async onRefresh(force = false) {
-        console.log('ResumeViewerMigrated: Refreshing resume viewer');
+        console.log('ResumeViewer: Refreshing resume viewer');
         
         // Re-render the component
         this.render();
@@ -200,7 +200,7 @@ class ResumeViewerMigrated extends ComponentBase {
      * Component cleanup
      */
     onCleanup() {
-        console.log('ResumeViewerMigrated: Cleaning up resume viewer');
+        console.log('ResumeViewer: Cleaning up resume viewer');
         
         // Clean up any async operations or event listeners
         // Shadow DOM event listeners are automatically cleaned up
@@ -254,7 +254,7 @@ class ResumeViewerMigrated extends ComponentBase {
      * @param {string} templateName - Template name (local or hosted)
      */
     setTemplate(templateName) {
-        console.log('ResumeViewerMigrated.setTemplate called with:', templateName);
+        console.log('ResumeViewer.setTemplate called with:', templateName);
         
         try {
             // Check if this is a hosted JSON Resume theme
@@ -360,7 +360,7 @@ class ResumeViewerMigrated extends ComponentBase {
         if (!this.shadowRoot) return;
         
         const resumeData = this.getData();
-        console.log('ResumeViewerMigrated.render called with template:', this._template, 'hosted theme:', this._hostedTheme);
+        console.log('ResumeViewer.render called with template:', this._template, 'hosted theme:', this._hostedTheme);
         
         if (!resumeData) {
             this.shadowRoot.innerHTML = '<p style="padding: 20px; text-align: center; color: #999;">No resume data to display</p>';
@@ -383,7 +383,7 @@ class ResumeViewerMigrated extends ComponentBase {
                 ${processedHtml}
             `;
             
-            console.log('ResumeViewerMigrated.render completed for template:', this._template);
+            console.log('ResumeViewer.render completed for template:', this._template);
             
         } catch (error) {
             this.handleError(error, 'Failed to render resume');
@@ -1633,17 +1633,17 @@ class ResumeViewerMigrated extends ComponentBase {
 }
 
 // Register the migrated component
-customElements.define('resume-viewer-migrated', ResumeViewerMigrated);
+customElements.define('resume-viewer', ResumeViewer);
 
 // Backwards-compatible registration: if legacy tag name isn't defined, register it
 if (!customElements.get('resume-viewer')) {
     try {
-        customElements.define('resume-viewer', ResumeViewerMigrated);
-        console.info('Registered legacy tag <resume-viewer> as alias for ResumeViewerMigrated');
+        customElements.define('resume-viewer', ResumeViewer);
+        console.info('Registered legacy tag <resume-viewer> as alias for ResumeViewer');
     } catch (e) {
         // ignore if registration fails (name already used)
     }
 }
-console.info('components/resume-viewer-migrated.js: customElements registered');
+console.info('components/resume-viewer.js: customElements registered');
 
-export { ResumeViewerMigrated };
+export { ResumeViewer };

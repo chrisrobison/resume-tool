@@ -5,7 +5,7 @@ let storeInstance = null;
 
 export function getStore() {
     if (!storeInstance) {
-        const candidate = document.querySelector('global-store-migrated');
+        const candidate = document.querySelector('global-store');
         // Ensure the candidate has the expected interface before returning it.
         if (candidate && typeof candidate.getState === 'function' && typeof candidate.setState === 'function') {
             storeInstance = candidate;

@@ -96,12 +96,12 @@
 
                 <!-- Settings Panel -->
                 <div id="settings-panel" class="settings-panel" style="display:none; width:100%;">
-                    <settings-manager-migrated></settings-manager-migrated>
+                    <settings-manager></settings-manager>
                 </div>
 
                 <!-- AI Assistant Panel -->
                 <div id="ai-assistant-panel" class="ai-assistant-panel" style="display:none; width:100%;">
-                    <ai-assistant-worker-migrated></ai-assistant-worker-migrated>
+                    <ai-assistant-worker></ai-assistant-worker>
                 </div>
 
                 <!-- Help Panel -->
@@ -460,17 +460,17 @@
     <div id="toast" class="toast"></div>
 
     <!-- Resume Editor Component -->
-    <script type="module" src="./components/resume-editor-migrated.js"></script>
-    <script type="module" src="./components/resume-viewer-migrated.js"></script>
+    <script type="module" src="./components/resume-editor.js"></script>
+    <script type="module" src="./components/resume-viewer.js"></script>
     <script type="module" src="./components/resume-analytics.js"></script>
-    <script type="module" src="./components/global-store-migrated.js"></script>
-    <script type="module" src="./components/settings-manager-migrated.js"></script>
-    <script type="module" src="./components/ai-assistant-worker-migrated.js"></script>
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./components/settings-manager.js"></script>
+    <script type="module" src="./components/ai-assistant-worker.js"></script>
     <script type="module" src="./js/ai-service.js"></script>
     <script type="module" src="./js/store.js"></script>
 
     <!-- Global Store Instance -->
-    <global-store-migrated></global-store-migrated>
+    <global-store></global-store>
 
     <!-- Job Hunt Manager JavaScript -->
     <script type="module">
@@ -1022,7 +1022,7 @@
                                     <resume-viewer id="resume-viewer-details" template="basic"></resume-viewer>
                                 </div>
                                 <div class="tab-panel" id="edit-tab">
-                                    <resume-editor-migrated id="resume-editor-details"></resume-editor-migrated>
+                                    <resume-editor id="resume-editor-details"></resume-editor>
                                 </div>
                                 <div class="tab-panel" id="analytics-tab">
                                     <resume-analytics id="resume-analytics-details"></resume-analytics>
@@ -1331,7 +1331,7 @@
                                         <resume-viewer id="resume-viewer-modal" template="basic"></resume-viewer>
                                     </div>
                                     <div class="tab-panel" id="edit-tab-modal">
-                                        <resume-editor-migrated id="resume-editor-modal"></resume-editor-migrated>
+                                        <resume-editor id="resume-editor-modal"></resume-editor>
                                     </div>
                                     <div class="tab-panel" id="analytics-tab-modal">
                                         <resume-analytics id="resume-analytics-modal"></resume-analytics>

@@ -200,8 +200,8 @@ export function openFormModal(section, item = null, saveCallback = null) {
         try {
             if (section === 'resumes' && modal.bodyElement) {
                 // The resume field uses id patterns like resume-editor-content and resume-viewer-content
-                const editorEl = modal.bodyElement.querySelector('resume-editor-migrated, resume-editor');
-                const viewerEl = modal.bodyElement.querySelector('resume-viewer-migrated, resume-viewer');
+                const editorEl = modal.bodyElement.querySelector('resume-editor, resume-editor');
+                const viewerEl = modal.bodyElement.querySelector('resume-viewer, resume-viewer');
                 const resumeSource = item?.data || item?.content || item || null;
                 const parsed = typeof resumeSource === 'string' ? (() => { try { return JSON.parse(resumeSource); } catch { return null; } })() : resumeSource;
                 if (parsed) {

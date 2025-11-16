@@ -4,7 +4,7 @@
 import { ComponentBase } from '../js/component-base.js';
 import aiService from '../js/ai-service.js';
 
-class SettingsManagerMigrated extends ComponentBase {
+class SettingsManager extends ComponentBase {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -24,7 +24,7 @@ class SettingsManagerMigrated extends ComponentBase {
      * Replaces connectedCallback()
      */
     async onInitialize() {
-        console.log('SettingsManagerMigrated: Initializing');
+        console.log('SettingsManager: Initializing');
         
         // Load initial settings data
         await this.loadSettings();
@@ -46,7 +46,7 @@ class SettingsManagerMigrated extends ComponentBase {
      * Called when setData() is used
      */
     onDataChange(newData, previousData, source) {
-        console.log('SettingsManagerMigrated: Data changed from', source);
+        console.log('SettingsManager: Data changed from', source);
         
         // Update internal settings when data changes
         if (newData && typeof newData === 'object') {
@@ -65,7 +65,7 @@ class SettingsManagerMigrated extends ComponentBase {
      * Called when refresh() is used
      */
     async onRefresh(force = false) {
-        console.log('SettingsManagerMigrated: Refreshing');
+        console.log('SettingsManager: Refreshing');
         
         // Reload settings if forced or if no data
         if (force || !this.getData()) {
@@ -141,7 +141,7 @@ class SettingsManagerMigrated extends ComponentBase {
                 this.loadSettings();
             }
         } catch (e) {
-            console.warn('SettingsManagerMigrated: Error handling store change', e);
+            console.warn('SettingsManager: Error handling store change', e);
         }
     }
 
@@ -150,7 +150,7 @@ class SettingsManagerMigrated extends ComponentBase {
      * Replaces disconnectedCallback()
      */
     onCleanup() {
-        console.log('SettingsManagerMigrated: Cleaning up');
+        console.log('SettingsManager: Cleaning up');
         
         // Cancel any ongoing API tests
         this._testingProvider = null;
@@ -1259,6 +1259,6 @@ class SettingsManagerMigrated extends ComponentBase {
 }
 
 // Register the migrated component
-customElements.define('settings-manager-migrated', SettingsManagerMigrated);
+customElements.define('settings-manager', SettingsManager);
 
-export { SettingsManagerMigrated };
+export { SettingsManager };
