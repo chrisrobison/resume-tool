@@ -1139,12 +1139,21 @@ class AIAssistantWorker extends ComponentBase {
             console.log('AIAssistantWorker getApiConfig - Using localStorage config');
             const provider = apiType === 'chatgpt' ? 'openai' : apiType;
             const defaultModels = { claude: 'claude-3-5-sonnet-20241022', openai: 'gpt-4o', browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC' };
+
+            // Try to get route from settings if available, fallback to 'auto'
+            let route = 'auto';
+            const settings = this.getGlobalState('settings');
+            if (settings && settings.apiProviders && settings.apiProviders[provider]) {
+                route = settings.apiProviders[provider].route || 'auto';
+            }
+
             providerList.push({
                 provider,
                 apiKey: apiKey.trim(),
                 model: defaultModels[provider] || 'gpt-4o',
-                route: 'auto'
+                route: route
             });
+            console.log(`AIAssistantWorker getApiConfig - Using route: ${route} for ${provider}`);
         }
 
         // Check newer settings structure
@@ -1173,14 +1182,15 @@ class AIAssistantWorker extends ComponentBase {
                     browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC'
                 };
 
-                providerList.push({
+                const providerConfig = {
                     provider: providerName,
                     apiKey: config.apiKey ? config.apiKey.trim() : '',
                     model: config.model || defaultModels[providerName] || 'gpt-4o',
                     route: config.route || 'auto'
-                });
+                };
+                providerList.push(providerConfig);
 
-                console.log(`AIAssistantWorker getApiConfig - Added provider to list: ${providerName}`);
+                console.log(`AIAssistantWorker getApiConfig - Added provider to list: ${providerName}, route: ${providerConfig.route}, model: ${providerConfig.model}`);
             }
 
             // Fallback: add any remaining enabled providers not in priority list
@@ -1195,14 +1205,15 @@ class AIAssistantWorker extends ComponentBase {
                     browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC'
                 };
 
-                providerList.push({
+                const providerConfig = {
                     provider: providerName,
                     apiKey: config.apiKey ? config.apiKey.trim() : '',
                     model: config.model || defaultModels[providerName] || 'gpt-4o',
                     route: config.route || 'auto'
-                });
+                };
+                providerList.push(providerConfig);
 
-                console.log(`AIAssistantWorker getApiConfig - Added fallback provider: ${providerName}`);
+                console.log(`AIAssistantWorker getApiConfig - Added fallback provider: ${providerName}, route: ${providerConfig.route}, model: ${providerConfig.model}`);
             }
         }
 

@@ -722,7 +722,10 @@ class SettingsManager extends ComponentBase {
     handleFieldChange(e) {
         const settings = { ...this.getData() };
         const target = e.target;
-        
+
+        // Track if this is a critical field that should auto-save
+        let shouldAutoSave = false;
+
         // Update settings based on field
         if (target.dataset.provider && target.dataset.field) {
             // API provider field
@@ -732,6 +735,11 @@ class SettingsManager extends ComponentBase {
                 settings.apiProviders[provider] = {};
             }
             settings.apiProviders[provider][field] = target.value;
+
+            // Auto-save for critical fields: route, model, apiKey
+            if (field === 'route' || field === 'model' || field === 'apiKey') {
+                shouldAutoSave = true;
+            }
         } else {
             // Other settings fields
             const fieldMap = {
@@ -744,7 +752,7 @@ class SettingsManager extends ComponentBase {
                 'save-api-keys': 'privacy.saveApiKeys',
                 'log-api-calls': 'privacy.logApiCalls'
             };
-            
+
             const path = fieldMap[target.id];
             if (path) {
                 const keys = path.split('.');
@@ -756,8 +764,14 @@ class SettingsManager extends ComponentBase {
                 obj[keys[keys.length - 1]] = target.type === 'checkbox' ? target.checked : target.value;
             }
         }
-        
+
         this.setData(settings, 'field-change');
+
+        // Auto-save critical fields immediately
+        if (shouldAutoSave) {
+            this.saveSettings();
+            console.log(`SettingsManager: Auto-saved ${target.dataset.field} for ${target.dataset.provider}`);
+        }
     }
 
     /**
