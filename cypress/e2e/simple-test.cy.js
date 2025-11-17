@@ -1,6 +1,6 @@
 describe('Simple Application Test', () => {
   beforeEach(() => {
-    cy.visit('/jobs-new.html');
+    cy.visit('/app.html');
     cy.wait(2000); // Wait for app to load
   });
 

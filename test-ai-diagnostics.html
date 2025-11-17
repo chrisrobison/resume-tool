@@ -167,8 +167,8 @@
                 // Check global store settings
                 const store = document.querySelector('global-store');
                 if (!store) {
-                    log(outputId, '\n❌ Global store not found. Open this page from jobs-new.html', 'error');
-                    log(outputId, '\nℹ️  Go to: /job-tool/jobs-new.html and open browser console, then run these tests there.', 'warning');
+                    log(outputId, '\n❌ Global store not found. Open this page from app.html', 'error');
+                    log(outputId, '\nℹ️  Go to: /job-tool/app.html and open browser console, then run these tests there.', 'warning');
                     setStatus(1, 'warning');
                     return;
                 }
@@ -213,7 +213,7 @@
             try {
                 const store = document.querySelector('global-store');
                 if (!store) {
-                    log(outputId, '❌ Global store not found. Open this from jobs-new.html', 'error');
+                    log(outputId, '❌ Global store not found. Open this from app.html', 'error');
                     setStatus(2, 'warning');
                     return;
                 }
@@ -271,7 +271,7 @@
             try {
                 const store = document.querySelector('global-store');
                 if (!store) {
-                    log(outputId, '❌ Global store not found. Open this from jobs-new.html', 'error');
+                    log(outputId, '❌ Global store not found. Open this from app.html', 'error');
                     setStatus(3, 'warning');
                     return;
                 }

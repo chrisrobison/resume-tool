@@ -8,11 +8,11 @@ This is a comprehensive job-centric career management tool that has evolved from
 
 The project has undergone a complete architectural transformation:
 
-**Evolution Path**: `index.html` → `demo.html` → `jobs.html` → **`jobs-new.html`**
+**Evolution Path**: `index.html` → `demo.html` → `jobs.html` → **`app.html`**
 - **index.html**: Simple JSON Resume editor (legacy)
 - **demo.html**: Web Components demonstration (transitional)  
 - **jobs.html**: Job-centric career management system (ComponentBase integrated)
-- **jobs-new.html**: **Professional modular architecture** (CURRENT PRODUCTION)
+- **app.html**: **Professional modular architecture** (CURRENT PRODUCTION)
 
 ### Current Architecture (January 2025)
 

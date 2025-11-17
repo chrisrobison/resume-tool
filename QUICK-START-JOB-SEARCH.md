@@ -4,7 +4,7 @@
 
 ### Step 1: Open the Application
 ```
-https://cdr2.com/job-tool/jobs-new.html
+https://cdr2.com/job-tool/app.html
 ```
 
 ### Step 2: Navigate to Job Search
@@ -202,7 +202,7 @@ https://cdr2.com/job-tool/test-job-feeds.html
 ### Test Individual Components
 
 ```javascript
-// In browser console (jobs-new.html)
+// In browser console (app.html)
 
 // Get feed manager
 const feedManager = window.feedManager; // or import manually

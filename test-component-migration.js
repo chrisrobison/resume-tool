@@ -96,7 +96,7 @@ elementChecks.forEach(({ file, element, class: className }) => {
 
 // Test 4: Verify HTML imports
 console.log('\n📄 Test 4: HTML Imports');
-const htmlFiles = ['jobs.html', 'jobs-new.html'];
+const htmlFiles = ['jobs.html', 'app.html'];
 
 htmlFiles.forEach(file => {
     if (fs.existsSync(file)) {

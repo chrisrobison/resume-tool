@@ -1,6 +1,6 @@
 describe('Import Job Button Quick Test', () => {
   beforeEach(() => {
-    cy.visit('/jobs-new.html');
+    cy.visit('/app.html');
     cy.wait(3000); // Wait for app to fully load
   });
 

@@ -246,7 +246,7 @@ vDescribe('Visual Regression Testing', () => {
   describe('Loading States', () => {
     it('should match initial loading state', () => {
       // Visit page and capture before data loads
-      cy.visit('/jobs-new.html');
+      cy.visit('/app.html');
       
       // Capture the loading state quickly
       cy.compareSnapshot('loading-state-initial', {

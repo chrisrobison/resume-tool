@@ -5,7 +5,7 @@ const LLM_CACHE = 'browser-llm-models';
 const PRECACHE_URLS = [
   '/job-tool/',
   '/job-tool/index.html',
-  '/job-tool/jobs-new.html',
+  '/job-tool/app.html',
   '/job-tool/logo.svg',
   '/job-tool/styles.css'
 ];

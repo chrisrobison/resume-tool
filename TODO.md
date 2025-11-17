@@ -9,7 +9,7 @@
 ### 1. Extract JavaScript from jobs.html
 **Status**: ✅ **COMPLETED**  
 **Completion Date**: January 21, 2025  
-**Files Affected**: `jobs-new.html`, extracted modules  
+**Files Affected**: `app.html`, extracted modules  
 
 **✅ COMPLETED**: Successfully extracted 2400+ lines of JavaScript into modular architecture
 
@@ -21,7 +21,7 @@
 - [x] ✅ Create `js/import-export-manager.js` (14KB) - Extract import/export logic
 - [x] ✅ Create `js/schema-definitions.js` (9KB) - Extract data schemas
 - [x] ✅ Create `js/card-renderer.js` (10KB) - Extract item card generation
-- [x] ✅ Created `jobs-new.html` with zero embedded JavaScript
+- [x] ✅ Created `app.html` with zero embedded JavaScript
 - [x] ✅ Updated to use migrated ComponentBase components
 - [x] ✅ **Total extracted**: ~93KB of properly modularized code
 
@@ -71,7 +71,7 @@
 - [ ] 🔄 Completely retire `core.js` when `jobs.html` is replaced
 - [ ] 🔄 Update remaining imports in legacy components
 
-**Note**: With `jobs-new.html` as primary interface, core.js refactoring is largely addressed.
+**Note**: With `app.html` as primary interface, core.js refactoring is largely addressed.
 
 ## ⚠️ **MEDIUM PRIORITY** - Architecture Improvements
 
@@ -236,7 +236,7 @@ components/
 ## 🏁 **Success Criteria**
 
 ### ✅ Phase 1 COMPLETED (January 21, 2025):
-- [x] ✅ Zero JavaScript in `jobs-new.html` (2893 → 500 lines)
+- [x] ✅ Zero JavaScript in `app.html` (2893 → 500 lines)
 - [x] ✅ All components use ComponentBase standardized interface
 - [x] ✅ Modular architecture replaces monolithic core.js
 - [x] ✅ App-manager coordinates all components with registry
@@ -261,7 +261,7 @@ components/
 **The core architectural transformation is COMPLETE!** Phase 1 represents a fundamental improvement from embedded JavaScript to professional modular architecture.
 
 ## 📝 **Notes & Current Status**
-- ✅ **Backward compatibility maintained**: Both `jobs.html` and `jobs-new.html` operational
+- ✅ **Backward compatibility maintained**: Both `jobs.html` and `app.html` operational
 - ✅ **Job-centric workflow preserved**: Enhanced with better state management
 - ✅ **Zero-build approach maintained**: Pure ES6 modules, no compilation required
 - ✅ **Privacy-first design enhanced**: All data local, AI processing optional
@@ -271,9 +271,9 @@ components/
 ## 🚀 **Current Recommendations (January 2025)**
 
 ### Immediate Actions:
-1. ✅ **jobs-new.html is production-ready** - Use as primary interface
+1. ✅ **app.html is production-ready** - Use as primary interface
 2. ✅ **Architecture documentation complete** - Comprehensive testing completed
-3. 🔄 **Consider retiring jobs.html** - Replace with jobs-new.html
+3. 🔄 **Consider retiring jobs.html** - Replace with app.html
 
 ### Next Phase Priorities:
 1. 🔄 **IndexedDB Implementation** - Enhanced data layer with Web Workers

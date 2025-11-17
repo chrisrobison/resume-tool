@@ -18,10 +18,10 @@ node test-component-migration.js
 **Open the application:**
 ```bash
 # Option A: Live site
-open https://cdr2.com/job-tool/jobs-new.html
+open https://cdr2.com/job-tool/app.html
 
 # Option B: Local file
-open /home/cdr/domains/cdr2.com/www/job-tool/jobs-new.html
+open /home/cdr/domains/cdr2.com/www/job-tool/app.html
 ```
 
 **Run this smoke test in browser console (F12):**

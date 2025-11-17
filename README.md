@@ -7,11 +7,11 @@
 **Architectural Transformation Completed:**
 - ✅ **2400+ lines** of JavaScript extracted and modularized into **93KB** of organized code
 - ✅ **ComponentBase standardization** across all components with lifecycle management
-- ✅ **Zero embedded JavaScript** in production interface (`jobs-new.html`)
+- ✅ **Zero embedded JavaScript** in production interface (`app.html`)
 - ✅ **95/100 architecture quality score** - Professional-grade codebase
 - ✅ **Web Worker AI integration** for non-blocking operations
 
-**Production Interface:** `jobs-new.html` (modular architecture)  
+**Production Interface:** `app.html` (modular architecture)  
 **Legacy Interface:** `jobs.html` (maintained for compatibility)
 
 ![Job-Centric Career Management](https://via.placeholder.com/800x450.png?text=Job-Centric+Career+Management+Tool)
@@ -301,8 +301,8 @@ This project is intended for educational and personal use. See LICENSE file for 
 ## 🎉 **Ready to Experience Professional Job Search Management?**
 
 ### **Get Started:**
-1. **Production Experience**: Open `jobs-new.html` for the full modular architecture
-2. **Live Demo**: Visit https://cdr2.com/job-tool/jobs-new.html
+1. **Production Experience**: Open `app.html` for the full modular architecture
+2. **Live Demo**: Visit https://cdr2.com/job-tool/app.html
 3. **Legacy Support**: Use `jobs.html` for compatibility if needed
 
 ### **Key Benefits:**

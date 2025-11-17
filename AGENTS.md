@@ -6,7 +6,7 @@
 - `cypress/`: E2E tests (`e2e/*.cy.js`), fixtures, reports, screenshots, videos.
 - `tests/`: Manual/demo HTML and small JS utilities for in-browser checks.
 - `server/`: Optional local services and API shims (Node.js).
-- Entry points: `jobs-new.html` (symlinked by `index.html`). Static assets: `styles.css`, `logo.svg`.
+- Entry points: `app.html` (symlinked by `index.html`). Static assets: `styles.css`, `logo.svg`.
 
 ## Build, Test, and Dev Commands
 - `npm run serve`: Serve static site at `http://localhost:8080`.

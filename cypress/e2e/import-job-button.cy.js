@@ -113,7 +113,7 @@ describe('Import Job Button Functionality', () => {
   });
 
   it('should work consistently on both job interfaces', () => {
-    // Test on jobs-new.html (current)
+    // Test on app.html (current)
     cy.visitJobsApp('new');
     cy.waitForStore();
     cy.get('#import-job-btn').should('be.visible').click();

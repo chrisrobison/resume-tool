@@ -6,7 +6,7 @@
 Cypress.Commands.add('visitJobsApp', (version = 'new') => {
   // Probe multiple possible entry paths and visit the first that responds 2xx/3xx.
   const candidates = version === 'new'
-    ? ['/', '/jobs-new.html', '/index.html', '/jobs.html']
+    ? ['/', '/app.html', '/index.html', '/jobs.html']
     : ['/jobs.html', '/index.html', '/'];
 
   function tryVisit(index = 0) {

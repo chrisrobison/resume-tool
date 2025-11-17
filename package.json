@@ -2,7 +2,7 @@
   "name": "job-hunt-manager",
   "version": "2.0.0",
   "description": "Professional job-centric career management tool with modular architecture",
-  "main": "jobs-new.html",
+  "main": "app.html",
   "scripts": {
     "test": "cypress run",
     "test:open": "cypress open",

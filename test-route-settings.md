@@ -24,7 +24,7 @@ The AI settings were not respecting the "Connection Route" dropdown selection (D
 
 1. **Open the application**:
    ```
-   https://cdr2.com/job-tool/jobs-new.html
+   https://cdr2.com/job-tool/app.html
    ```
 
 2. **Open browser console** (F12 → Console)

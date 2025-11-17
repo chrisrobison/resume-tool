@@ -248,7 +248,7 @@ We're looking for an experienced engineer to work on our React/Node.js platform.
 
 ### Integration Testing
 
-1. Navigate to Job Search tab in `jobs-new.html`
+1. Navigate to Job Search tab in `app.html`
 2. Search for jobs (e.g., location: "San Francisco")
 3. Select and import jobs
 4. Verify jobs appear in Jobs list
