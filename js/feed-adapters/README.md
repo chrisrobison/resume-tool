@@ -102,6 +102,13 @@ Fetches jobs from Hacker News "Who is Hiring?" posts via hnrss.org.
 - Automatic tag extraction
 - Remote job detection
 - No API key required
+- **Uses server-side proxy** (feed-proxy.php) to bypass CORS restrictions
+
+**Technical Notes:**
+- HN RSS feed (hnrss.org) doesn't support CORS
+- All requests are routed through `/job-tool/feed-proxy.php`
+- Proxy handles caching (5 minutes) and rate limiting
+- Proxy validates allowed hosts for security
 
 **Search Parameters:**
 - `keywords` - Search terms
@@ -173,6 +180,52 @@ open test-job-feeds.html
 
 # Or via web server
 https://cdr2.com/job-tool/test-job-feeds.html
+```
+
+## Server-Side Proxy
+
+Many feed sources (like hnrss.org) don't support CORS requests from browsers. We use a server-side proxy (`feed-proxy.php`) to handle these requests.
+
+### Proxy Features:
+- **CORS handling** - Adds proper CORS headers
+- **Security** - Whitelist of allowed hosts (prevents SSRF attacks)
+- **Caching** - 5-minute cache to reduce API load
+- **Rate limiting** - 30 requests per minute per IP
+- **IP filtering** - Blocks requests to private IP ranges
+
+### Allowed Hosts:
+- `hnrss.org` - Hacker News RSS
+- `news.ycombinator.com` - Hacker News
+- `api.github.com` - GitHub Jobs
+- `feeds.feedburner.com` - Generic RSS
+- `rss.app` - RSS aggregator
+
+### Adding New Hosts:
+Edit `feed-proxy.php` and add to the `ALLOWED_HOSTS` array:
+```php
+const ALLOWED_HOSTS = [
+    'hnrss.org',
+    'your-new-host.com', // Add your host here
+];
+```
+
+### Using the Proxy:
+```javascript
+// Adapter automatically uses proxy
+this.proxyUrl = '/job-tool/feed-proxy.php';
+
+// Makes request through proxy
+const proxyUrl = `${this.proxyUrl}?url=${encodeURIComponent(feedUrl)}`;
+const response = await fetch(proxyUrl);
+```
+
+### Testing the Proxy:
+```bash
+# PHP test script
+php test-feed-proxy.php
+
+# Manual test
+curl "http://localhost/job-tool/feed-proxy.php?url=https%3A%2F%2Fhnrss.org%2Fwhoishiring%2Fjobs.jsonfeed%3Fcount%3D5"
 ```
 
 ## API Keys & Security

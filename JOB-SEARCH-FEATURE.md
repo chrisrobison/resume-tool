@@ -199,6 +199,7 @@ See `js/feed-adapters/README.md` for detailed instructions.
 - **Updates**: Posts from monthly "Who is Hiring?" threads
 - **Rate Limit**: None (RSS feed)
 - **Authentication**: Not required
+- **Proxy**: Uses server-side proxy (`feed-proxy.php`) to bypass CORS restrictions
 
 ### Search Capabilities
 

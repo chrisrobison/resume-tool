@@ -18,6 +18,9 @@ export class HNJobsAdapter extends FeedAdapter {
         // Base URL for HN RSS feed
         this.baseUrl = config.baseUrl || 'https://hnrss.org/whoishiring/jobs.jsonfeed';
 
+        // Proxy URL (required for CORS)
+        this.proxyUrl = config.proxyUrl || '/job-tool/feed-proxy.php';
+
         // Default parameters
         this.defaults = {
             count: 50,
@@ -25,6 +28,7 @@ export class HNJobsAdapter extends FeedAdapter {
         };
 
         console.log('HNJobsAdapter: Initialized with base URL:', this.baseUrl);
+        console.log('HNJobsAdapter: Using proxy:', this.proxyUrl);
     }
 
     /**
@@ -58,14 +62,25 @@ export class HNJobsAdapter extends FeedAdapter {
         console.log('HNJobsAdapter: Fetching from:', url.toString());
 
         try {
-            const response = await fetch(url.toString());
+            // Use proxy to avoid CORS issues
+            const proxyUrl = `${this.proxyUrl}?url=${encodeURIComponent(url.toString())}`;
+            console.log('HNJobsAdapter: Using proxy:', proxyUrl);
+
+            const response = await fetch(proxyUrl);
 
             if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+                throw new Error(`Proxy returned ${response.status}: ${response.statusText}`);
             }
 
-            const data = await response.json();
+            const proxyResponse = await response.json();
+
+            if (!proxyResponse.success) {
+                throw new Error(proxyResponse.error || 'Proxy request failed');
+            }
+
+            const data = proxyResponse.data;
             console.log('HNJobsAdapter: Received data:', data);
+            console.log('HNJobsAdapter: Cached:', proxyResponse.cached);
 
             return this.parseJobs(data);
 
