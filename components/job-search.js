@@ -19,6 +19,8 @@ class JobSearch extends ComponentBase {
         this._selectedJobs = new Set();
         this._isLoading = false;
         this._error = null;
+        this._showResumeDialog = false;
+        this._extractingKeywords = false;
 
         // Bind methods
         this.handleFeedChange = this.handleFeedChange.bind(this);
@@ -27,6 +29,9 @@ class JobSearch extends ComponentBase {
         this.handleSelectAll = this.handleSelectAll.bind(this);
         this.handleImportSelected = this.handleImportSelected.bind(this);
         this.handleClearResults = this.handleClearResults.bind(this);
+        this.handleOpenResumeDialog = this.handleOpenResumeDialog.bind(this);
+        this.handleCloseResumeDialog = this.handleCloseResumeDialog.bind(this);
+        this.handleExtractKeywords = this.handleExtractKeywords.bind(this);
     }
 
     async onInitialize() {
@@ -85,6 +90,23 @@ class JobSearch extends ComponentBase {
         const importBtn = root.querySelector('#import-btn');
         if (importBtn) {
             importBtn.addEventListener('click', this.handleImportSelected);
+        }
+
+        // Resume keyword extraction button
+        const extractBtn = root.querySelector('#extract-keywords-btn');
+        if (extractBtn) {
+            extractBtn.addEventListener('click', this.handleOpenResumeDialog);
+        }
+
+        // Resume dialog buttons
+        const closeDialogBtn = root.querySelector('#close-resume-dialog');
+        if (closeDialogBtn) {
+            closeDialogBtn.addEventListener('click', this.handleCloseResumeDialog);
+        }
+
+        const extractDialogBtn = root.querySelector('#extract-dialog-btn');
+        if (extractDialogBtn) {
+            extractDialogBtn.addEventListener('click', this.handleExtractKeywords);
         }
 
         // Job checkboxes (delegated)
@@ -190,6 +212,231 @@ class JobSearch extends ComponentBase {
         this.render();
     }
 
+    handleOpenResumeDialog() {
+        this._showResumeDialog = true;
+        this.render();
+    }
+
+    handleCloseResumeDialog() {
+        this._showResumeDialog = false;
+        this.render();
+    }
+
+    async handleExtractKeywords() {
+        const root = this.shadowRoot;
+        const resumeSelect = root.querySelector('#resume-select');
+
+        if (!resumeSelect || !resumeSelect.value) {
+            if (this._appManager?.showToast) {
+                this._appManager.showToast('Please select a resume', 'error');
+            }
+            return;
+        }
+
+        const resumeId = resumeSelect.value;
+
+        // Get storage and AI service from app manager
+        const storage = this._appManager?.storage;
+        if (!storage) {
+            if (this._appManager?.showToast) {
+                this._appManager.showToast('Storage not available', 'error');
+            }
+            return;
+        }
+
+        // Get resume data
+        const resumes = storage.getSavedResumes();
+        const resume = resumes.find(r => r.id === resumeId);
+
+        if (!resume) {
+            if (this._appManager?.showToast) {
+                this._appManager.showToast('Resume not found', 'error');
+            }
+            return;
+        }
+
+        // Check if AI is configured
+        const apiKeys = storage.getApiKeys();
+        if (!apiKeys.key || !apiKeys.type) {
+            if (this._appManager?.showToast) {
+                this._appManager.showToast('Please configure your API key in Settings first', 'error');
+            }
+            return;
+        }
+
+        // Set loading state
+        this._extractingKeywords = true;
+        this.render();
+
+        try {
+            // Build prompt for keyword extraction
+            const prompt = this.buildKeywordExtractionPrompt(resume);
+
+            // Call AI API directly (similar to import-export-manager.js)
+            const aiResult = await this.callAIForKeywords(prompt, apiKeys);
+
+            if (aiResult.success) {
+                const keywords = aiResult.keywords;
+
+                // Update search fields
+                this._searchParams = {
+                    keywords: keywords.skills.join(' '),
+                    location: keywords.location || '',
+                    limit: 50
+                };
+
+                // Close dialog
+                this._showResumeDialog = false;
+
+                // Show success message
+                if (this._appManager?.showToast) {
+                    this._appManager.showToast(
+                        `Extracted keywords from resume: ${keywords.skills.slice(0, 5).join(', ')}...`,
+                        'success'
+                    );
+                }
+
+                // Re-render with updated search params
+                this.render();
+
+            } else {
+                throw new Error(aiResult.error || 'Failed to extract keywords');
+            }
+
+        } catch (error) {
+            console.error('JobSearch: Keyword extraction failed:', error);
+
+            if (this._appManager?.showToast) {
+                this._appManager.showToast('Failed to extract keywords: ' + error.message, 'error');
+            }
+        }
+
+        // Clear loading state
+        this._extractingKeywords = false;
+        this.render();
+    }
+
+    buildKeywordExtractionPrompt(resume) {
+        const resumeText = JSON.stringify(resume, null, 2);
+
+        return `Analyze this resume and extract relevant job search keywords.
+
+Resume:
+${resumeText}
+
+Extract and return ONLY a JSON object with this exact format:
+{
+  "skills": ["keyword1", "keyword2", "keyword3"],
+  "jobTitles": ["title1", "title2"],
+  "location": "preferred location or empty string"
+}
+
+Focus on:
+1. Technical skills and technologies
+2. Job titles and roles
+3. Location preferences (if mentioned)
+
+Return 5-10 most relevant keywords for job searching. Be specific and use terms that would appear in job postings.`;
+    }
+
+    async callAIForKeywords(prompt, apiKeys) {
+        const { type, key } = apiKeys;
+
+        try {
+            if (type === 'claude') {
+                return await this.callClaudeAPI(prompt, key);
+            } else if (type === 'chatgpt') {
+                return await this.callOpenAIAPI(prompt, key);
+            } else {
+                throw new Error('Unsupported AI type: ' + type);
+            }
+        } catch (error) {
+            console.error('JobSearch: AI API call failed:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    async callClaudeAPI(prompt, apiKey) {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+                model: 'claude-3-5-sonnet-20241022',
+                max_tokens: 1024,
+                messages: [{
+                    role: 'user',
+                    content: prompt
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Claude API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const text = data.content[0].text;
+
+        // Extract JSON from response
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            throw new Error('Failed to parse AI response');
+        }
+
+        const keywords = JSON.parse(jsonMatch[0]);
+
+        return {
+            success: true,
+            keywords
+        };
+    }
+
+    async callOpenAIAPI(prompt, apiKey) {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o',
+                messages: [{
+                    role: 'user',
+                    content: prompt
+                }],
+                temperature: 0.7,
+                max_tokens: 1024
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`OpenAI API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const text = data.choices[0].message.content;
+
+        // Extract JSON from response
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            throw new Error('Failed to parse AI response');
+        }
+
+        const keywords = JSON.parse(jsonMatch[0]);
+
+        return {
+            success: true,
+            keywords
+        };
+    }
+
     async handleImportSelected() {
         if (this._selectedJobs.size === 0) {
             return;
@@ -265,6 +512,10 @@ class JobSearch extends ComponentBase {
         const adapters = this._feedManager?.getAllAdapters() || [];
         const selectedAdapter = this._feedManager?.getAdapter(this._selectedFeed);
         const searchParams = selectedAdapter?.getSearchParams() || {};
+
+        // Get resumes for dropdown
+        const storage = this._appManager?.storage;
+        const resumes = storage?.getSavedResumes() || [];
 
         this.shadowRoot.innerHTML = `
             <style>
@@ -529,6 +780,65 @@ class JobSearch extends ComponentBase {
                     color: #c33;
                     margin: 16px 24px;
                 }
+
+                .resume-dialog-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                }
+
+                .resume-dialog {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 24px;
+                    max-width: 500px;
+                    width: 90%;
+                    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+                }
+
+                .resume-dialog h3 {
+                    margin: 0 0 16px 0;
+                    color: #2c3e50;
+                    font-size: 20px;
+                }
+
+                .resume-dialog p {
+                    margin: 0 0 16px 0;
+                    color: #7f8c8d;
+                    font-size: 14px;
+                }
+
+                .dialog-actions {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: flex-end;
+                    margin-top: 24px;
+                }
+
+                .btn-text {
+                    background: none;
+                    border: none;
+                    padding: 10px 20px;
+                    color: #7f8c8d;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                }
+
+                .btn-text:hover {
+                    color: #2c3e50;
+                }
+
+                .ai-icon {
+                    margin-right: 6px;
+                }
             </style>
 
             <div class="job-search-container">
@@ -572,6 +882,10 @@ class JobSearch extends ComponentBase {
                     `).join('')}
 
                     <div class="search-actions">
+                        <button class="btn btn-success" id="extract-keywords-btn" ${this._extractingKeywords ? 'disabled' : ''}>
+                            <span class="ai-icon">🤖</span>
+                            ${this._extractingKeywords ? 'Analyzing...' : 'Extract from Resume'}
+                        </button>
                         <button class="btn btn-primary" id="search-btn" ${this._isLoading ? 'disabled' : ''}>
                             ${this._isLoading ? 'Searching...' : '🔍 Search Jobs'}
                         </button>
@@ -580,6 +894,38 @@ class JobSearch extends ComponentBase {
                         ` : ''}
                     </div>
                 </div>
+
+                ${this._showResumeDialog ? `
+                    <div class="resume-dialog-overlay">
+                        <div class="resume-dialog">
+                            <h3>🤖 AI Keyword Extraction</h3>
+                            <p>Select a resume to analyze. AI will extract relevant keywords, skills, and preferences to help you find matching jobs.</p>
+
+                            <div class="form-group">
+                                <label class="form-label">Select Resume</label>
+                                <select class="form-select" id="resume-select">
+                                    <option value="">Choose a resume...</option>
+                                    ${resumes.map(r => `
+                                        <option value="${r.id}">${r.name || 'Untitled Resume'}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+
+                            ${resumes.length === 0 ? `
+                                <div style="padding: 12px; background: #fff3cd; border-radius: 6px; margin-top: 12px; font-size: 14px;">
+                                    ⚠️ No resumes found. Create a resume first in the Resumes tab.
+                                </div>
+                            ` : ''}
+
+                            <div class="dialog-actions">
+                                <button class="btn-text" id="close-resume-dialog">Cancel</button>
+                                <button class="btn btn-primary" id="extract-dialog-btn" ${resumes.length === 0 ? 'disabled' : ''}>
+                                    Extract Keywords
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
 
                 ${this._error ? `
                     <div class="error-state">
