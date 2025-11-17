@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Timing Diagnostic Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #495057;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .results {
+            background: #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            color: #721c24;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        .timing {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .progress {
+            background: #cfe2ff;
+            border: 1px solid #b6d4fe;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .comparison-item {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+        }
+        .comparison-item h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .metric:last-child {
+            border-bottom: none;
+        }
+        .metric-value {
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 AI Proxy Timing Diagnostic</h1>
+        <p>This tool measures the actual response time for AI API requests through different routes to diagnose timeout issues.</p>
+
+        <div class="test-section">
+            <h2>Configuration</h2>
+            <div class="form-group">
+                <label for="apiProvider">AI Provider</label>
+                <select id="apiProvider">
+                    <option value="claude">Claude (Anthropic)</option>
+                    <option value="openai">OpenAI</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="apiKey">API Key</label>
+                <input type="password" id="apiKey" placeholder="Enter your API key">
+                <small style="color: #6c757d;">Only used in browser, never stored on server</small>
+            </div>
+            <div class="form-group">
+                <label for="model">Model (optional)</label>
+                <input type="text" id="model" placeholder="Leave empty for default">
+            </div>
+            <div class="form-group">
+                <label for="promptSize">Test Prompt Size</label>
+                <select id="promptSize">
+                    <option value="tiny">Tiny (like API test) - ~50 chars</option>
+                    <option value="small">Small - ~500 chars</option>
+                    <option value="medium" selected>Medium (like resume) - ~5000 chars</option>
+                    <option value="large">Large (full resume + job desc) - ~15000 chars</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 1: Direct API Call</h2>
+            <p>Browser → Claude/OpenAI API directly (what works in settings test)</p>
+            <button onclick="testDirectAPI()" id="btn-direct">Run Direct Test</button>
+            <button onclick="clearResults('directResults')">Clear</button>
+            <div id="directResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 2: PHP Proxy Call</h2>
+            <p>Browser → ai-proxy.php → Claude/OpenAI API (what resume tailoring uses)</p>
+            <button onclick="testProxyAPI()" id="btn-proxy">Run Proxy Test</button>
+            <button onclick="clearResults('proxyResults')">Clear</button>
+            <div id="proxyResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Comparison</h2>
+            <div id="comparison"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>💡 Recommendations</h2>
+            <div id="recommendations"></div>
+        </div>
+    </div>
+
+    <script>
+        const testPrompts = {
+            tiny: 'test',
+            small: 'Please analyze this brief text and respond with a summary. This is a test to measure API response time. Keep your response concise but informative.',
+            medium: `You are an expert resume writer. Please tailor the following resume to match the job description provided.
+
+JOB DESCRIPTION:
+Senior Software Engineer position requiring strong Python and JavaScript experience, cloud infrastructure knowledge, and leadership skills. Looking for someone who can mentor junior engineers and contribute to architectural decisions.
+
+RESUME:
+{
+  "basics": {
+    "name": "Test User",
+    "email": "test@example.com",
+    "summary": "Experienced software engineer with 10+ years building scalable systems"
+  },
+  "work": [
+    {
+      "company": "Tech Co",
+      "position": "Software Engineer",
+      "highlights": [
+        "Built scalable microservices handling 100M+ requests/day",
+        "Led team of 5 engineers through complex migration project",
+        "Reduced infrastructure costs by 40% through optimization"
+      ]
+    }
+  ],
+  "skills": [
+    { "name": "Languages", "keywords": ["Python", "JavaScript", "Go", "Rust"] },
+    { "name": "Cloud", "keywords": ["AWS", "GCP", "Kubernetes", "Docker"] }
+  ]
+}
+
+Respond with JSON: {"tailoredResume": {...}, "changes": [...]}`,
+            large: `You are an expert resume writer. Please tailor the following resume to match the job description provided.
+
+JOB DESCRIPTION:
+Technology is at the heart of Disney's past, present, and future. Disney Entertainment and ESPN Product & Technology is a global organization of engineers, product developers, designers, technologists, data scientists, and more – all working to build and advance the technological backbone for Disney's media business globally. The team marries technology with creativity to build world-class products.
+
+We are seeking a Senior Staff Software Engineer with deep expertise in distributed systems, cloud infrastructure, and streaming media technology. The ideal candidate will have 12+ years of experience building large-scale systems, mentoring engineers, and driving technical strategy.
+
+Requirements:
+- Expert-level Python, Java, or Go programming
+- Deep experience with AWS or GCP cloud platforms
+- Experience with Kubernetes, Docker, and containerization
+- Understanding of CDN technologies and video streaming
+- Track record of building systems serving 100M+ users
+- Strong leadership and mentoring capabilities
+- Excellent communication and collaboration skills
+
+RESUME:
+{
+  "basics": {
+    "name": "Christopher Robison",
+    "label": "Turning ideas into reality.",
+    "summary": "Engineering leader with a deep passion for mission-driven work and universal access to knowledge. A proven track record building scalable, production-grade systems and tools across petabyte-scale data, mobile platforms, and real-time environments. Adept at managing distributed teams, mentoring engineers, and directly contributing code. Excels in Linux system administration, Python development, infrastructure automation, and agile software lifecycle.",
+    "location": { "city": "San Francisco", "region": "CA" },
+    "email": "cdr@cdr2.com",
+    "phone": "(415) 810-6991"
+  },
+  "work": [
+    {
+      "company": "D. Harris Tours, Inc.",
+      "position": "CTO",
+      "startDate": "2020-03-01",
+      "highlights": [
+        "Designed and implemented end-to-end transportation management system",
+        "Led technological transformation growing revenue from $500k to $3M+",
+        "Implemented AI-driven optimization increasing daily revenue by 30%",
+        "Built full-stack solution across GPS, SMS/email, scheduling, and CRM"
+      ]
+    },
+    {
+      "company": "Conversant, Inc.",
+      "position": "Manager, Software Engineering",
+      "startDate": "2010-07-16",
+      "endDate": "2020-03-01",
+      "highlights": [
+        "Managed infrastructure serving millions of mobile ads daily",
+        "Designed RESTful API reducing response times by 35%",
+        "Developed mobile ad solutions reaching 20M+ users daily",
+        "Led remote team delivering cross-platform SDKs"
+      ]
+    }
+  ],
+  "skills": [
+    { "name": "Languages", "keywords": ["Python", "JavaScript", "Go", "C++", "Java"] },
+    { "name": "Cloud", "keywords": ["AWS", "GCP", "Kubernetes", "Docker"] },
+    { "name": "Leadership", "keywords": ["Team Building", "Mentoring", "Architecture"] }
+  ]
+}
+
+Respond with JSON: {"tailoredResume": {...}, "changes": [...], "analysis": {"matchScore": 85, "strengths": [], "improvements": []}}`
+        };
+
+        window.testResults = { direct: null, proxy: null };
+
+        function clearResults(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+            updateComparison();
+        }
+
+        function getPrompt() {
+            const size = document.getElementById('promptSize').value;
+            return testPrompts[size];
+        }
+
+        async function testDirectAPI() {
+            const apiProvider = document.getElementById('apiProvider').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const model = document.getElementById('model').value;
+            const prompt = getPrompt();
+            const resultsEl = document.getElementById('directResults');
+            const btn = document.getElementById('btn-direct');
+
+            if (!apiKey) {
+                resultsEl.innerHTML = '<div class="results error">❌ Please enter an API key</div>';
+                return;
+            }
+
+            btn.disabled = true;
+            resultsEl.innerHTML = '<div class="progress">⏳ Testing direct API call... (this may take 10-60 seconds)</div>';
+
+            const startTime = Date.now();
+
+            try {
+                let response;
+
+                if (apiProvider === 'claude') {
+                    response = await fetch('https://api.anthropic.com/v1/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': apiKey,
+                            'anthropic-version': '2023-06-01',
+                            'anthropic-dangerous-direct-browser-access': 'true'
+                        },
+                        body: JSON.stringify({
+                            model: model || 'claude-3-5-sonnet-20241022',
+                            max_tokens: 4000,
+                            messages: [{ role: 'user', content: prompt }]
+                        })
+                    });
+                } else {
+                    response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: model || 'gpt-4o',
+                            messages: [{ role: 'user', content: prompt }],
+                            max_tokens: 4000
+                        })
+                    });
+                }
+
+                const duration = Date.now() - startTime;
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API Error (${response.status}): ${errorText.substring(0, 500)}`);
+                }
+
+                const data = await response.json();
+                const responseText = apiProvider === 'claude'
+                    ? (data.content?.[0]?.text || JSON.stringify(data))
+                    : (data.choices?.[0]?.message?.content || JSON.stringify(data));
+
+                window.testResults.direct = {
+                    success: true,
+                    duration,
+                    responseLength: responseText.length,
+                    promptSize: prompt.length
+                };
+
+                resultsEl.innerHTML = `
+                    <div class="results success">
+                        ✅ Direct API call succeeded
+                        <div class="timing">⏱️ Total time: ${duration}ms (${(duration/1000).toFixed(2)}s)</div>
+                        <div style="margin-top: 10px;">
+                            <strong>Prompt size:</strong> ${prompt.length} chars<br>
+                            <strong>Response size:</strong> ${responseText.length} chars<br>
+                            <strong>Response preview:</strong><br>
+                            ${responseText.substring(0, 300)}...
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                const duration = Date.now() - startTime;
+                window.testResults.direct = {
+                    success: false,
+                    duration,
+                    error: error.message,
+                    promptSize: prompt.length
+                };
+
+                resultsEl.innerHTML = `
+                    <div class="results error">
+                        ❌ Direct API call failed
+                        <div class="timing">⏱️ Failed after: ${duration}ms (${(duration/1000).toFixed(2)}s)</div>
+                        <strong>Error:</strong> ${error.message}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                updateComparison();
+            }
+        }
+
+        async function testProxyAPI() {
+            const apiProvider = document.getElementById('apiProvider').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const model = document.getElementById('model').value;
+            const prompt = getPrompt();
+            const resultsEl = document.getElementById('proxyResults');
+            const btn = document.getElementById('btn-proxy');
+
+            if (!apiKey) {
+                resultsEl.innerHTML = '<div class="results error">❌ Please enter an API key</div>';
+                return;
+            }
+
+            btn.disabled = true;
+            resultsEl.innerHTML = '<div class="progress">⏳ Testing proxy API call... (this may take 10-60 seconds)</div>';
+
+            const startTime = Date.now();
+
+            try {
+                const response = await fetch('/job-tool/ai-proxy.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        apiType: apiProvider,
+                        apiKey: apiKey,
+                        model: model || undefined,
+                        prompt: prompt,
+                        operation: 'test-timing'
+                    })
+                });
+
+                const duration = Date.now() - startTime;
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Proxy Error (${response.status}): ${errorText.substring(0, 500)}`);
+                }
+
+                const data = await response.json();
+                const responseText = data.content?.[0]?.text
+                    || data.choices?.[0]?.message?.content
+                    || (typeof data === 'string' ? data : JSON.stringify(data));
+
+                window.testResults.proxy = {
+                    success: true,
+                    duration,
+                    responseLength: responseText.length,
+                    promptSize: prompt.length
+                };
+
+                resultsEl.innerHTML = `
+                    <div class="results success">
+                        ✅ Proxy API call succeeded
+                        <div class="timing">⏱️ Total time: ${duration}ms (${(duration/1000).toFixed(2)}s)</div>
+                        <div style="margin-top: 10px;">
+                            <strong>Prompt size:</strong> ${prompt.length} chars<br>
+                            <strong>Response size:</strong> ${responseText.length} chars<br>
+                            <strong>Response preview:</strong><br>
+                            ${responseText.substring(0, 300)}...
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                const duration = Date.now() - startTime;
+                const isTimeout = duration >= 60000 && error.message.includes('timeout');
+
+                window.testResults.proxy = {
+                    success: false,
+                    duration,
+                    error: error.message,
+                    promptSize: prompt.length,
+                    isTimeout
+                };
+
+                resultsEl.innerHTML = `
+                    <div class="results error">
+                        ❌ Proxy API call failed
+                        <div class="timing">⏱️ Failed after: ${duration}ms (${(duration/1000).toFixed(2)}s)</div>
+                        <strong>Error:</strong> ${error.message}
+                        ${isTimeout ? '<p style="margin-top: 10px;">⚠️ <strong>This looks like a timeout issue!</strong></p>' : ''}
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                updateComparison();
+            }
+        }
+
+        function updateComparison() {
+            const comparisonEl = document.getElementById('comparison');
+            const recommendationsEl = document.getElementById('recommendations');
+            const { direct, proxy } = window.testResults;
+
+            if (!direct && !proxy) {
+                comparisonEl.innerHTML = '<p>Run tests to see comparison...</p>';
+                recommendationsEl.innerHTML = '';
+                return;
+            }
+
+            let html = '<div class="comparison">';
+
+            if (direct) {
+                html += `
+                    <div class="comparison-item">
+                        <h3>${direct.success ? '✅' : '❌'} Direct API</h3>
+                        <div class="metric">
+                            <span>Status:</span>
+                            <span class="metric-value">${direct.success ? 'Success' : 'Failed'}</span>
+                        </div>
+                        <div class="metric">
+                            <span>Duration:</span>
+                            <span class="metric-value">${(direct.duration/1000).toFixed(2)}s</span>
+                        </div>
+                        ${direct.success ? `
+                        <div class="metric">
+                            <span>Response Size:</span>
+                            <span class="metric-value">${direct.responseLength} chars</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            if (proxy) {
+                html += `
+                    <div class="comparison-item">
+                        <h3>${proxy.success ? '✅' : '❌'} Proxy API</h3>
+                        <div class="metric">
+                            <span>Status:</span>
+                            <span class="metric-value">${proxy.success ? 'Success' : 'Failed'}</span>
+                        </div>
+                        <div class="metric">
+                            <span>Duration:</span>
+                            <span class="metric-value">${(proxy.duration/1000).toFixed(2)}s</span>
+                        </div>
+                        ${proxy.success && direct ? `
+                        <div class="metric">
+                            <span>Overhead:</span>
+                            <span class="metric-value">+${((proxy.duration - direct.duration)/1000).toFixed(2)}s</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            comparisonEl.innerHTML = html;
+
+            // Generate recommendations
+            let recommendations = '';
+
+            if (direct && proxy) {
+                if (!proxy.success && direct.success) {
+                    if (proxy.isTimeout || proxy.duration >= 60000) {
+                        recommendations = `
+                            <div style="padding: 15px; background: #fff3cd; border-radius: 6px; border: 2px solid #ffc107;">
+                                <h3 style="margin-top: 0; color: #856404;">🔧 Timeout Detected in Proxy</h3>
+                                <p><strong>Problem:</strong> The proxy times out at ~60 seconds, but the AI request takes longer.</p>
+                                <p><strong>Solution:</strong> The PHP proxy timeout has been increased to 300s in ai-proxy.php</p>
+                                <p><strong>Next Steps:</strong></p>
+                                <ol>
+                                    <li>Clear your browser cache and reload the page</li>
+                                    <li>Try the proxy test again with a "Medium" or "Large" prompt</li>
+                                    <li>If still failing, check PHP's max_execution_time setting</li>
+                                </ol>
+                                <p><strong>Command to check PHP settings:</strong><br>
+                                <code style="background: #f5f5f5; padding: 5px; border-radius: 3px;">php -i | grep -E "(max_execution_time|timeout)"</code></p>
+                            </div>
+                        `;
+                    } else {
+                        recommendations = `
+                            <div style="padding: 15px; background: #f8d7da; border-radius: 6px; border: 2px solid #dc3545;">
+                                <h3 style="margin-top: 0; color: #721c24;">⚠️ Proxy Error (Not Timeout)</h3>
+                                <p><strong>Problem:</strong> Direct API works, but proxy fails for another reason.</p>
+                                <p><strong>Possible Causes:</strong></p>
+                                <ul>
+                                    <li>PHP configuration issue</li>
+                                    <li>CORS or header problem</li>
+                                    <li>Proxy script error</li>
+                                </ul>
+                                <p><strong>Check logs:</strong><br>
+                                <code style="background: #f5f5f5; padding: 5px; border-radius: 3px;">tail -f /home/cdr/domains/cdr2.com/www/job-tool/ai.log</code></p>
+                            </div>
+                        `;
+                    }
+                } else if (proxy.success && direct.success) {
+                    const overhead = proxy.duration - direct.duration;
+                    const overheadPct = ((overhead / direct.duration) * 100).toFixed(0);
+
+                    recommendations = `
+                        <div style="padding: 15px; background: #d4edda; border-radius: 6px; border: 2px solid #28a745;">
+                            <h3 style="margin-top: 0; color: #155724;">✅ Both Routes Working!</h3>
+                            <p><strong>Direct API:</strong> ${(direct.duration/1000).toFixed(2)}s</p>
+                            <p><strong>Proxy API:</strong> ${(proxy.duration/1000).toFixed(2)}s (${overheadPct}% overhead)</p>
+                            <p>The proxy adds ${(overhead/1000).toFixed(2)} seconds of overhead, which is ${overhead < 2000 ? 'acceptable' : 'significant but normal for proxied requests'}.</p>
+                            ${overhead < 60000 ? '<p><strong>✅ No timeout issues detected!</strong></p>' : '<p><strong>⚠️ The proxy is slow but not timing out. Consider using direct API when possible.</strong></p>'}
+                        </div>
+                    `;
+                } else if (!direct.success && !proxy.success) {
+                    recommendations = `
+                        <div style="padding: 15px; background: #f8d7da; border-radius: 6px; border: 2px solid #dc3545;">
+                            <h3 style="margin-top: 0; color: #721c24;">❌ Both Routes Failing</h3>
+                            <p>Both direct and proxy calls are failing. This suggests:</p>
+                            <ul>
+                                <li>Invalid API key</li>
+                                <li>API provider issue</li>
+                                <li>Network connectivity problem</li>
+                            </ul>
+                            <p>Double-check your API key and try again.</p>
+                        </div>
+                    `;
+                } else if (!direct.success && proxy.success) {
+                    recommendations = `
+                        <div style="padding: 15px; background: #d1ecf1; border-radius: 6px; border: 2px solid #17a2b8;">
+                            <h3 style="margin-top: 0; color: #0c5460;">ℹ️ Proxy Works, Direct Fails</h3>
+                            <p>This is unusual but can happen due to:</p>
+                            <ul>
+                                <li>CORS restrictions blocking direct calls</li>
+                                <li>Browser security policies</li>
+                                <li>API key format issues</li>
+                            </ul>
+                            <p><strong>Good news:</strong> The proxy is working, so your resume tailoring should work!</p>
+                        </div>
+                    `;
+                }
+            }
+
+            recommendationsEl.innerHTML = recommendations;
+        }
+
+        // Load API key from localStorage if available
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                const savedKeys = localStorage.getItem('resumeApiKeys');
+                if (savedKeys) {
+                    const keys = JSON.parse(savedKeys);
+                    if (keys.claude) {
+                        document.getElementById('apiKey').value = keys.claude;
+                        document.getElementById('apiProvider').value = 'claude';
+                    } else if (keys.chatgpt) {
+                        document.getElementById('apiKey').value = keys.chatgpt;
+                        document.getElementById('apiProvider').value = 'openai';
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load saved API keys:', e);
+            }
+        });
+    </script>
+</body>
+</html>

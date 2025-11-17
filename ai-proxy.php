@@ -56,7 +56,8 @@ if ($operation === 'parse-job' && $targetUrl) {
     $ch = curl_init($targetUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30); // Increased timeout for page fetch
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
     $page = curl_exec($ch);
     $err = curl_error($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -109,7 +110,8 @@ function post_json($url, $headers, $body) {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
-    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300); // Increased to 5 minutes for AI processing
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30); // Separate connection timeout
     $response = curl_exec($ch);
     $err = curl_error($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);

@@ -26,6 +26,14 @@ const SECTIONS = {
         showImportJob: false,
         showImportResume: false
     },
+    'job-search': {
+        title: 'Job Search',
+        icon: 'search',
+        showAddButton: false,
+        showImportJob: false,
+        showImportResume: false,
+        isPanel: true
+    },
     ai: {
         title: 'AI Interactions',
         icon: 'robot',
@@ -135,11 +143,13 @@ function updatePanelVisibility(section, config) {
     const helpPanel = document.getElementById('help-panel');
     const settingsPanel = document.getElementById('settings-panel');
     const aiAssistantPanel = document.getElementById('ai-assistant-panel');
+    const jobSearchPanel = document.getElementById('job-search-panel');
 
     // Hide all special panels first
     if (helpPanel) helpPanel.style.display = 'none';
     if (settingsPanel) settingsPanel.style.display = 'none';
     if (aiAssistantPanel) aiAssistantPanel.style.display = 'none';
+    if (jobSearchPanel) jobSearchPanel.style.display = 'none';
 
     if (config.isPanel) {
         // Hide main panels, show special panel
@@ -152,6 +162,9 @@ function updatePanelVisibility(section, config) {
                 break;
             case 'ai-assistant':
                 if (aiAssistantPanel) aiAssistantPanel.style.display = 'block';
+                break;
+            case 'job-search':
+                if (jobSearchPanel) jobSearchPanel.style.display = 'block';
                 break;
             case 'help':
                 if (helpPanel) helpPanel.style.display = 'block';

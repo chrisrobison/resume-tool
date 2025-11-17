@@ -1,0 +1,11 @@
+--2025-09-28 07:57:48--  https://hnrss.org/whoishiring/jobs.jsonfeed?count=50
+Resolving hnrss.org (hnrss.org)... 159.89.243.242
+Connecting to hnrss.org (hnrss.org)|159.89.243.242|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [application/json]
+Saving to: ‘jobs.jsonfeed?count=50’
+
+jobs.jsonfeed?count=50                                   [<=>                                                                                                                    ]       0  --.-KB/s               jobs.jsonfeed?count=50                                   [ <=>                                                                                                                   ]  78.48K  --.-KB/s    in 0.01s   
+
+2025-09-28 07:57:49 (5.76 MB/s) - ‘jobs.jsonfeed?count=50’ saved [80368]
+

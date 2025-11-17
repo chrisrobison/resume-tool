@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Feeds Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .job-preview {
+            border: 1px solid #e1e4e8;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            background: white;
+        }
+        .job-preview h4 {
+            margin: 0 0 8px 0;
+            color: #2c3e50;
+        }
+        .job-preview p {
+            margin: 4px 0;
+            font-size: 13px;
+            color: #555;
+        }
+        .success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .loading {
+            color: #3498db;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Job Feeds System Test</h1>
+
+    <div class="test-section">
+        <h2>Test 1: Feed Manager Initialization</h2>
+        <button id="test-init">Run Test</button>
+        <div id="test-init-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: HN Jobs Adapter Registration</h2>
+        <button id="test-adapter">Run Test</button>
+        <div id="test-adapter-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Fetch HN Jobs (San Francisco)</h2>
+        <button id="test-fetch">Run Test</button>
+        <div id="test-fetch-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Job Parsing & Conversion</h2>
+        <button id="test-parse">Run Test</button>
+        <div id="test-parse-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Live Feed Test</h2>
+        <p>Test with custom parameters:</p>
+        <input type="text" id="keywords" placeholder="Keywords (e.g., React, Python)" style="padding: 8px; margin-right: 10px; width: 200px;">
+        <input type="text" id="location" placeholder="Location (e.g., Remote, NYC)" style="padding: 8px; margin-right: 10px; width: 200px;">
+        <input type="number" id="limit" value="10" min="1" max="50" style="padding: 8px; width: 80px; margin-right: 10px;">
+        <button id="test-live">Fetch Jobs</button>
+        <div id="test-live-results"></div>
+    </div>
+
+    <script type="module">
+        import { getFeedManager, convertToInternalJob } from './js/job-feeds.js';
+        import { createHNJobsAdapter } from './js/feed-adapters/hn-jobs.js';
+
+        const feedManager = getFeedManager();
+
+        // Test 1: Initialization
+        document.getElementById('test-init').addEventListener('click', () => {
+            const resultsDiv = document.getElementById('test-init-results');
+            resultsDiv.innerHTML = '<p class="loading">Running test...</p>';
+
+            try {
+                const manager = getFeedManager();
+                const adapters = manager.getAllAdapters();
+
+                resultsDiv.innerHTML = `
+                    <p class="success">✓ Feed Manager initialized successfully</p>
+                    <p>Registered adapters: ${adapters.length}</p>
+                    <pre>${JSON.stringify({ manager: 'FeedManager', adapters: adapters.length }, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        });
+
+        // Test 2: Adapter Registration
+        document.getElementById('test-adapter').addEventListener('click', () => {
+            const resultsDiv = document.getElementById('test-adapter-results');
+            resultsDiv.innerHTML = '<p class="loading">Running test...</p>';
+
+            try {
+                const adapter = createHNJobsAdapter();
+                feedManager.registerAdapter('hn-jobs', adapter);
+
+                const registered = feedManager.getAdapter('hn-jobs');
+                const validation = registered.validate();
+
+                resultsDiv.innerHTML = `
+                    <p class="success">✓ HN Jobs adapter registered successfully</p>
+                    <p>Adapter name: ${registered.name}</p>
+                    <p>Enabled: ${registered.enabled}</p>
+                    <p>Valid: ${validation.valid}</p>
+                    <pre>${JSON.stringify({
+                        name: registered.name,
+                        enabled: registered.enabled,
+                        validation
+                    }, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        });
+
+        // Test 3: Fetch Jobs
+        document.getElementById('test-fetch').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('test-fetch-results');
+            resultsDiv.innerHTML = '<p class="loading">Fetching jobs from HN RSS...</p>';
+
+            try {
+                // Ensure adapter is registered
+                if (!feedManager.getAdapter('hn-jobs')) {
+                    const adapter = createHNJobsAdapter();
+                    feedManager.registerAdapter('hn-jobs', adapter);
+                }
+
+                const result = await feedManager.fetchJobs('hn-jobs', {
+                    location: 'San Francisco',
+                    limit: 10
+                });
+
+                if (result.success) {
+                    resultsDiv.innerHTML = `
+                        <p class="success">✓ Successfully fetched ${result.data.length} jobs</p>
+                        <p>Cached: ${result.cached}</p>
+                        <div>
+                            ${result.data.slice(0, 3).map(job => `
+                                <div class="job-preview">
+                                    <h4>${job.title}</h4>
+                                    <p><strong>Company:</strong> ${job.company}</p>
+                                    <p><strong>Location:</strong> ${job.location}</p>
+                                    <p><strong>Source:</strong> ${job.source}</p>
+                                    <p><strong>Remote:</strong> ${job.remote ? 'Yes' : 'No'}</p>
+                                    ${job.tags.length > 0 ? `<p><strong>Tags:</strong> ${job.tags.join(', ')}</p>` : ''}
+                                </div>
+                            `).join('')}
+                            ${result.data.length > 3 ? `<p>... and ${result.data.length - 3} more</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<p class="error">✗ Error: ${result.error}</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        });
+
+        // Test 4: Job Parsing
+        document.getElementById('test-parse').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('test-parse-results');
+            resultsDiv.innerHTML = '<p class="loading">Testing job parsing...</p>';
+
+            try {
+                // Ensure adapter is registered
+                if (!feedManager.getAdapter('hn-jobs')) {
+                    const adapter = createHNJobsAdapter();
+                    feedManager.registerAdapter('hn-jobs', adapter);
+                }
+
+                const result = await feedManager.fetchJobs('hn-jobs', { limit: 1 });
+
+                if (result.success && result.data.length > 0) {
+                    const feedJob = result.data[0];
+                    const internalJob = convertToInternalJob(feedJob);
+
+                    resultsDiv.innerHTML = `
+                        <p class="success">✓ Job parsed and converted successfully</p>
+                        <h4>Feed Format:</h4>
+                        <pre>${JSON.stringify(feedJob, null, 2)}</pre>
+                        <h4>Internal Format:</h4>
+                        <pre>${JSON.stringify(internalJob, null, 2)}</pre>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<p class="error">✗ No jobs to parse</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        });
+
+        // Test 5: Live Fetch
+        document.getElementById('test-live').addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('test-live-results');
+            const keywords = document.getElementById('keywords').value;
+            const location = document.getElementById('location').value;
+            const limit = parseInt(document.getElementById('limit').value) || 10;
+
+            resultsDiv.innerHTML = '<p class="loading">Fetching jobs...</p>';
+
+            try {
+                // Ensure adapter is registered
+                if (!feedManager.getAdapter('hn-jobs')) {
+                    const adapter = createHNJobsAdapter();
+                    feedManager.registerAdapter('hn-jobs', adapter);
+                }
+
+                const result = await feedManager.fetchJobs('hn-jobs', {
+                    keywords,
+                    location,
+                    limit
+                });
+
+                if (result.success) {
+                    resultsDiv.innerHTML = `
+                        <p class="success">✓ Found ${result.data.length} jobs</p>
+                        <p>Parameters: keywords="${keywords}", location="${location}", limit=${limit}</p>
+                        <div>
+                            ${result.data.map(job => `
+                                <div class="job-preview">
+                                    <h4>${job.title}</h4>
+                                    <p><strong>Company:</strong> ${job.company}</p>
+                                    <p><strong>Location:</strong> ${job.location}</p>
+                                    <p><strong>Posted:</strong> ${new Date(job.datePosted).toLocaleDateString()}</p>
+                                    ${job.remote ? '<p><strong>Remote</strong></p>' : ''}
+                                    ${job.tags.length > 0 ? `<p><strong>Tags:</strong> ${job.tags.slice(0, 5).join(', ')}</p>` : ''}
+                                    ${job.url ? `<p><a href="${job.url}" target="_blank">View Job</a></p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<p class="error">✗ Error: ${result.error}</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        });
+
+        // Auto-run initialization test on load
+        window.addEventListener('load', () => {
+            document.getElementById('test-init').click();
+        });
+    </script>
+</body>
+</html>

@@ -31,6 +31,10 @@
                     <i class="fas fa-envelope"></i>
                     <span>Letters</span>
                 </a>
+                <a href="#" class="nav-item" data-section="job-search">
+                    <i class="fas fa-search"></i>
+                    <span>Job Search</span>
+                </a>
                 <a href="#" class="nav-item" data-section="ai-assistant">
                     <i class="fas fa-magic"></i>
                     <span>AI Assistant</span>
@@ -104,6 +108,11 @@
                 <!-- Settings Panel -->
                 <div id="settings-panel" class="settings-panel" style="display:none; width:100%;">
                     <settings-manager></settings-manager>
+                </div>
+
+                <!-- Job Search Panel -->
+                <div id="job-search-panel" class="job-search-panel" style="display:none; width:100%;">
+                    <job-search></job-search>
                 </div>
 
                 <!-- AI Assistant Panel -->
@@ -509,8 +518,10 @@
     <script type="module" src="./components/global-store.js"></script>
     <script type="module" src="./components/settings-manager.js"></script>
     <script type="module" src="./components/ai-assistant-worker.js"></script>
+    <script type="module" src="./components/job-search.js"></script>
     <script type="module" src="./js/ai-service.js"></script>
     <script type="module" src="./js/store.js"></script>
+    <script type="module" src="./js/job-feeds.js"></script>
 
     <!-- Global Store Instance -->
     <global-store></global-store>
