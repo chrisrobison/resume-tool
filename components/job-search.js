@@ -57,66 +57,53 @@ class JobSearch extends ComponentBase {
     }
 
     setupEventListeners() {
-        console.log('JobSearch: Setting up event listeners');
         const root = this.shadowRoot;
 
         // Feed selector
         const feedSelect = root.querySelector('#feed-selector');
         if (feedSelect) {
-            feedSelect.addEventListener('change', this.handleFeedChange);
+            feedSelect.addEventListener('change', (e) => this.handleFeedChange(e));
         }
 
         // Search button
         const searchBtn = root.querySelector('#search-btn');
         if (searchBtn) {
-            searchBtn.addEventListener('click', this.handleSearch);
+            searchBtn.addEventListener('click', () => this.handleSearch());
         }
 
         // Clear results button
         const clearBtn = root.querySelector('#clear-btn');
         if (clearBtn) {
-            clearBtn.addEventListener('click', this.handleClearResults);
+            clearBtn.addEventListener('click', () => this.handleClearResults());
         }
 
         // Select all checkbox
         const selectAllCheckbox = root.querySelector('#select-all');
         if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', this.handleSelectAll);
+            selectAllCheckbox.addEventListener('change', (e) => this.handleSelectAll(e));
         }
 
         // Import button
         const importBtn = root.querySelector('#import-btn');
         if (importBtn) {
-            importBtn.addEventListener('click', this.handleImportSelected);
+            importBtn.addEventListener('click', () => this.handleImportSelected());
         }
 
         // Resume keyword extraction button
         const extractBtn = root.querySelector('#extract-keywords-btn');
         if (extractBtn) {
-            extractBtn.addEventListener('click', this.handleOpenResumeDialog);
+            extractBtn.addEventListener('click', () => this.handleOpenResumeDialog());
         }
 
         // Resume dialog buttons
         const closeDialogBtn = root.querySelector('#close-resume-dialog');
         if (closeDialogBtn) {
-            console.log('JobSearch: Attaching close dialog listener');
-            closeDialogBtn.addEventListener('click', this.handleCloseResumeDialog);
+            closeDialogBtn.addEventListener('click', () => this.handleCloseResumeDialog());
         }
 
         const extractDialogBtn = root.querySelector('#extract-dialog-btn');
         if (extractDialogBtn) {
-            console.log('JobSearch: Attaching extract dialog listener', extractDialogBtn);
-            console.log('JobSearch: Button disabled?', extractDialogBtn.disabled);
-            console.log('JobSearch: Handler bound?', typeof this.handleExtractKeywords);
-            console.log('JobSearch: Handler is:', this.handleExtractKeywords);
-
-            // Try direct call to verify handler works
-            extractDialogBtn.addEventListener('click', (e) => {
-                console.log('JobSearch: TEST LISTENER FIRED - calling handler directly');
-                this.handleExtractKeywords(e);
-            });
-        } else {
-            console.log('JobSearch: Extract dialog button not found in DOM');
+            extractDialogBtn.addEventListener('click', () => this.handleExtractKeywords());
         }
 
         // Job checkboxes (delegated)
@@ -223,25 +210,18 @@ class JobSearch extends ComponentBase {
     }
 
     handleOpenResumeDialog() {
-        console.log('JobSearch: Opening resume dialog');
         this._showResumeDialog = true;
         this.render();
     }
 
     handleCloseResumeDialog() {
-        console.log('JobSearch: Closing resume dialog');
         this._showResumeDialog = false;
         this.render();
     }
 
     async handleExtractKeywords() {
-        console.log('JobSearch: handleExtractKeywords called');
-
         const root = this.shadowRoot;
         const resumeSelect = root.querySelector('#resume-select');
-
-        console.log('JobSearch: Resume select element:', resumeSelect);
-        console.log('JobSearch: Selected resume ID:', resumeSelect?.value);
 
         if (!resumeSelect || !resumeSelect.value) {
             if (this._appManager?.showToast) {
@@ -254,9 +234,14 @@ class JobSearch extends ComponentBase {
 
         // Get resume data from app manager
         const resumes = this._appManager?.data?.resumes || [];
+        console.log('JobSearch: Available resumes:', resumes.length);
+        console.log('JobSearch: Looking for resume ID:', resumeId);
+
         const resume = resumes.find(r => r.id === resumeId);
+        console.log('JobSearch: Found resume:', resume ? 'YES' : 'NO');
 
         if (!resume) {
+            console.log('JobSearch: Resume not found - showing error');
             if (this._appManager?.showToast) {
                 this._appManager.showToast('Resume not found', 'error');
             }
@@ -265,12 +250,17 @@ class JobSearch extends ComponentBase {
 
         // Check if AI is configured
         const apiKeys = this.getApiKeys();
+        console.log('JobSearch: API keys:', apiKeys);
+
         if (!apiKeys || !apiKeys.key || !apiKeys.type) {
+            console.log('JobSearch: No API keys configured - showing error');
             if (this._appManager?.showToast) {
                 this._appManager.showToast('Please configure your API key in Settings first', 'error');
             }
             return;
         }
+
+        console.log('JobSearch: All checks passed - calling AI');
 
         // Set loading state
         this._extractingKeywords = true;
@@ -950,7 +940,7 @@ Return 5-10 most relevant keywords for job searching. Be specific and use terms 
 
                             <div class="dialog-actions">
                                 <button class="btn-text" id="close-resume-dialog">Cancel</button>
-                                <button class="btn btn-primary" id="extract-dialog-btn" ${resumes.length === 0 ? 'disabled' : ''} onclick="console.log('Button clicked via onclick!')">
+                                <button class="btn btn-primary" id="extract-dialog-btn" ${resumes.length === 0 ? 'disabled' : ''}>
                                     Extract Keywords
                                 </button>
                             </div>
