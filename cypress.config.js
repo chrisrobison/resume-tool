@@ -2,7 +2,7 @@ const { defineConfig } = require('cypress')
 
 module.exports = defineConfig({
   e2e: {
-    baseUrl: 'https://cdr2.com/job-tool',
+    baseUrl: 'http://localhost:8080',
     viewportWidth: 1280,
     viewportHeight: 720,
     screenshotOnRunFailure: true,

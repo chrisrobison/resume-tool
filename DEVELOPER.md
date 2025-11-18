@@ -26,6 +26,15 @@ The project has undergone a complete architectural transformation:
 6. **Zero Build Philosophy**: Pure ES6 modules with direct browser execution
 7. **Professional Code Organization**: Clean separation of concerns across 7 modules
 
+#### Data Layer (IndexedDB – scaffold)
+- Added `js/database.js` (main‑thread interface) and `workers/data-worker.js` (IndexedDB worker).
+- `app-manager` initializes the data worker on load and performs a best‑effort one‑time migration from `localStorage` when the DB is empty.
+- The UI still reads/writes via existing localStorage/state paths; the IndexedDB layer runs in the background for future adoption.
+- API preview:
+  - `import db from './js/database.js'`
+  - `await db.init(); await db.jobs.getAll(); await db.jobs.put(item);`
+  - Collections: `jobs`, `resumes`, `coverLetters`, `settings`, `logs`.
+
 ## Project Structure
 
 ```

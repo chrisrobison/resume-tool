@@ -38,7 +38,7 @@ function formatDateForInput(dateStr) {
  */
 export function generateFormHTML(schema, item, section) {
     try {
-        let html = '<div class="form-container">';
+        let html = `<div class="form-container" data-section="${section}">`;
         
         Object.entries(schema).forEach(([key, field]) => {
             if (field.type === 'hidden') return;
@@ -332,9 +332,22 @@ export function populateForm(form, data) {
  * @param {string} fieldKey - Field key
  */
 function validateFieldOnInput(fieldKey) {
-    // TODO: Implement real-time validation
-    // This would use the current section and schema to validate
-    console.log(`FormGenerator: Validating field on input: ${fieldKey}`);
+    try {
+        const field = document.querySelector(`[name="${fieldKey}"]`);
+        if (!field) return;
+        const container = field.closest('.form-container');
+        const section = container?.dataset?.section || document.getElementById('form-modal')?.dataset?.currentSection || null;
+        if (!section) return;
+        const value = field.type === 'checkbox' ? field.checked : field.value;
+        const result = validateField(section, fieldKey, value);
+        if (result.valid) {
+            clearFieldError(fieldKey);
+        } else {
+            showFieldError(fieldKey, result.message);
+        }
+    } catch (e) {
+        // Non-fatal
+    }
 }
 
 /**
@@ -342,8 +355,8 @@ function validateFieldOnInput(fieldKey) {
  * @param {string} fieldKey - Field key
  */
 function validateFieldOnBlur(fieldKey) {
-    // TODO: Implement blur validation
-    console.log(`FormGenerator: Validating field on blur: ${fieldKey}`);
+    // Reuse same logic as input (stricter on blur if needed later)
+    validateFieldOnInput(fieldKey);
 }
 
 /**
@@ -396,12 +409,25 @@ export function clearFieldError(fieldKey) {
  */
 export function validateForm(form, section) {
     const data = extractFormData(form);
-    // Import validateItem dynamically to avoid circular imports
-    import('./schema-definitions.js').then(({ validateItem }) => {
-        return validateItem(section, data);
-    });
-    // For now, return basic validation
-    return { valid: true, errors: {} };
+    const errors = {};
+    let valid = true;
+    try {
+        // Validate each named field present in the form using schema rules
+        const fields = form.querySelectorAll('input[name], textarea[name], select[name]');
+        fields.forEach((el) => {
+            const key = el.getAttribute('name');
+            const value = el.type === 'checkbox' ? el.checked : el.value;
+            const res = validateField(section, key, value);
+            if (!res.valid) {
+                valid = false;
+                errors[key] = res.message;
+            }
+        });
+    } catch (e) {
+        // If anything goes wrong, do not block save – fail open.
+        return { valid: true, errors: {} };
+    }
+    return { valid, errors };
 }
 
 // Make validation functions available globally for inline handlers

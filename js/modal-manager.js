@@ -517,15 +517,17 @@ function clearFieldErrors(fieldName = null) {
  * @param {Function} onCancel - Callback when cancelled (optional)
  */
 export function showConfirmation(message, onConfirm, onCancel = null) {
-    // For now, use native confirm dialog
-    // TODO: Implement custom confirmation modal
-    const confirmed = confirm(message);
-    
-    if (confirmed && onConfirm) {
-        onConfirm();
-    } else if (!confirmed && onCancel) {
-        onCancel();
-    }
+    const modal = ensureUtilityModal('confirmation-modal', 'Confirmation', message, [
+        { id: 'cancel', label: 'Cancel', className: 'btn', action: 'cancel' },
+        { id: 'ok', label: 'Confirm', className: 'btn btn-primary', action: 'confirm' }
+    ]);
+    showUtilityModal(modal, (action) => {
+        if (action === 'confirm') {
+            onConfirm && onConfirm();
+        } else if (action === 'cancel') {
+            onCancel && onCancel();
+        }
+    });
 }
 
 /**
@@ -534,9 +536,89 @@ export function showConfirmation(message, onConfirm, onCancel = null) {
  * @param {string} type - Alert type (info, warning, error, success)
  */
 export function showAlert(message, type = 'info') {
-    // For now, use native alert dialog
-    // TODO: Implement custom alert modal
-    alert(message);
+    const titleMap = { info: 'Info', warning: 'Warning', error: 'Error', success: 'Success' };
+    const modal = ensureUtilityModal('alert-modal', titleMap[type] || 'Alert', message, [
+        { id: 'ok', label: 'OK', className: 'btn btn-primary', action: 'ok' }
+    ]);
+    showUtilityModal(modal, () => {});
+}
+
+// --- Utility modal helpers ---
+function ensureUtilityModal(id, title, message, buttons) {
+    let backdrop = document.getElementById(id);
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = id;
+        backdrop.className = 'modal-backdrop hidden';
+        backdrop.innerHTML = `
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="${id}-title">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="${id}-title"></h3>
+                    <button class="modal-close" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body"><div class="modal-message"></div></div>
+                <div class="modal-footer"></div>
+            </div>
+        `;
+        document.body.appendChild(backdrop);
+        // Close on backdrop click
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) hideUtilityModal(backdrop);
+        });
+        // Close on header X
+        backdrop.querySelector('.modal-close')?.addEventListener('click', () => hideUtilityModal(backdrop));
+        // ESC key
+        document.addEventListener('keydown', (e) => {
+            if (backdrop.classList.contains('hidden')) return;
+            if (e.key === 'Escape') hideUtilityModal(backdrop);
+        });
+    }
+    // Populate content
+    const titleEl = backdrop.querySelector('.modal-title');
+    const msgEl = backdrop.querySelector('.modal-message');
+    const footer = backdrop.querySelector('.modal-footer');
+    if (titleEl) titleEl.textContent = title || '';
+    if (msgEl) msgEl.textContent = message || '';
+    if (footer) {
+        footer.innerHTML = '';
+        buttons.forEach((btn) => {
+            const b = document.createElement('button');
+            b.id = `${id}-${btn.id}`;
+            b.className = btn.className || 'btn';
+            b.textContent = btn.label;
+            b.dataset.action = btn.action || btn.id;
+            footer.appendChild(b);
+        });
+    }
+    return backdrop;
+}
+
+function showUtilityModal(backdrop, onAction) {
+    if (!backdrop) return;
+    // Wire button handlers
+    backdrop.querySelectorAll('.modal-footer button').forEach((btn) => {
+        btn.onclick = () => {
+            const action = btn.dataset.action || 'ok';
+            hideUtilityModal(backdrop);
+            onAction && onAction(action);
+        };
+    });
+    // Show
+    try {
+        hideAllModals();
+    } catch (e) { /* ignore */ }
+    backdrop.classList.remove('hidden');
+    backdrop.style.display = 'flex';
+    setTimeout(() => {
+        const first = backdrop.querySelector('.modal-footer button') || backdrop.querySelector('.modal-close');
+        first && first.focus && first.focus();
+    }, 30);
+}
+
+function hideUtilityModal(backdrop) {
+    if (!backdrop) return;
+    backdrop.classList.add('hidden');
+    try { backdrop.style.removeProperty('display'); } catch (e) {}
 }
 
 // Initialize modal manager when module loads

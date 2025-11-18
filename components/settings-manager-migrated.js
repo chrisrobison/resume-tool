@@ -247,6 +247,17 @@ class SettingsManagerMigrated extends ComponentBase {
                 autoBackup: true,
                 maxVersions: 10
             },
+            jobFeeds: {
+                keywords: '',
+                autoImport: false,
+                notifyOnReady: true,
+                sources: {
+                    hackernews: true,
+                    linkedin: false,
+                    indeed: false
+                },
+                lastFetchedAt: null
+            },
             privacy: {
                 saveApiKeys: true,
                 logApiCalls: true,
@@ -466,13 +477,51 @@ class SettingsManagerMigrated extends ComponentBase {
                             <input type="checkbox" id="auto-save" ${prefs.autoSave ? 'checked' : ''}>
                             Auto-save changes
                         </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="show-progress" ${prefs.showProgressDetails ? 'checked' : ''}>
+                        Show detailed progress information
+                    </label>
+                </div>
+                </div>
+
+                <div class="setting-group">
+                    <h3>Job Feed Automation</h3>
+                    <p>Configure background fetching of new job listings from supported sources.</p>
+                    <div class="form-group">
+                        <label for="jobfeed-keywords">Target Keywords</label>
+                        <input type="text" id="jobfeed-keywords" placeholder="e.g. javascript, remote, ai"
+                            value="${settings.jobFeeds?.keywords || ''}">
+                        <small>Comma-separated keywords used to filter external job sources.</small>
                     </div>
-                    
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" id="show-progress" ${prefs.showProgressDetails ? 'checked' : ''}>
-                            Show detailed progress information
+                            <input type="checkbox" id="jobfeed-auto-import" ${settings.jobFeeds?.autoImport ? 'checked' : ''}>
+                            Automatically import matching roles into my Jobs list
                         </label>
+                    </div>
+                    <div class="form-group jobfeed-sources">
+                        <label>Sources</label>
+                        <div class="jobfeed-source-grid">
+                            <label>
+                                <input type="checkbox" data-jobfeed-source="hackernews"
+                                    ${settings.jobFeeds?.sources?.hackernews !== false ? 'checked' : ''}>
+                                Hacker News (Who’s Hiring)
+                            </label>
+                            <label>
+                                <input type="checkbox" data-jobfeed-source="linkedin"
+                                    ${settings.jobFeeds?.sources?.linkedin ? 'checked' : ''}>
+                                LinkedIn (beta)
+                            </label>
+                            <label>
+                                <input type="checkbox" data-jobfeed-source="indeed"
+                                    ${settings.jobFeeds?.sources?.indeed ? 'checked' : ''}>
+                                Indeed (beta)
+                            </label>
+                        </div>
+                        <small>Only enabled sources will be queued for automatic polling.</small>
                     </div>
                 </div>
             </div>
@@ -670,6 +719,14 @@ class SettingsManagerMigrated extends ComponentBase {
                 settings.apiProviders[provider] = {};
             }
             settings.apiProviders[provider][field] = target.value;
+        } else if (target.dataset.jobfeedSource) {
+            if (!settings.jobFeeds) {
+                settings.jobFeeds = { ...this.getDefaultSettings().jobFeeds };
+            }
+            if (!settings.jobFeeds.sources) {
+                settings.jobFeeds.sources = {};
+            }
+            settings.jobFeeds.sources[target.dataset.jobfeedSource] = target.checked;
         } else {
             // Other settings fields
             const fieldMap = {
@@ -680,7 +737,9 @@ class SettingsManagerMigrated extends ComponentBase {
                 'default-template': 'resume.defaultTemplate',
                 'auto-backup': 'resume.autoBackup',
                 'save-api-keys': 'privacy.saveApiKeys',
-                'log-api-calls': 'privacy.logApiCalls'
+                'log-api-calls': 'privacy.logApiCalls',
+                'jobfeed-keywords': 'jobFeeds.keywords',
+                'jobfeed-auto-import': 'jobFeeds.autoImport'
             };
             
             const path = fieldMap[target.id];
@@ -744,6 +803,21 @@ class SettingsManagerMigrated extends ComponentBase {
         const defaultProviderEl = this.shadowRoot.getElementById('default-provider');
         if (!settings.preferences) settings.preferences = {};
         if (defaultProviderEl) settings.preferences.defaultProvider = defaultProviderEl.value;
+
+        // Job feed settings
+        if (!settings.jobFeeds) settings.jobFeeds = { ...this.getDefaultSettings().jobFeeds };
+        const keywordsEl = this.shadowRoot.getElementById('jobfeed-keywords');
+        if (keywordsEl) settings.jobFeeds.keywords = keywordsEl.value || '';
+        const autoImportEl = this.shadowRoot.getElementById('jobfeed-auto-import');
+        if (autoImportEl) settings.jobFeeds.autoImport = !!autoImportEl.checked;
+        if (!settings.jobFeeds.sources) settings.jobFeeds.sources = {};
+        const sourceEls = this.shadowRoot.querySelectorAll('[data-jobfeed-source]');
+        sourceEls.forEach((el) => {
+            const id = el.dataset.jobfeedSource;
+            if (id) {
+                settings.jobFeeds.sources[id] = el.checked;
+            }
+        });
 
         this.setData(settings, 'form-sync');
     }
@@ -906,6 +980,28 @@ class SettingsManagerMigrated extends ComponentBase {
             .form-group input[type="checkbox"] {
                 width: auto;
                 margin-right: 8px;
+            }
+
+            .jobfeed-source-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 8px 16px;
+                margin-top: 6px;
+            }
+
+            .jobfeed-source-grid label {
+                font-size: 13px;
+                color: #495057;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .jobfeed-sources small {
+                display: block;
+                margin-top: 6px;
+                color: #868e96;
+                font-size: 12px;
             }
             
             .api-provider {

@@ -49,9 +49,10 @@ $operation = $input['operation'] ?? null;
 $requestedModel = $input['model'] ?? null;
 $targetUrl = $input['targetUrl'] ?? null;
 $instructions = $input['instructions'] ?? null;
+$jobFilters = $input['jobFilters'] ?? null;
 
 // If operation requests server-side fetch + parse, fetch the target URL and embed content
-if ($operation === 'parse-job' && $targetUrl) {
+if (($operation === 'parse-job' || $operation === 'parse-job-list') && $targetUrl) {
     // Fetch the target URL content server-side
     $ch = curl_init($targetUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -78,13 +79,45 @@ if ($operation === 'parse-job' && $targetUrl) {
     }
 
     // Build a focused parsing prompt for the AI
-    $parsePrompt = "You are an expert at extracting structured data from job postings. Return ONLY a single JSON object (no commentary) with the following keys if available: title, company, location, description, requirements, skills, seniority, employmentType, postedDate, applyUrl, rawText. Use null for missing values.\n\n";
-    if ($instructions) {
-        $parsePrompt .= "Additional instructions: " . $instructions . "\n\n";
+    if ($operation === 'parse-job') {
+        $parsePrompt = "You are an expert at extracting structured data from job postings. Return ONLY a single JSON object (no commentary) with the following keys if available: title, company, location, description, requirements, skills, seniority, employmentType, postedDate, applyUrl, rawText. Use null for missing values.\n\n";
+        if ($instructions) {
+            $parsePrompt .= "Additional instructions: " . $instructions . "\n\n";
+        }
+        $parsePrompt .= "Page content (server-fetched):\n" . $pageText . "\n\nRespond with the JSON object only.";
+        // Override prompt with the parse prompt
+        $prompt = $parsePrompt;
+    } else {
+        $maxJobs = 20;
+        if (is_array($jobFilters) && isset($jobFilters['maxJobs'])) {
+            $maxJobs = (int)$jobFilters['maxJobs'];
+        }
+        if ($maxJobs < 1) $maxJobs = 1;
+        if ($maxJobs > 50) $maxJobs = 50;
+
+        $keywordInstruction = '';
+        if (is_array($jobFilters) && isset($jobFilters['keywords'])) {
+            $keywordList = $jobFilters['keywords'];
+            if (!is_array($keywordList)) {
+                $keywordList = [$keywordList];
+            }
+            $keywordList = array_filter(array_map('trim', $keywordList));
+            if (!empty($keywordList)) {
+                $keywordInstruction = "Focus on roles that align with these keywords: " . implode(', ', $keywordList) . ". Add a matchedKeywords array per job noting which of these keywords appear.\n";
+            }
+        }
+
+        $parsePrompt = "You are an expert at extracting structured data from a collection of job postings. Return ONLY a JSON array (no commentary) of job objects. Each object should include, when available: id, title, company, location, remote (boolean), summary, description, requirements (array), responsibilities (array), skills (array), tags (array), matchedKeywords (array), jobType, postedDate, compensation, applyUrl, sourceUrl, rawText.\n";
+        $parsePrompt .= "Limit the list to at most {$maxJobs} distinct positions. Normalize text fields and keep descriptions under 4000 characters.\n";
+        if ($keywordInstruction) {
+            $parsePrompt .= $keywordInstruction;
+        }
+        if ($instructions) {
+            $parsePrompt .= "Additional instructions: " . $instructions . "\n";
+        }
+        $parsePrompt .= "Server-fetched page content:\n" . $pageText . "\n\nRespond with the JSON array only.";
+        $prompt = $parsePrompt;
     }
-    $parsePrompt .= "Page content (server-fetched):\n" . $pageText . "\n\nRespond with the JSON object only.";
-    // Override prompt with the parse prompt
-    $prompt = $parsePrompt;
 }
 
 // Use .env API key if not provided in request
@@ -176,4 +209,3 @@ if ($err) {
 file_put_contents("ai.log", json_encode($response), FILE_APPEND);
 http_response_code($status);
 echo $response;
-

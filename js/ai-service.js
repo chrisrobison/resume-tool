@@ -201,6 +201,25 @@ class AIService {
     }
 
     /**
+     * Ingest jobs from a remote source (URL or raw content)
+     * and optionally analyze match scores against a resume
+     * @param {Object} options - Configuration object
+     * @param {string} options.url - Source URL containing multiple job postings
+     * @param {string} options.content - Raw job post content (optional alternative to URL)
+     * @param {Object} options.resume - Resume data for match scoring
+     * @param {Array<string>} options.keywords - Keywords to highlight/filter
+     * @param {number} options.maxJobs - Maximum number of jobs to return
+     * @param {boolean} options.includeAnalysis - Whether to run match analysis
+     * @param {string} options.provider - AI provider ('claude', 'openai', 'webllm')
+     * @param {string} options.apiKey - API key for the provider (ignored for webLLM)
+     * @param {Function} options.onProgress - Progress callback function
+     * @returns {Promise} Promise that resolves with structured job list data
+     */
+    async ingestJobs(options) {
+        return this.makeRequest('ingest-jobs', options);
+    }
+
+    /**
      * Test an API key
      * @param {Object} options - Configuration object
      * @param {string} options.provider - AI provider ('claude' or 'openai')

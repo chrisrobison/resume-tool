@@ -1,7 +1,9 @@
 // Job Manager Component - Migrated to ComponentBase
-// Comprehensive job application management with auto-save, status tracking, and resume integration
+// Comprehensive job application management with auto-save, status tracking, AI ingestion, and resume integration
 
 import { ComponentBase } from '../js/component-base.js';
+import aiService from '../js/ai-service.js';
+import { createDefaultJob } from '../js/jobs.js';
 
 class JobManagerMigrated extends ComponentBase {
     constructor() {
@@ -13,6 +15,26 @@ class JobManagerMigrated extends ComponentBase {
         this._currentTab = 'details';
         this._autoSaveStatus = 'saved';
         this._autoSaveTimeout = null;
+        this._strongMatchThreshold = 75;
+        this._ingestionState = {
+            url: '',
+            keywords: '',
+            maxJobs: 15,
+            includeAnalysis: true,
+            isLoading: false,
+            progress: '',
+            error: null,
+            results: [],
+            metadata: null,
+            lastSourceUrl: null
+        };
+        this._generationState = {
+            includeResume: true,
+            includeCoverLetter: true,
+            isProcessing: false,
+            progress: '',
+            error: null
+        };
         
         // Bind methods for external access and event handling
         this.loadJobs = this.loadJobs.bind(this);
@@ -54,6 +76,7 @@ class JobManagerMigrated extends ComponentBase {
         
         // Load jobs from storage and global state
         await this.loadJobs();
+        this.applyJobFeedDefaults();
         
         // Set initial data state
         this.setData({
@@ -388,6 +411,7 @@ class JobManagerMigrated extends ComponentBase {
     selectJob(jobId) {
         if (this._jobs[jobId]) {
             this._selectedJob = this._jobs[jobId];
+            this.resetGenerationState();
             this.setData({ selectedJob: this._selectedJob }, 'select-job');
             this.emitEvent('job-selected', { job: this._selectedJob });
         }
@@ -829,18 +853,22 @@ class JobManagerMigrated extends ComponentBase {
     setupEventListeners() {
         // Job list clicks
         this.addEventListener('click', (e) => {
-            if (e.target.matches('.job-item')) {
-                const jobId = e.target.dataset.jobId;
-                if (jobId) this.handleSelectJob(jobId);
+            const deleteBtn = e.target.closest('.delete-job-btn');
+            if (deleteBtn) {
+                const jobId = deleteBtn.dataset.jobId;
+                if (jobId) this.handleDeleteJob(jobId);
+                return;
             }
-            
+
+            const jobItem = e.target.closest('.job-item');
+            if (jobItem) {
+                const jobId = jobItem.dataset.jobId;
+                if (jobId) this.handleSelectJob(jobId);
+                return;
+            }
+
             if (e.target.matches('.add-job-btn')) {
                 this.handleAddJob();
-            }
-            
-            if (e.target.matches('.delete-job-btn')) {
-                const jobId = e.target.dataset.jobId;
-                if (jobId) this.handleDeleteJob(jobId);
             }
         });
         
@@ -853,6 +881,18 @@ class JobManagerMigrated extends ComponentBase {
         
         // Form inputs
         this.addEventListener('input', (e) => {
+            const generateField = e.target.dataset.generateField;
+            if (generateField) {
+                this.handleGenerationFieldChange(generateField, e.target);
+                return;
+            }
+
+            const ingestField = e.target.dataset.ingestField;
+            if (ingestField) {
+                this.handleIngestionFieldChange(ingestField, e.target);
+                return;
+            }
+
             const field = e.target.dataset.field;
             if (field) {
                 this.handleFormInput(field, e.target.value);
@@ -861,6 +901,18 @@ class JobManagerMigrated extends ComponentBase {
         
         // Status updates
         this.addEventListener('change', (e) => {
+            const generateField = e.target.dataset.generateField;
+            if (generateField) {
+                this.handleGenerationFieldChange(generateField, e.target);
+                return;
+            }
+
+            const ingestField = e.target.dataset.ingestField;
+            if (ingestField) {
+                this.handleIngestionFieldChange(ingestField, e.target);
+                return;
+            }
+
             if (e.target.matches('#job-status')) {
                 this.handleUpdateStatus(e.target.value);
             }
@@ -874,6 +926,1195 @@ class JobManagerMigrated extends ComponentBase {
                 this.handleResumeAction(action, { resumeId });
             }
         });
+
+        // AI ingestion actions
+        this.addEventListener('click', (e) => {
+            const actionEl = e.target.closest('[data-action]');
+            if (!actionEl) return;
+
+            const action = actionEl.dataset.action;
+            switch (action) {
+                case 'ingest-jobs':
+                    this.handleIngestJobs();
+                    break;
+                case 'clear-ingestion-results':
+                    this.clearIngestionResults();
+                    break;
+                case 'import-ingested-job': {
+                    const index = parseInt(actionEl.dataset.index, 10);
+                    if (!Number.isNaN(index)) {
+                        this.handleImportIngestedJob(index);
+                    }
+                    break;
+                }
+                case 'import-all-ingested':
+                    this.handleImportAllIngestedJobs();
+                    break;
+                case 'generate-ai-docs':
+                    this.handleGenerateAIDocuments();
+                    break;
+                case 'download-ai-doc': {
+                    const docType = actionEl.dataset.docType;
+                    this.handleDownloadAIDocument(docType);
+                    break;
+                }
+                default:
+                    break;
+            }
+        });
+    }
+
+    handleIngestionFieldChange(field, target) {
+        if (!target) return;
+        
+        let value;
+        if (target.type === 'checkbox') {
+            value = target.checked;
+        } else if (field === 'maxJobs') {
+            const parsed = parseInt(target.value, 10);
+            if (Number.isNaN(parsed)) {
+                value = this._ingestionState.maxJobs || 15;
+            } else {
+                value = Math.min(50, Math.max(1, parsed));
+            }
+        } else {
+            value = target.value;
+        }
+
+        this.updateIngestionState({ [field]: value }, false);
+    }
+
+    resetGenerationState() {
+        this._generationState = {
+            includeResume: true,
+            includeCoverLetter: true,
+            isProcessing: false,
+            progress: '',
+            error: null
+        };
+    }
+
+    applyJobFeedDefaults() {
+        try {
+            if (this._ingestionState.keywords) return;
+            const state = this.getGlobalState();
+            const prefs = state?.settings?.jobFeeds;
+            if (prefs?.keywords) {
+                this._ingestionState.keywords = prefs.keywords;
+            }
+        } catch (error) {
+            console.warn('JobManager: Unable to apply job feed defaults', error);
+        }
+    }
+
+    updateIngestionState(updates = {}, rerender = true) {
+        this._ingestionState = {
+            ...this._ingestionState,
+            ...updates
+        };
+
+        if (rerender) {
+            this.render();
+        } else {
+            this.updateIngestionProgressDisplay();
+        }
+    }
+
+    updateIngestionProgressDisplay() {
+        const progressNode = this.querySelector('.ai-ingest-progress-text');
+        if (progressNode) {
+            progressNode.textContent = this._ingestionState.progress || '';
+        }
+
+        const spinner = this.querySelector('.ai-ingest-spinner');
+        if (spinner) {
+            spinner.classList.toggle('hidden', !this._ingestionState.isLoading);
+        }
+    }
+
+    normalizeKeywords(value) {
+        if (Array.isArray(value)) {
+            return value.map(kw => typeof kw === 'string' ? kw.trim() : kw).filter(Boolean);
+        }
+        if (typeof value === 'string') {
+            return value
+                .split(/[,;]+/g)
+                .map(kw => kw.trim())
+                .filter(Boolean);
+        }
+        return [];
+    }
+
+    resolveAIProvider(preferred = null) {
+        try {
+            const state = this.getGlobalState();
+            const providers = state?.settings?.apiProviders || {};
+            const order = [];
+            if (preferred) order.push(preferred);
+            order.push('openai', 'claude');
+
+            const seen = new Set();
+            for (const provider of order) {
+                if (!provider || seen.has(provider)) continue;
+                seen.add(provider);
+                const config = providers[provider];
+                if (config && config.apiKey) {
+                    return {
+                        provider,
+                        apiKey: config.apiKey,
+                        model: config.model || null,
+                        route: config.route || 'auto'
+                    };
+                }
+            }
+
+            const localFallbacks = [
+                { provider: 'openai', key: 'openai_api_key' },
+                { provider: 'claude', key: 'claude_api_key' },
+                { provider: 'openai', key: 'api_key' }
+            ];
+
+            for (const candidate of localFallbacks) {
+                const stored = localStorage.getItem(candidate.key);
+                if (stored) {
+                    return {
+                        provider: candidate.provider,
+                        apiKey: stored,
+                        model: null,
+                        route: 'auto'
+                    };
+                }
+            }
+        } catch (error) {
+            console.warn('JobManager: Failed to resolve AI provider', error);
+        }
+
+        return null;
+    }
+
+    getActiveResumeData() {
+        try {
+            const state = this.getGlobalState();
+            const currentResume = state?.currentResume || null;
+
+            const clone = (data) => JSON.parse(JSON.stringify(data));
+
+            if (currentResume) {
+                if (currentResume.data) {
+                    return clone(currentResume.data);
+                }
+                if (currentResume.content) {
+                    if (typeof currentResume.content === 'string') {
+                        try {
+                            return JSON.parse(currentResume.content);
+                        } catch (error) {
+                            console.warn('JobManager: Failed to parse current resume content', error);
+                        }
+                    } else {
+                        return clone(currentResume.content);
+                    }
+                }
+            }
+
+            if (Array.isArray(state?.resumes) && state.resumes.length > 0) {
+                const defaultResume = state.resumes.find(resume => resume.isDefault) || state.resumes[0];
+                if (defaultResume) {
+                    if (defaultResume.data) {
+                        return clone(defaultResume.data);
+                    }
+                    if (defaultResume.content) {
+                        if (typeof defaultResume.content === 'string') {
+                            try {
+                                return JSON.parse(defaultResume.content);
+                            } catch (error) {
+                                console.warn('JobManager: Failed to parse default resume content', error);
+                            }
+                        } else {
+                            return clone(defaultResume.content);
+                        }
+                    }
+                }
+            }
+
+            if (window.app && window.app.data) {
+                return clone(window.app.data);
+            }
+
+            if (window.appManager && window.appManager.data?.resume) {
+                return clone(window.appManager.data.resume);
+            }
+        } catch (error) {
+            console.warn('JobManager: Unable to extract resume data', error);
+        }
+        return null;
+    }
+
+    getJobFeedPreferences() {
+        try {
+            const state = this.getGlobalState();
+            return state?.settings?.jobFeeds || null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    async handleIngestJobs() {
+        if (this._ingestionState.isLoading) return;
+
+        const url = (this._ingestionState.url || '').trim();
+        if (!url) {
+            this.showToast('Enter a job listing URL to fetch.', 'warning');
+            return;
+        }
+
+        if (!aiService || typeof aiService.isWorkerReady !== 'function' || !aiService.isWorkerReady()) {
+            this.showToast('AI worker is still loading. Please try again in a moment.', 'warning');
+            return;
+        }
+
+        const providerInfo = this.resolveAIProvider();
+        if (!providerInfo) {
+            this.showToast('Configure an AI provider in Settings before using job ingestion.', 'error');
+            return;
+        }
+
+        const keywordList = this.normalizeKeywords(this._ingestionState.keywords);
+        let includeAnalysis = !!this._ingestionState.includeAnalysis;
+        let resumeData = null;
+
+        if (includeAnalysis) {
+            resumeData = this.getActiveResumeData();
+            if (!resumeData) {
+                includeAnalysis = false;
+                this.showToast('No resume detected. Fetching jobs without match scoring.', 'warning');
+            }
+        }
+
+        const maxJobs = Math.min(50, Math.max(1, parseInt(this._ingestionState.maxJobs, 10) || 15));
+
+        this.updateIngestionState({
+            isLoading: true,
+            progress: 'Preparing AI request...',
+            error: null,
+            metadata: null
+        });
+
+        try {
+            const result = await aiService.ingestJobs({
+                url,
+                keywords: keywordList,
+                maxJobs,
+                includeAnalysis,
+                resume: includeAnalysis ? resumeData : null,
+                provider: providerInfo.provider,
+                apiKey: providerInfo.apiKey,
+                model: providerInfo.model,
+                route: providerInfo.route,
+                onProgress: (message) => {
+                    this._ingestionState.progress = message;
+                    this.updateIngestionProgressDisplay();
+                }
+            });
+
+            const jobs = Array.isArray(result?.jobs)
+                ? result.jobs.slice()
+                : Array.isArray(result?.result?.jobs)
+                    ? result.result.jobs.slice()
+                    : [];
+
+            const sorted = jobs.sort((a, b) => {
+                const scoreA = typeof a.matchScore === 'number' ? a.matchScore : -1;
+                const scoreB = typeof b.matchScore === 'number' ? b.matchScore : -1;
+                if (scoreB !== scoreA) return scoreB - scoreA;
+                return (a.order || 0) - (b.order || 0);
+            });
+
+            this.updateIngestionState({
+                isLoading: false,
+                progress: sorted.length ? `Found ${sorted.length} jobs` : 'No jobs found',
+                results: sorted,
+                metadata: result?.metadata || null,
+                lastSourceUrl: url
+            });
+
+            this.showToast(
+                sorted.length ? `Fetched ${sorted.length} job${sorted.length === 1 ? '' : 's'}` : 'No jobs detected at that source.',
+                sorted.length ? 'success' : 'info'
+            );
+        } catch (error) {
+            console.error('JobManager: Job ingestion failed', error);
+            this.updateIngestionState({
+                isLoading: false,
+                progress: '',
+                error: error?.message || 'Job ingestion failed. Please try again.'
+            });
+            this.showToast('Job ingestion failed. Check the console for details.', 'error');
+        }
+    }
+
+    clearIngestionResults() {
+        if (this._ingestionState.isLoading) return;
+        if (!this._ingestionState.results?.length && !this._ingestionState.progress) return;
+
+        this.updateIngestionState({
+            results: [],
+            progress: '',
+            error: null,
+            metadata: null
+        });
+    }
+
+    handleImportIngestedJob(index) {
+        const results = Array.isArray(this._ingestionState.results) ? this._ingestionState.results : [];
+        if (!results.length) return;
+        const target = results[index];
+        if (!target) return;
+
+        const job = this.buildAIImportedJob(target, index);
+        if (!job) {
+            this.showToast('Unable to import the selected job.', 'error');
+            return;
+        }
+
+        this._jobs[job.id] = job;
+        this._selectedJob = job;
+        this.saveJobsToStorage();
+        this.setData({
+            jobs: this._jobs,
+            selectedJob: this._selectedJob
+        }, 'ai-ingest-import');
+
+        const remaining = results.filter((_, idx) => idx !== index);
+        this.updateIngestionState({
+            results: remaining,
+            progress: remaining.length ? `${remaining.length} job${remaining.length === 1 ? '' : 's'} remaining` : '',
+            metadata: this._ingestionState.metadata
+        });
+
+        this.showToast('Job imported from AI results.', 'success');
+    }
+
+    handleImportAllIngestedJobs() {
+        const results = Array.isArray(this._ingestionState.results) ? this._ingestionState.results : [];
+        if (!results.length) return;
+
+        let lastImported = null;
+        results.forEach((result, index) => {
+            const job = this.buildAIImportedJob(result, index);
+            if (job) {
+                this._jobs[job.id] = job;
+                lastImported = job;
+            }
+        });
+
+        if (lastImported) {
+            this._selectedJob = lastImported;
+            this.saveJobsToStorage();
+            this.setData({
+                jobs: this._jobs,
+                selectedJob: this._selectedJob
+            }, 'ai-ingest-import-all');
+
+            this.updateIngestionState({
+                results: [],
+                progress: '',
+                metadata: this._ingestionState.metadata
+            });
+
+            this.showToast(`Imported ${results.length} job${results.length === 1 ? '' : 's'} from AI results.`, 'success');
+        } else {
+            this.showToast('No valid jobs were imported.', 'warning');
+        }
+    }
+
+    buildAIImportedJob(result, position = 0) {
+        if (!result || typeof result !== 'object') return null;
+
+        const now = new Date().toISOString();
+        const job = createDefaultJob();
+        job.id = this.generateJobId();
+        job.title = result.title || 'Untitled Position';
+        job.company = result.company || '';
+        job.location = result.location || (result.remote ? 'Remote' : '');
+        job.description = (result.description || result.rawText || '').slice(0, 10000);
+        job.url = result.applyUrl || result.sourceUrl || this._ingestionState.lastSourceUrl || '';
+        job.notes = this.buildImportedJobNotes(result);
+        job.dateCreated = now;
+        job.dateUpdated = now;
+
+        job.aiMatch = {
+            score: typeof result.matchScore === 'number' ? Math.round(result.matchScore) : null,
+            status: result.matchStatus || null,
+            analysis: result.matchAnalysis || null,
+            matchedKeywords: Array.isArray(result.matchedKeywords) ? result.matchedKeywords : [],
+            tags: Array.isArray(result.tags) ? result.tags : [],
+            skills: Array.isArray(result.skills) ? result.skills : [],
+            requirements: Array.isArray(result.requirements) ? result.requirements : [],
+            responsibilities: Array.isArray(result.responsibilities) ? result.responsibilities : [],
+            summary: result.summary || '',
+            sourceUrl: result.sourceUrl || this._ingestionState.lastSourceUrl || '',
+            applyUrl: result.applyUrl || '',
+            jobType: result.jobType || '',
+            compensation: result.compensation || '',
+            remote: result.remote ?? null,
+            importedAt: now,
+            order: typeof result.order === 'number' ? result.order : position + 1,
+            rawText: result.rawText || ''
+        };
+
+        job.source = {
+            type: 'ai-ingest',
+            url: result.sourceUrl || this._ingestionState.lastSourceUrl || '',
+            fetchedAt: now
+        };
+
+        job.tags = Array.isArray(result.tags) ? result.tags : [];
+        job.skills = Array.isArray(result.skills) ? result.skills : [];
+        job.applyUrl = job.url;
+
+        return job;
+    }
+
+    buildImportedJobNotes(result) {
+        const sections = [];
+        if (result.summary) {
+            sections.push(result.summary);
+        }
+        if (Array.isArray(result.matchedKeywords) && result.matchedKeywords.length) {
+            sections.push(`Matched keywords: ${result.matchedKeywords.join(', ')}`);
+        }
+        if (Array.isArray(result.skills) && result.skills.length) {
+            sections.push(`Skills: ${result.skills.slice(0, 10).join(', ')}`);
+        }
+        if (Array.isArray(result.requirements) && result.requirements.length) {
+            const bullets = result.requirements.slice(0, 5).map(item => `- ${item}`).join('\n');
+            sections.push(`Key requirements:\n${bullets}`);
+        }
+        return sections.join('\n\n');
+    }
+
+    generateJobId() {
+        return `job_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    }
+
+    getJobMatchScore(job) {
+        if (!job) return null;
+        if (job.aiMatch && typeof job.aiMatch.score === 'number') {
+            return job.aiMatch.score;
+        }
+        if (typeof job.matchScore === 'number') {
+            return job.matchScore;
+        }
+        if (job.aiMatch && typeof job.aiMatch.matchScore === 'number') {
+            return job.aiMatch.matchScore;
+        }
+        return null;
+    }
+
+    getMatchScoreClass(score) {
+        if (typeof score !== 'number' || Number.isNaN(score)) {
+            return 'match-score-unknown';
+        }
+        if (score >= this._strongMatchThreshold) {
+            return 'match-score-strong';
+        }
+        if (score >= 50) {
+            return 'match-score-medium';
+        }
+        return 'match-score-low';
+    }
+
+    renderIngestionPanel() {
+        const state = this._ingestionState;
+        const jobFeedPrefs = this.getJobFeedPreferences();
+        const keywordValue = state.keywords || jobFeedPrefs?.keywords || '';
+        const ingestDisabled = state.isLoading ? 'disabled' : '';
+        const clearDisabled = state.isLoading || !(state.results && state.results.length) ? 'disabled' : '';
+
+        const progressMarkup = state.progress || state.error ? `
+            <div class="ingest-status">
+                <div class="ingest-progress">
+                    <span class="ai-ingest-spinner ${state.isLoading ? '' : 'hidden'}"></span>
+                    <span class="ai-ingest-progress-text">${this.escapeHtml(state.progress || '')}</span>
+                </div>
+                ${state.error ? `<div class="ingest-error">${this.escapeHtml(state.error)}</div>` : ''}
+            </div>
+        ` : '';
+
+        return `
+            <div class="ai-ingest-panel">
+                <h4>AI Job Finder</h4>
+                <div class="form-group">
+                    <label for="ai-ingest-url">Source URL</label>
+                    <input type="url" id="ai-ingest-url" data-ingest-field="url"
+                        placeholder="https://news.ycombinator.com/..."
+                        value="${this.escapeHtml(state.url || '')}"
+                        ${state.isLoading ? 'readonly' : ''}>
+                </div>
+                <div class="form-row two-column">
+                <div class="form-group">
+                    <label for="ai-ingest-keywords">Keywords</label>
+                    <input type="text" id="ai-ingest-keywords" data-ingest-field="keywords"
+                        placeholder="python, ai, remote"
+                        value="${this.escapeHtml(keywordValue)}"
+                        ${state.isLoading ? 'readonly' : ''}>
+                </div>
+                <div class="form-group">
+                    <label for="ai-ingest-max">Max Jobs</label>
+                    <input type="number" id="ai-ingest-max" data-ingest-field="maxJobs"
+                            min="1" max="50"
+                            value="${this.escapeHtml(String(state.maxJobs || 15))}"
+                            ${state.isLoading ? 'readonly' : ''}>
+                    </div>
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" data-ingest-field="includeAnalysis"
+                            ${state.includeAnalysis ? 'checked' : ''}
+                            ${state.isLoading ? 'disabled' : ''}>
+                        Score matches against my resume
+                    </label>
+                </div>
+                <div class="form-row action-row">
+                    <button class="btn btn-primary" data-action="ingest-jobs" ${ingestDisabled}>
+                        ${state.isLoading ? 'Fetching…' : 'Fetch Jobs'}
+                    </button>
+                    <button class="btn btn-outline" data-action="import-all-ingested"
+                        ${state.results && state.results.length ? '' : 'disabled'}>
+                        Import All
+                    </button>
+                    <button class="btn btn-link" data-action="clear-ingestion-results" ${clearDisabled}>
+                        Clear
+                    </button>
+                </div>
+                ${progressMarkup}
+                ${jobFeedPrefs?.autoImport ? '<div class="auto-import-note">Auto-import is enabled. Fresh matches will be queued automatically.</div>' : ''}
+            </div>
+        `;
+    }
+
+    renderIngestionResults() {
+        const results = Array.isArray(this._ingestionState.results) ? this._ingestionState.results : [];
+        if (!results.length) {
+            return '';
+        }
+
+        const metaParts = [];
+        const source = this._ingestionState.metadata?.sourceUrl || this._ingestionState.lastSourceUrl;
+        if (source) {
+            try {
+                const hostname = new URL(source).hostname;
+                metaParts.push(`Source: ${hostname}`);
+            } catch (error) {
+                metaParts.push(`Source: ${source}`);
+            }
+        }
+        if (this._ingestionState.metadata?.processingTimeMs) {
+            const ms = this._ingestionState.metadata.processingTimeMs;
+            metaParts.push(`Processed in ${(ms / 1000).toFixed(1)}s`);
+        }
+
+        const metaLine = metaParts.length ? `<div class="ingest-meta">${metaParts.join(' • ')}</div>` : '';
+
+        return `
+            <div class="ingest-results">
+                <div class="ingest-results-header">
+                    <h4>AI Matches <span class="count">(${results.length})</span></h4>
+                    ${metaLine}
+                </div>
+                <div class="ingest-result-list">
+                    ${results.map((job, index) => this.renderIngestionResult(job, index)).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    renderIngestionResult(job, index) {
+        if (!job || typeof job !== 'object') return '';
+
+        const score = typeof job.matchScore === 'number' ? Math.round(job.matchScore) : null;
+        const scoreClass = this.getMatchScoreClass(score);
+        const strong = score !== null && score >= this._strongMatchThreshold;
+        const summary = job.summary || '';
+        const descriptionPreview = job.description ? job.description.slice(0, 220) : '';
+        const hasMoreDescription = job.description && job.description.length > 220;
+        const matchedKeywords = Array.isArray(job.matchedKeywords) ? job.matchedKeywords : [];
+        const tags = Array.isArray(job.tags) ? job.tags.slice(0, 6) : [];
+        const requirements = Array.isArray(job.requirements) ? job.requirements.slice(0, 5) : [];
+        const descriptionHtml = this.escapeHtml(job.description || '').replace(/\n/g, '<br>');
+
+        return `
+            <div class="ingest-result-card ${strong ? 'strong-match' : ''}">
+                <div class="ingest-result-header">
+                    <div>
+                        <h5>${this.escapeHtml(job.title || 'Untitled Role')}</h5>
+                        <div class="company-line">
+                            <span class="company">${this.escapeHtml(job.company || 'Unknown Company')}</span>
+                            ${job.remote ? '<span class="tag-pill">Remote</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="match-score ${scoreClass}">
+                        ${score !== null ? `${score}%` : '—'}
+                    </div>
+                </div>
+                <div class="ingest-result-body">
+                    ${summary ? `<p class="summary">${this.escapeHtml(summary)}</p>` : ''}
+                    ${!summary && descriptionPreview ? `<p class="summary">${this.escapeHtml(descriptionPreview)}${hasMoreDescription ? '&hellip;' : ''}</p>` : ''}
+                    ${matchedKeywords.length ? `
+                        <div class="keyword-list">
+                            ${matchedKeywords.map(keyword => `<span class="keyword-pill">${this.escapeHtml(keyword)}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    ${tags.length ? `
+                        <div class="tag-list">
+                            ${tags.map(tag => `<span class="tag-pill">${this.escapeHtml(tag)}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    <details>
+                        <summary>View full details</summary>
+                        <div class="ingest-detail-text">${descriptionHtml}</div>
+                        ${requirements.length ? `
+                            <div class="ingest-requirements">
+                                <strong>Requirements</strong>
+                                <ul>${requirements.map(item => `<li>${this.escapeHtml(item)}</li>`).join('')}</ul>
+                            </div>
+                        ` : ''}
+                    </details>
+                </div>
+                <div class="ingest-result-actions">
+                    ${job.applyUrl || job.sourceUrl ? `
+                        <a class="btn btn-link" href="${this.escapeHtml(job.applyUrl || job.sourceUrl)}" target="_blank" rel="noopener">
+                            Open Listing
+                        </a>
+                    ` : '<span class="btn btn-link disabled">No Link</span>'}
+                    <button class="btn btn-sm btn-primary" data-action="import-ingested-job" data-index="${index}">
+                        Import
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    renderMatchInsight(job) {
+        if (!job) return '';
+
+        const matchScore = this.getJobMatchScore(job);
+        const match = job.aiMatch || {};
+
+        const hasKeywords = Array.isArray(match.matchedKeywords) && match.matchedKeywords.length > 0;
+        const hasAnalysis = match.analysis && (Array.isArray(match.analysis.strengths) || Array.isArray(match.analysis.recommendations));
+
+        if (matchScore === null && !hasKeywords && !hasAnalysis) {
+            return '';
+        }
+
+        const scoreClass = this.getMatchScoreClass(matchScore);
+
+        const strengthsList = Array.isArray(match.analysis?.strengths) && match.analysis.strengths.length
+            ? `<ul>${match.analysis.strengths.slice(0, 4).map(item => `<li>${this.escapeHtml(item)}</li>`).join('')}</ul>`
+            : '';
+
+        const recommendationsList = Array.isArray(match.analysis?.recommendations) && match.analysis.recommendations.length
+            ? `<ul>${match.analysis.recommendations.slice(0, 4).map(item => `<li>${this.escapeHtml(item)}</li>`).join('')}</ul>`
+            : '';
+
+        return `
+            <div class="match-insight">
+                <div class="match-score-pill ${scoreClass}">
+                    ${matchScore !== null ? `${Math.round(matchScore)}% match` : 'Match analysis unavailable'}
+                </div>
+                ${hasKeywords ? `
+                    <div class="match-keywords">
+                        ${match.matchedKeywords.map(keyword => `<span class="keyword-pill">${this.escapeHtml(keyword)}</span>`).join('')}
+                    </div>
+                ` : ''}
+                ${strengthsList ? `
+                    <div class="match-section">
+                        <strong>Strengths</strong>
+                        ${strengthsList}
+                    </div>
+                ` : ''}
+                ${recommendationsList ? `
+                    <div class="match-section">
+                        <strong>Recommendations</strong>
+                        ${recommendationsList}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    escapeHtml(value) {
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    handleGenerationFieldChange(field, target) {
+        if (!target) return;
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+        this.updateGenerationState({ [field]: value }, false);
+    }
+
+    updateGenerationState(updates = {}, rerender = true) {
+        this._generationState = {
+            ...this._generationState,
+            ...updates
+        };
+
+        if (rerender) {
+            this.render();
+        } else {
+            this.updateGenerationProgressDisplay();
+        }
+    }
+
+    updateGenerationProgressDisplay() {
+        const progressNode = this.querySelector('.ai-generate-progress-text');
+        if (progressNode) {
+            progressNode.textContent = this._generationState.progress || '';
+        }
+
+        const spinner = this.querySelector('.ai-generate-spinner');
+        if (spinner) {
+            spinner.classList.toggle('hidden', !this._generationState.isProcessing);
+        }
+    }
+
+    async handleGenerateAIDocuments() {
+        if (!this._selectedJob) {
+            this.showToast('Select a job before generating documents.', 'warning');
+            return;
+        }
+
+        if (this._generationState.isProcessing) return;
+
+        const generateResume = !!this._generationState.includeResume;
+        const generateCoverLetter = !!this._generationState.includeCoverLetter;
+
+        if (!generateResume && !generateCoverLetter) {
+            this.showToast('Select at least one document to generate.', 'warning');
+            return;
+        }
+
+        const providerInfo = this.resolveAIProvider();
+        if (!providerInfo) {
+            this.showToast('Configure an AI provider in Settings before generating documents.', 'error');
+            return;
+        }
+
+        const resumeData = this.getActiveResumeData();
+        if (!resumeData) {
+            this.showToast('Unable to load resume data for tailoring.', 'error');
+            return;
+        }
+
+        let jobDescription = this._selectedJob.description || '';
+        if (!jobDescription && this._selectedJob.aiMatch?.rawText) {
+            jobDescription = this._selectedJob.aiMatch.rawText;
+        }
+        if (!jobDescription && this._selectedJob.aiMatch?.summary) {
+            jobDescription = this._selectedJob.aiMatch.summary;
+        }
+
+        if (!jobDescription) {
+            this.showToast('Add a job description before generating documents.', 'warning');
+            return;
+        }
+
+        if (Array.isArray(this._selectedJob.aiMatch?.requirements) && this._selectedJob.aiMatch.requirements.length) {
+            jobDescription += '\n\nKey Requirements:\n' + this._selectedJob.aiMatch.requirements.join('\n');
+        }
+
+        if (Array.isArray(this._selectedJob.aiMatch?.responsibilities) && this._selectedJob.aiMatch.responsibilities.length) {
+            jobDescription += '\n\nResponsibilities:\n' + this._selectedJob.aiMatch.responsibilities.join('\n');
+        }
+
+        if (jobDescription.length > 8000) {
+            jobDescription = jobDescription.slice(0, 8000);
+        }
+
+        this.updateGenerationState({
+            isProcessing: true,
+            progress: 'Starting AI generation...',
+            error: null
+        });
+
+        const jobInfo = {
+            title: this._selectedJob.title || '',
+            company: this._selectedJob.company || '',
+            location: this._selectedJob.location || ''
+        };
+
+        const newDocs = {};
+        const timestamp = new Date().toISOString();
+
+        try {
+            if (generateResume) {
+                this._generationState.progress = 'Tailoring resume...';
+                this.updateGenerationProgressDisplay();
+
+                const resumeResult = await aiService.tailorResume({
+                    resume: resumeData,
+                    jobDescription,
+                    includeAnalysis: true,
+                    provider: providerInfo.provider,
+                    apiKey: providerInfo.apiKey,
+                    model: providerInfo.model,
+                    route: providerInfo.route,
+                    onProgress: (message) => {
+                        this._generationState.progress = message;
+                        this.updateGenerationProgressDisplay();
+                    }
+                });
+
+                const tailoredResume = resumeResult?.result?.tailoredResume || resumeResult?.tailoredResume || null;
+                if (!tailoredResume) {
+                    throw new Error('AI did not return a tailored resume.');
+                }
+
+                const resumePdf = await this.generateResumePdf(tailoredResume, this._selectedJob);
+                newDocs.resume = {
+                    fileName: resumePdf.fileName,
+                    dataUrl: resumePdf.dataUrl,
+                    resume: tailoredResume,
+                    analysis: resumeResult?.result?.analysis || resumeResult?.analysis || null,
+                    provider: providerInfo.provider,
+                    generatedAt: timestamp
+                };
+            }
+
+            if (generateCoverLetter) {
+                this._generationState.progress = generateResume ? 'Generating cover letter...' : 'Generating cover letter...';
+                this.updateGenerationProgressDisplay();
+
+                const coverResult = await aiService.generateCoverLetter({
+                    resume: resumeData,
+                    jobDescription,
+                    jobInfo,
+                    includeAnalysis: true,
+                    provider: providerInfo.provider,
+                    apiKey: providerInfo.apiKey,
+                    model: providerInfo.model,
+                    route: providerInfo.route,
+                    onProgress: (message) => {
+                        this._generationState.progress = message;
+                        this.updateGenerationProgressDisplay();
+                    }
+                });
+
+                const coverLetterText = coverResult?.result?.coverLetter || coverResult?.coverLetter || null;
+                if (!coverLetterText) {
+                    throw new Error('AI did not return a cover letter.');
+                }
+
+                const coverPdf = await this.generateCoverLetterPdf(coverLetterText, this._selectedJob);
+                newDocs.coverLetter = {
+                    fileName: coverPdf.fileName,
+                    dataUrl: coverPdf.dataUrl,
+                    letter: coverLetterText,
+                    analysis: coverResult?.result?.analysis || coverResult?.analysis || null,
+                    provider: providerInfo.provider,
+                    generatedAt: timestamp
+                };
+            }
+
+            if (Object.keys(newDocs).length === 0) {
+                throw new Error('No documents were generated.');
+            }
+
+            const updatedJob = {
+                ...this._selectedJob,
+                aiDocuments: {
+                    ...(this._selectedJob.aiDocuments || {}),
+                    ...newDocs
+                },
+                dateUpdated: timestamp
+            };
+
+            this._jobs[updatedJob.id] = updatedJob;
+            this._selectedJob = updatedJob;
+            this.saveJobsToStorage();
+            this.setData({
+                jobs: this._jobs,
+                selectedJob: this._selectedJob
+            }, 'ai-docs-generated');
+
+            this.updateGenerationState({
+                isProcessing: false,
+                progress: 'Generation complete!',
+                error: null
+            });
+
+            this.showToast('AI documents generated and attached to the job.', 'success');
+        } catch (error) {
+            console.error('JobManager: Document generation failed', error);
+            this.updateGenerationState({
+                isProcessing: false,
+                progress: '',
+                error: error?.message || 'Failed to generate documents.'
+            });
+            this.showToast('Document generation failed. Check the console for details.', 'error');
+        }
+    }
+
+    async generateResumePdf(resumeData, job) {
+        const safeCompany = (job?.company || 'company').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const safeTitle = (job?.title || 'role').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const base = [safeCompany, safeTitle].filter(Boolean).join('-') || 'resume';
+        const fileName = `${base}-tailored-resume.pdf`;
+        const html = this.buildResumeHtml(resumeData, job);
+        const pdf = await this.createPdfData(html, fileName);
+        return { ...pdf, resumeData };
+    }
+
+    async generateCoverLetterPdf(letterText, job) {
+        const safeCompany = (job?.company || 'company').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const safeTitle = (job?.title || 'role').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const base = [safeCompany, safeTitle].filter(Boolean).join('-') || 'cover-letter';
+        const fileName = `${base}-cover-letter.pdf`;
+        const html = this.buildCoverLetterHtml(letterText, job);
+        return this.createPdfData(html, fileName);
+    }
+
+    async createPdfData(html, fileName) {
+        if (typeof html2pdf === 'undefined') {
+            throw new Error('PDF generator is not available in this environment.');
+        }
+
+        const container = document.createElement('div');
+        container.style.position = 'fixed';
+        container.style.left = '-10000px';
+        container.style.top = '0';
+        container.style.width = '8.5in';
+        container.innerHTML = html;
+        document.body.appendChild(container);
+
+        try {
+            const options = {
+                margin: 0.5,
+                filename: fileName,
+                image: { type: 'jpeg', quality: 0.95 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            const dataUrl = await html2pdf().set(options).from(container).outputPdf('datauristring');
+            return { dataUrl, fileName };
+        } finally {
+            document.body.removeChild(container);
+        }
+    }
+
+    buildResumeHtml(resumeData, job) {
+        const basics = resumeData?.basics || {};
+        const name = this.escapeHtml(basics.name || '');
+        const label = this.escapeHtml(basics.label || '');
+        const contactParts = [];
+        if (basics.email) contactParts.push(this.escapeHtml(basics.email));
+        if (basics.phone) contactParts.push(this.escapeHtml(basics.phone));
+        if (basics.location?.city || basics.location?.region) {
+            const locationText = [basics.location.city, basics.location.region].filter(Boolean).join(', ');
+            if (locationText) contactParts.push(this.escapeHtml(locationText));
+        }
+        if (basics.website) contactParts.push(this.escapeHtml(basics.website));
+
+        const workItems = Array.isArray(resumeData?.work) ? resumeData.work : [];
+        const workHtml = workItems.map(item => `
+            <section class="resume-section">
+                <div class="section-header">
+                    <strong>${this.escapeHtml(item.position || '')}</strong>
+                    <span>${this.escapeHtml(item.startDate || '')}${item.endDate ? ' - ' + this.escapeHtml(item.endDate) : ' - Present'}</span>
+                </div>
+                <div class="section-subheader">${this.escapeHtml(item.name || '')}${item.location ? ' • ' + this.escapeHtml(item.location) : ''}</div>
+                ${item.summary ? `<p>${this.escapeHtml(item.summary)}</p>` : ''}
+                ${Array.isArray(item.highlights) && item.highlights.length ? `
+                    <ul>
+                        ${item.highlights.slice(0, 6).map(highlight => `<li>${this.escapeHtml(highlight)}</li>`).join('')}
+                    </ul>
+                ` : ''}
+            </section>
+        `).join('');
+
+        const educationItems = Array.isArray(resumeData?.education) ? resumeData.education : [];
+        const educationHtml = educationItems.map(item => `
+            <section class="resume-section">
+                <div class="section-header">
+                    <strong>${this.escapeHtml(item.institution || '')}</strong>
+                    <span>${this.escapeHtml(item.startDate || '')}${item.endDate ? ' - ' + this.escapeHtml(item.endDate) : ''}</span>
+                </div>
+                <div class="section-subheader">${this.escapeHtml(item.studyType || '')}${item.area ? ' • ' + this.escapeHtml(item.area) : ''}</div>
+                ${item.score ? `<p>GPA: ${this.escapeHtml(item.score)}</p>` : ''}
+            </section>
+        `).join('');
+
+        const skillsItems = Array.isArray(resumeData?.skills) ? resumeData.skills : [];
+        const skillsHtml = skillsItems.map(item => `<li>${this.escapeHtml(item.name || '')}${Array.isArray(item.keywords) && item.keywords.length ? ': ' + item.keywords.slice(0, 8).map(kw => this.escapeHtml(kw)).join(', ') : ''}</li>`).join('');
+
+        const projectsItems = Array.isArray(resumeData?.projects) ? resumeData.projects : [];
+        const projectsHtml = projectsItems.map(item => `
+            <section class="resume-section">
+                <div class="section-header">
+                    <strong>${this.escapeHtml(item.name || '')}</strong>
+                    <span>${this.escapeHtml(item.startDate || '')}${item.endDate ? ' - ' + this.escapeHtml(item.endDate) : ''}</span>
+                </div>
+                ${item.description ? `<p>${this.escapeHtml(item.description)}</p>` : ''}
+                ${Array.isArray(item.highlights) && item.highlights.length ? `
+                    <ul>
+                        ${item.highlights.slice(0, 5).map(highlight => `<li>${this.escapeHtml(highlight)}</li>`).join('')}
+                    </ul>
+                ` : ''}
+            </section>
+        `).join('');
+
+        return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 32px; color: #1a1a1a; }
+        .resume-header { border-bottom: 2px solid #0b7285; padding-bottom: 12px; margin-bottom: 16px; }
+        .resume-header h1 { margin: 0; font-size: 26px; color: #0b7285; }
+        .resume-header h2 { margin: 4px 0 12px 0; font-size: 16px; font-weight: 400; color: #495057; }
+        .contact-line { font-size: 12px; color: #495057; display: flex; flex-wrap: wrap; gap: 12px; }
+        .resume-section { margin-bottom: 16px; }
+        .resume-section h3 { margin: 0 0 8px 0; color: #0b7285; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase; }
+        .section-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #212529; }
+        .section-subheader { font-size: 12px; color: #495057; margin: 4px 0 8px 0; }
+        p { font-size: 12px; margin: 0 0 8px 0; line-height: 1.4; }
+        ul { margin: 0 0 8px 18px; padding: 0; }
+        li { font-size: 12px; margin-bottom: 4px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+    <header class="resume-header">
+        <h1>${name}</h1>
+        ${label ? `<h2>${label}</h2>` : ''}
+        ${contactParts.length ? `<div class="contact-line">${contactParts.join(' • ')}</div>` : ''}
+    </header>
+    <main>
+        ${workHtml ? `<h3>Experience</h3>${workHtml}` : ''}
+        ${projectsHtml ? `<h3>Projects</h3>${projectsHtml}` : ''}
+        ${educationHtml ? `<h3>Education</h3>${educationHtml}` : ''}
+        ${skillsHtml ? `
+            <section class="resume-section">
+                <h3>Skills</h3>
+                <ul>${skillsHtml}</ul>
+            </section>
+        ` : ''}
+    </main>
+</body>
+</html>
+        `;
+    }
+
+    buildCoverLetterHtml(letterText, job) {
+        const safeCompany = this.escapeHtml(job?.company || '');
+        const safeTitle = this.escapeHtml(job?.title || '');
+        const paragraphs = letterText
+            .split(/\n{2,}/)
+            .map(paragraph => paragraph.trim())
+            .filter(Boolean)
+            .map(paragraph => `<p>${this.escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`)
+            .join('\n');
+
+        return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Georgia', serif; margin: 0; padding: 32px; color: #1a1a1a; line-height: 1.6; }
+        header { margin-bottom: 24px; }
+        header h1 { margin: 0 0 8px 0; font-size: 20px; color: #0b7285; }
+        header span { font-size: 12px; color: #495057; }
+        p { margin: 0 0 12px 0; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Cover Letter${safeCompany ? ` – ${safeCompany}` : ''}${safeTitle ? ` (${safeTitle})` : ''}</h1>
+        <span>Generated on ${this.formatDate(new Date().toISOString())}</span>
+    </header>
+    <main>
+        ${paragraphs}
+    </main>
+</body>
+</html>
+        `;
+    }
+
+    renderGeneratedDocuments(job) {
+        const docs = job?.aiDocuments || {};
+        const items = [];
+
+        if (docs.resume) {
+            items.push(`
+                <div class="generated-doc-item">
+                    <div class="doc-info">
+                        <strong>Tailored Resume</strong>
+                        <span>${this.formatDate(docs.resume.generatedAt)} • ${this.escapeHtml(docs.resume.provider || 'AI')}</span>
+                    </div>
+                    <div class="doc-actions">
+                        <button class="btn btn-sm btn-outline" data-action="download-ai-doc" data-doc-type="resume">
+                            Download PDF
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+
+        if (docs.coverLetter) {
+            items.push(`
+                <div class="generated-doc-item">
+                    <div class="doc-info">
+                        <strong>Cover Letter</strong>
+                        <span>${this.formatDate(docs.coverLetter.generatedAt)} • ${this.escapeHtml(docs.coverLetter.provider || 'AI')}</span>
+                    </div>
+                    <div class="doc-actions">
+                        <button class="btn btn-sm btn-outline" data-action="download-ai-doc" data-doc-type="coverLetter">
+                            Download PDF
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+
+        if (!items.length) {
+            return '';
+        }
+
+        return `
+            <div class="generated-documents">
+                <h5>Generated Documents</h5>
+                ${items.join('')}
+            </div>
+        `;
+    }
+
+    handleDownloadAIDocument(docType) {
+        if (!this._selectedJob || !this._selectedJob.aiDocuments) {
+            this.showToast('No AI documents available for this job.', 'warning');
+            return;
+        }
+
+        const doc = this._selectedJob.aiDocuments[docType];
+        if (!doc || !doc.dataUrl) {
+            this.showToast('Requested document is not available.', 'warning');
+            return;
+        }
+
+        const link = document.createElement('a');
+        link.href = doc.dataUrl;
+        link.download = doc.fileName || `${docType}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     /**
@@ -889,6 +2130,8 @@ class JobManagerMigrated extends ComponentBase {
                             <h3>Jobs</h3>
                             <button class="btn btn-primary btn-sm add-job-btn">+ Add Job</button>
                         </div>
+                        ${this.renderIngestionPanel()}
+                        ${this.renderIngestionResults()}
                         <div class="job-list">
                             ${this.renderJobList()}
                         </div>
@@ -927,21 +2170,37 @@ class JobManagerMigrated extends ComponentBase {
         // Sort jobs by date created (newest first)
         jobs.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
         
-        return jobs.map(job => `
-            <div class="job-item ${this._selectedJob?.id === job.id ? 'selected' : ''}" 
-                 data-job-id="${job.id}">
-                <div class="job-item-header">
-                    <h4>${job.title || 'Untitled Job'}</h4>
-                    <span class="badge badge-${this.getStatusBadgeClass(job.status)}">${job.status}</span>
+        return jobs.map(job => {
+            const matchScore = this.getJobMatchScore(job);
+            const isStrongMatch = typeof matchScore === 'number' && matchScore >= this._strongMatchThreshold;
+            const matchBadge = matchScore !== null
+                ? `<span class="match-score-badge ${this.getMatchScoreClass(matchScore)}">${Math.round(matchScore)}%</span>`
+                : '';
+            const matchedKeywords = job.aiMatch?.matchedKeywords || job.matchedKeywords;
+            const keywordLine = Array.isArray(matchedKeywords) && matchedKeywords.length
+                ? `<div class="job-item-keywords">${matchedKeywords.slice(0, 4).map(keyword => `<span class="keyword-pill">${this.escapeHtml(keyword)}</span>`).join('')}</div>`
+                : '';
+
+            return `
+                <div class="job-item ${this._selectedJob?.id === job.id ? 'selected' : ''} ${isStrongMatch ? 'strong-match' : ''}"
+                     data-job-id="${job.id}">
+                    <div class="job-item-header">
+                        <h4>${this.escapeHtml(job.title || 'Untitled Job')}</h4>
+                        <div class="job-item-metrics">
+                            ${matchBadge}
+                            <span class="badge badge-${this.getStatusBadgeClass(job.status)}">${this.escapeHtml(job.status || 'saved')}</span>
+                        </div>
+                    </div>
+                    <div class="job-item-company">${this.escapeHtml(job.company || 'Company')}</div>
+                    <div class="job-item-location">${this.escapeHtml(job.location || 'Location not specified')}</div>
+                    ${keywordLine}
+                    <div class="job-item-date">Created: ${this.formatDate(job.dateCreated)}</div>
+                    <div class="job-item-actions">
+                        <button class="btn btn-danger btn-xs delete-job-btn" data-job-id="${job.id}">Delete</button>
+                    </div>
                 </div>
-                <div class="job-item-company">${job.company || 'Company'}</div>
-                <div class="job-item-location">${job.location || 'Location not specified'}</div>
-                <div class="job-item-date">Created: ${this.formatDate(job.dateCreated)}</div>
-                <div class="job-item-actions">
-                    <button class="btn btn-danger btn-xs delete-job-btn" data-job-id="${job.id}">Delete</button>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     /**
@@ -998,7 +2257,10 @@ class JobManagerMigrated extends ComponentBase {
      * Render details tab
      */
     renderDetailsTab() {
+        const matchInsight = this.renderMatchInsight(this._selectedJob);
+
         return `
+            ${matchInsight}
             <div class="form-section">
                 <div class="form-row">
                     <div class="form-group">
@@ -1086,7 +2348,9 @@ class JobManagerMigrated extends ComponentBase {
     renderResumeTab() {
         const savedResumes = this.getSavedResumes();
         const associatedResume = savedResumes.find(r => r.id === this._selectedJob.resumeId);
-        
+        const aiDocMarkup = this.renderGeneratedDocuments(this._selectedJob);
+        const generationState = this._generationState;
+
         return `
             <div class="form-section">
                 <h4>Resume Association</h4>
@@ -1142,6 +2406,37 @@ class JobManagerMigrated extends ComponentBase {
                         </button>
                     </div>
                 </div>
+            </div>
+            <div class="form-section ai-generate-section">
+                <h4>Generate Tailored Documents</h4>
+                <div class="ai-generate-panel-body">
+                    <div class="generate-options">
+                        <label>
+                            <input type="checkbox" data-generate-field="includeResume"
+                                ${generationState.includeResume ? 'checked' : ''}
+                                ${generationState.isProcessing ? 'disabled' : ''}>
+                            Resume
+                        </label>
+                        <label>
+                            <input type="checkbox" data-generate-field="includeCoverLetter"
+                                ${generationState.includeCoverLetter ? 'checked' : ''}
+                                ${generationState.isProcessing ? 'disabled' : ''}>
+                            Cover Letter
+                        </label>
+                    </div>
+                    <div class="generate-actions">
+                        <button class="btn btn-primary" data-action="generate-ai-docs"
+                            ${generationState.isProcessing ? 'disabled' : ''}>
+                            ${generationState.isProcessing ? 'Generating…' : 'Generate'}
+                        </button>
+                    </div>
+                    <div class="generate-progress">
+                        <span class="ai-generate-spinner ${generationState.isProcessing ? '' : 'hidden'}"></span>
+                        <span class="ai-generate-progress-text">${this.escapeHtml(generationState.progress || '')}</span>
+                    </div>
+                    ${generationState.error ? `<div class="generate-error">${this.escapeHtml(generationState.error)}</div>` : ''}
+                </div>
+                ${aiDocMarkup}
             </div>
         `;
     }
@@ -1248,6 +2543,226 @@ class JobManagerMigrated extends ComponentBase {
                     font-size: 18px;
                 }
 
+                .ai-ingest-panel {
+                    padding: 16px;
+                    border-bottom: 1px solid #dee2e6;
+                    background: #fff;
+                }
+
+                .ai-ingest-panel h4 {
+                    margin: 0 0 12px 0;
+                    font-size: 16px;
+                    color: #1d3557;
+                }
+
+                .form-row.two-column {
+                    grid-template-columns: 2fr 1fr;
+                    margin-bottom: 12px;
+                }
+
+                .checkbox-group label {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 13px;
+                    color: #495057;
+                    cursor: pointer;
+                }
+
+                .action-row {
+                    display: flex;
+                    gap: 8px;
+                    align-items: center;
+                    margin-bottom: 10px;
+                }
+
+                .ai-ingest-panel .btn.btn-link {
+                    font-size: 12px;
+                    color: #6c757d;
+                    padding: 0 4px;
+                }
+
+                .ai-ingest-panel .btn.btn-link[disabled],
+                .btn.btn-link.disabled {
+                    pointer-events: none;
+                    color: #ced4da;
+                }
+
+                .ingest-status {
+                    font-size: 12px;
+                    color: #495057;
+                }
+
+                .ingest-progress {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+
+                .ai-ingest-spinner {
+                    width: 12px;
+                    height: 12px;
+                    border: 2px solid #dee2e6;
+                    border-top-color: #007bff;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                }
+
+                .ai-ingest-spinner.hidden {
+                    display: none;
+                }
+
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+
+                .ingest-error {
+                    margin-top: 4px;
+                    color: #dc3545;
+                }
+
+                .auto-import-note {
+                    margin-top: 6px;
+                    font-size: 11px;
+                    color: #0b7285;
+                }
+
+                .ingest-results {
+                    border-bottom: 1px solid #dee2e6;
+                    max-height: 280px;
+                    overflow-y: auto;
+                    padding: 12px 16px;
+                    background: #fafbff;
+                }
+
+                .ingest-results-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: baseline;
+                    margin-bottom: 10px;
+                }
+
+                .ingest-results-header h4 {
+                    margin: 0;
+                    font-size: 14px;
+                    color: #1d3557;
+                }
+
+                .ingest-results-header .count {
+                    font-size: 12px;
+                    color: #6c757d;
+                }
+
+                .ingest-meta {
+                    font-size: 11px;
+                    color: #6c757d;
+                }
+
+                .ingest-result-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                }
+
+                .ingest-result-card {
+                    background: white;
+                    border: 1px solid #dbe2ef;
+                    border-radius: 8px;
+                    padding: 12px;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                }
+
+                .ingest-result-card.strong-match {
+                    border-color: #28a745;
+                    box-shadow: 0 2px 6px rgba(40,167,69,0.15);
+                }
+
+                .ingest-result-header {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 12px;
+                    margin-bottom: 8px;
+                }
+
+                .ingest-result-header .match-score {
+                    min-width: 48px;
+                    text-align: center;
+                    font-weight: 600;
+                    font-size: 14px;
+                    border-radius: 16px;
+                    padding: 4px 8px;
+                    color: white;
+                    background: #6c757d;
+                }
+
+                .ingest-result-header .match-score.match-score-strong {
+                    background: #28a745;
+                }
+
+                .ingest-result-header .match-score.match-score-medium {
+                    background: #ffc107;
+                    color: #333;
+                }
+
+                .ingest-result-header .match-score.match-score-low {
+                    background: #dc3545;
+                }
+
+                .ingest-result-header h5 {
+                    margin: 0;
+                    font-size: 14px;
+                    color: #1d3557;
+                }
+
+                .company-line {
+                    display: flex;
+                    gap: 6px;
+                    align-items: center;
+                    font-size: 12px;
+                    color: #6c757d;
+                }
+
+                .ingest-result-body .summary {
+                    font-size: 12px;
+                    color: #495057;
+                    margin: 0 0 6px 0;
+                }
+
+                .keyword-list,
+                .tag-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 4px;
+                    margin-bottom: 6px;
+                }
+
+                .ingest-result-body details {
+                    font-size: 12px;
+                    color: #495057;
+                }
+
+                .ingest-detail-text {
+                    margin: 8px 0;
+                    color: #495057;
+                    line-height: 1.4;
+                }
+
+                .ingest-requirements ul {
+                    margin: 4px 0 0 16px;
+                    padding: 0;
+                }
+
+                .ingest-result-actions {
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 8px;
+                    margin-top: 10px;
+                }
+
+                .ingest-result-actions .btn-link[data-disabled="true"] {
+                    pointer-events: none;
+                    color: #adb5bd;
+                }
                 .job-list {
                     flex: 1;
                     overflow-y: auto;
@@ -1271,6 +2786,11 @@ class JobManagerMigrated extends ComponentBase {
                     position: relative;
                 }
 
+                .job-item.strong-match {
+                    border-color: #28a745;
+                    box-shadow: 0 2px 8px rgba(40,167,69,0.15);
+                }
+
                 .job-item:hover {
                     border-color: #007bff;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -1287,6 +2807,12 @@ class JobManagerMigrated extends ComponentBase {
                     justify-content: space-between;
                     align-items: flex-start;
                     margin-bottom: 8px;
+                }
+
+                .job-item-metrics {
+                    display: flex;
+                    gap: 6px;
+                    align-items: center;
                 }
 
                 .job-item-header h4 {
@@ -1314,6 +2840,13 @@ class JobManagerMigrated extends ComponentBase {
                     font-size: 11px;
                     color: #aaa;
                     margin-bottom: 8px;
+                }
+
+                .job-item-keywords {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 4px;
+                    margin-bottom: 6px;
                 }
 
                 .job-item-actions {
@@ -1410,6 +2943,52 @@ class JobManagerMigrated extends ComponentBase {
                     font-weight: 500;
                 }
 
+                .match-score-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 42px;
+                    padding: 2px 6px;
+                    border-radius: 12px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: white;
+                }
+
+                .match-score-strong {
+                    background: #28a745;
+                }
+
+                .match-score-medium {
+                    background: #ffc107;
+                    color: #333;
+                }
+
+                .match-score-low {
+                    background: #dc3545;
+                }
+
+                .match-score-unknown {
+                    background: #6c757d;
+                }
+
+                .keyword-pill,
+                .tag-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 2px 8px;
+                    border-radius: 12px;
+                    font-size: 10px;
+                    background: #f1f3f5;
+                    color: #495057;
+                }
+
+                .tag-pill {
+                    font-size: 11px;
+                    background: #e9ecef;
+                    color: #343a40;
+                }
+
                 .tab:hover {
                     background: #e9ecef;
                     color: #333;
@@ -1444,11 +3023,163 @@ class JobManagerMigrated extends ComponentBase {
                     padding-bottom: 8px;
                 }
 
+                .match-insight {
+                    background: #f1f8ff;
+                    border: 1px solid #cfe2ff;
+                    border-radius: 10px;
+                    padding: 16px;
+                    margin-bottom: 20px;
+                }
+
+                .match-score-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 4px 10px;
+                    border-radius: 16px;
+                    font-weight: 600;
+                    font-size: 12px;
+                    margin-bottom: 10px;
+                    color: white;
+                }
+
+                .match-section {
+                    margin-top: 12px;
+                    font-size: 13px;
+                    color: #1d3557;
+                }
+
+                .match-section ul {
+                    margin: 6px 0 0 20px;
+                    padding: 0;
+                    color: #495057;
+                }
+
+                .match-keywords {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 6px;
+                    margin-bottom: 6px;
+                }
+
+                .match-score-pill.match-score-strong {
+                    background: #28a745;
+                }
+
+                .match-score-pill.match-score-medium {
+                    background: #ffc107;
+                    color: #333;
+                }
+
+                .match-score-pill.match-score-low {
+                    background: #dc3545;
+                }
+
+                .match-score-pill.match-score-unknown {
+                    background: #6c757d;
+                }
+
                 .form-row {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
                     gap: 20px;
                     margin-bottom: 20px;
+                }
+
+                .ai-generate-section {
+                    margin-top: 24px;
+                }
+
+                .ai-generate-panel-body {
+                    border: 1px solid #dee2e6;
+                    border-radius: 8px;
+                    padding: 16px;
+                    background: #fff;
+                }
+
+                .generate-options {
+                    display: flex;
+                    gap: 16px;
+                    margin-bottom: 12px;
+                    font-size: 13px;
+                    color: #495057;
+                }
+
+                .generate-options label {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    cursor: pointer;
+                }
+
+                .generate-actions {
+                    margin-bottom: 10px;
+                }
+
+                .generate-progress {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 12px;
+                    color: #495057;
+                    min-height: 18px;
+                }
+
+                .ai-generate-spinner {
+                    width: 12px;
+                    height: 12px;
+                    border: 2px solid #dee2e6;
+                    border-top-color: #20c997;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                }
+
+                .ai-generate-spinner.hidden {
+                    display: none;
+                }
+
+                .generate-error {
+                    margin-top: 6px;
+                    color: #dc3545;
+                    font-size: 12px;
+                }
+
+                .generated-documents {
+                    margin-top: 16px;
+                    border-top: 1px solid #dee2e6;
+                    padding-top: 12px;
+                }
+
+                .generated-documents h5 {
+                    margin: 0 0 10px 0;
+                    font-size: 15px;
+                    color: #1d3557;
+                }
+
+                .generated-doc-item {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 10px 12px;
+                    border: 1px solid #e9ecef;
+                    border-radius: 6px;
+                    margin-bottom: 8px;
+                    background: #fdfdff;
+                }
+
+                .generated-doc-item:last-child {
+                    margin-bottom: 0;
+                }
+
+                .generated-doc-item .doc-info span {
+                    display: block;
+                    font-size: 11px;
+                    color: #6c757d;
+                    margin-top: 2px;
+                }
+
+                .generated-doc-item .doc-actions {
+                    display: flex;
+                    gap: 8px;
                 }
 
                 .form-group {

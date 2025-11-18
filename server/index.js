@@ -8,6 +8,7 @@ const https = require('https');
 const rateLimit = require('express-rate-limit');
 const { tailorResumeWithClaude } = require('./claudeService');
 const { tailorResumeWithChatGPT } = require('./chatgptService');
+const jobFeedService = require('./job-feed-service');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -122,6 +123,51 @@ app.post('/api/ai-request', async (req, res) => {
   } catch (error) {
     console.error(`Error in AI request (${req.body.operation}):`, error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Job feed automation endpoints (experimental)
+app.get('/api/job-feeds/sources', (req, res) => {
+  res.json({ sources: jobFeedService.listSources() });
+});
+
+app.get('/api/job-feeds/queue', (req, res) => {
+  res.json({
+    queue: jobFeedService.getQueue(),
+    recent: jobFeedService.getRecentResults(10)
+  });
+});
+
+app.post('/api/job-feeds/queue', (req, res) => {
+  try {
+    const { sourceId, keywords = [], filters = {} } = req.body || {};
+    if (!sourceId) {
+      return res.status(400).json({ error: 'sourceId is required' });
+    }
+    const task = jobFeedService.enqueueFetch({
+      sourceId,
+      keywords,
+      filters
+    });
+    res.json({ task });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/job-feeds/results', (req, res) => {
+  try {
+    const { taskId, items = [] } = req.body || {};
+    if (!taskId) {
+      return res.status(400).json({ error: 'taskId is required' });
+    }
+    const task = jobFeedService.recordResults(taskId, Array.isArray(items) ? items : []);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    res.json({ task });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 
