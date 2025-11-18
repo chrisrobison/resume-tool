@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndexedDB Data Layer Demo - Job Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            background: #f7fafc;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .log-container {
+            background: #1a202c;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .log-entry.success {
+            border-left: 3px solid #48bb78;
+        }
+
+        .log-entry.error {
+            border-left: 3px solid #f56565;
+        }
+
+        .log-entry.info {
+            border-left: 3px solid #4299e1;
+        }
+
+        .log-timestamp {
+            color: #718096;
+            font-size: 11px;
+        }
+
+        .data-display {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .data-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid #667eea;
+        }
+
+        .data-item-header {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .data-item-body {
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #48bb78;
+            color: white;
+        }
+
+        .badge.warning {
+            background: #ed8936;
+        }
+
+        .badge.danger {
+            background: #f56565;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🗄️ IndexedDB Data Layer Demo</h1>
+            <p style="color: #718096; margin-top: 10px;">
+                Test and validate the Web Worker-based IndexedDB implementation with localStorage fallback
+            </p>
+            <div class="status">
+                <div class="status-item">
+                    <div class="status-label">Storage Mode</div>
+                    <div class="status-value" id="storageMode">Initializing...</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Worker Status</div>
+                    <div class="status-value" id="workerStatus">
+                        <span class="spinner"></span> Loading...
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Migration Status</div>
+                    <div class="status-value" id="migrationStatus">Not Started</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CRUD Operations Test -->
+        <div class="test-section">
+            <h2>📝 CRUD Operations</h2>
+            <div class="button-group">
+                <button onclick="testCreateResume()">Create Resume</button>
+                <button onclick="testReadResumes()">Read All Resumes</button>
+                <button onclick="testUpdateResume()">Update Resume</button>
+                <button onclick="testDeleteResume()">Delete Resume</button>
+                <button onclick="testCreateJob()">Create Job</button>
+                <button onclick="testReadJobs()">Read All Jobs</button>
+            </div>
+            <div id="crudResults" class="data-display" style="display: none;"></div>
+        </div>
+
+        <!-- Bulk Operations Test -->
+        <div class="test-section">
+            <h2>⚡ Bulk Operations</h2>
+            <div class="button-group">
+                <button onclick="testBulkCreate()">Bulk Create (10 resumes)</button>
+                <button onclick="testBulkDelete()">Bulk Delete</button>
+                <button onclick="testPerformance()">Performance Test</button>
+            </div>
+            <div class="metrics" id="performanceMetrics" style="display: none;"></div>
+        </div>
+
+        <!-- Migration Test -->
+        <div class="test-section">
+            <h2>🔄 Migration & Import/Export</h2>
+            <div class="button-group">
+                <button onclick="testMigration()">Test Migration from localStorage</button>
+                <button onclick="testExport()">Export Database</button>
+                <button onclick="testImport()">Test Import</button>
+                <button onclick="clearDatabase()">Clear Database</button>
+            </div>
+        </div>
+
+        <!-- Query & Filter Test -->
+        <div class="test-section">
+            <h2>🔍 Query & Filter</h2>
+            <div class="button-group">
+                <button onclick="testQueryJobs()">Query Jobs by Status</button>
+                <button onclick="testSortResumes()">Sort Resumes by Date</button>
+                <button onclick="testCountRecords()">Count Records</button>
+            </div>
+            <div id="queryResults" class="data-display" style="display: none;"></div>
+        </div>
+
+        <!-- Logs -->
+        <div class="test-section">
+            <h2>📋 Activity Log</h2>
+            <button onclick="clearLog()">Clear Log</button>
+            <div id="logContainer" class="log-container"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initStorage, saveResumeToStorage, loadResumeFromStorage, getStorageMode, dataService } from './js/storage.js';
+
+        window.dataService = dataService;
+
+        // Initialize
+        async function init() {
+            log('Initializing IndexedDB Data Layer...', 'info');
+
+            try {
+                await initStorage();
+                const mode = getStorageMode();
+
+                document.getElementById('storageMode').innerHTML =
+                    `<span class="badge">${mode.toUpperCase()}</span>`;
+
+                document.getElementById('workerStatus').innerHTML =
+                    dataService.isWorkerReady()
+                        ? '<span class="badge">Ready</span>'
+                        : '<span class="badge danger">Not Ready</span>';
+
+                log(`✅ Storage initialized in ${mode} mode`, 'success');
+
+                // Check migration status
+                if (mode === 'indexeddb') {
+                    document.getElementById('migrationStatus').innerHTML =
+                        dataService.isMigrated()
+                            ? '<span class="badge">Completed</span>'
+                            : '<span class="badge warning">Pending</span>';
+                }
+
+            } catch (error) {
+                log(`❌ Initialization failed: ${error.message}`, 'error');
+                document.getElementById('workerStatus').innerHTML =
+                    '<span class="badge danger">Error</span>';
+            }
+        }
+
+        // Test functions
+        window.testCreateResume = async function() {
+            log('Creating test resume...', 'info');
+            try {
+                const resume = {
+                    basics: {
+                        name: `Test User ${Date.now()}`,
+                        email: 'test@example.com',
+                        phone: '555-1234',
+                        summary: 'Test resume for IndexedDB demo'
+                    },
+                    work: [],
+                    education: [],
+                    skills: []
+                };
+
+                const result = await saveResumeToStorage(resume);
+                log(`✅ Resume created successfully: ${result}`, 'success');
+
+                showResults('crudResults', [resume]);
+            } catch (error) {
+                log(`❌ Failed to create resume: ${error.message}`, 'error');
+            }
+        };
+
+        window.testReadResumes = async function() {
+            log('Reading all resumes...', 'info');
+            try {
+                const resumes = await dataService.getResumes();
+                log(`✅ Found ${resumes.length} resumes`, 'success');
+                showResults('crudResults', resumes);
+            } catch (error) {
+                log(`❌ Failed to read resumes: ${error.message}`, 'error');
+            }
+        };
+
+        window.testUpdateResume = async function() {
+            log('Updating resume...', 'info');
+            try {
+                const resumes = await dataService.getResumes();
+                if (resumes.length === 0) {
+                    log('⚠️ No resumes to update', 'error');
+                    return;
+                }
+
+                const resume = resumes[0];
+                resume.basics.summary = `Updated at ${new Date().toLocaleTimeString()}`;
+
+                await dataService.saveResume(resume);
+                log(`✅ Resume updated successfully`, 'success');
+                showResults('crudResults', [resume]);
+            } catch (error) {
+                log(`❌ Failed to update resume: ${error.message}`, 'error');
+            }
+        };
+
+        window.testDeleteResume = async function() {
+            log('Deleting resume...', 'info');
+            try {
+                const resumes = await dataService.getResumes();
+                if (resumes.length === 0) {
+                    log('⚠️ No resumes to delete', 'error');
+                    return;
+                }
+
+                await dataService.deleteResume(resumes[0].id);
+                log(`✅ Resume deleted successfully`, 'success');
+
+                const remaining = await dataService.getResumes();
+                log(`📊 ${remaining.length} resumes remaining`, 'info');
+            } catch (error) {
+                log(`❌ Failed to delete resume: ${error.message}`, 'error');
+            }
+        };
+
+        window.testCreateJob = async function() {
+            log('Creating test job...', 'info');
+            try {
+                const job = {
+                    title: `Software Engineer ${Date.now()}`,
+                    company: 'Test Company',
+                    location: 'Remote',
+                    status: 'saved',
+                    description: 'Test job posting for IndexedDB demo',
+                    dateCreated: new Date().toISOString()
+                };
+
+                const jobId = await dataService.saveJob(job);
+                log(`✅ Job created successfully: ${jobId}`, 'success');
+                showResults('crudResults', [job]);
+            } catch (error) {
+                log(`❌ Failed to create job: ${error.message}`, 'error');
+            }
+        };
+
+        window.testReadJobs = async function() {
+            log('Reading all jobs...', 'info');
+            try {
+                const jobs = await dataService.getJobs();
+                log(`✅ Found ${jobs.length} jobs`, 'success');
+                showResults('crudResults', jobs);
+            } catch (error) {
+                log(`❌ Failed to read jobs: ${error.message}`, 'error');
+            }
+        };
+
+        window.testBulkCreate = async function() {
+            log('Creating 10 test resumes...', 'info');
+            try {
+                const resumes = Array.from({ length: 10 }, (_, i) => ({
+                    id: `resume_${Date.now()}_${i}`,
+                    basics: {
+                        name: `Bulk Test User ${i + 1}`,
+                        email: `test${i}@example.com`,
+                        summary: `Bulk test resume ${i + 1}`
+                    },
+                    work: [],
+                    education: [],
+                    skills: [],
+                    lastModified: new Date().toISOString()
+                }));
+
+                const startTime = performance.now();
+                const result = await dataService.bulkPut('resumes', resumes);
+                const endTime = performance.now();
+
+                log(`✅ Created ${result.count || resumes.length} resumes in ${(endTime - startTime).toFixed(2)}ms`, 'success');
+            } catch (error) {
+                log(`❌ Bulk create failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testBulkDelete = async function() {
+            log('Bulk deleting resumes...', 'info');
+            try {
+                const resumes = await dataService.getResumes();
+                const toDelete = resumes.slice(0, 5);
+
+                if (toDelete.length === 0) {
+                    log('⚠️ No resumes to delete', 'error');
+                    return;
+                }
+
+                const keys = toDelete.map(r => r.id);
+                await dataService.bulkDelete('resumes', keys);
+                log(`✅ Deleted ${keys.length} resumes`, 'success');
+            } catch (error) {
+                log(`❌ Bulk delete failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testPerformance = async function() {
+            log('Running performance test...', 'info');
+            try {
+                const iterations = 100;
+                const results = {
+                    write: 0,
+                    read: 0,
+                    query: 0
+                };
+
+                // Write test
+                const writeStart = performance.now();
+                for (let i = 0; i < iterations; i++) {
+                    const resume = {
+                        id: `perf_${Date.now()}_${i}`,
+                        basics: { name: `Perf Test ${i}` },
+                        lastModified: new Date().toISOString()
+                    };
+                    await dataService.put('resumes', resume);
+                }
+                results.write = performance.now() - writeStart;
+
+                // Read test
+                const readStart = performance.now();
+                for (let i = 0; i < iterations; i++) {
+                    await dataService.getAll('resumes', null, null, 10);
+                }
+                results.read = performance.now() - readStart;
+
+                // Query test
+                const queryStart = performance.now();
+                for (let i = 0; i < iterations; i++) {
+                    await dataService.query('resumes', null, { field: 'lastModified', direction: 'desc' }, 10);
+                }
+                results.query = performance.now() - queryStart;
+
+                log(`✅ Performance test completed`, 'success');
+
+                const metricsHtml = `
+                    <div class="metric-card">
+                        <div class="metric-value">${(results.write / iterations).toFixed(2)}ms</div>
+                        <div class="metric-label">Avg Write Time</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${(results.read / iterations).toFixed(2)}ms</div>
+                        <div class="metric-label">Avg Read Time</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${(results.query / iterations).toFixed(2)}ms</div>
+                        <div class="metric-label">Avg Query Time</div>
+                    </div>
+                `;
+
+                document.getElementById('performanceMetrics').innerHTML = metricsHtml;
+                document.getElementById('performanceMetrics').style.display = 'grid';
+
+            } catch (error) {
+                log(`❌ Performance test failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testMigration = async function() {
+            log('Testing migration from localStorage...', 'info');
+            try {
+                // Create some test data in localStorage
+                const testData = {
+                    resumes: [{ id: 'migrate_1', basics: { name: 'Migration Test' } }],
+                    jobs: [{ id: 'job_1', title: 'Test Job', company: 'Test Co' }],
+                    settings: { theme: 'dark' }
+                };
+
+                const result = await dataService.migrate(testData);
+                log(`✅ Migration completed: ${JSON.stringify(result)}`, 'success');
+
+                document.getElementById('migrationStatus').innerHTML =
+                    '<span class="badge">Completed</span>';
+            } catch (error) {
+                log(`❌ Migration failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testExport = async function() {
+            log('Exporting database...', 'info');
+            try {
+                const exportData = await dataService.export();
+                log(`✅ Export completed: ${JSON.stringify(exportData).length} bytes`, 'success');
+
+                // Download as JSON file
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `jobtool-backup-${Date.now()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                log(`❌ Export failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testImport = async function() {
+            log('Testing import...', 'info');
+            try {
+                const testImportData = {
+                    version: 1,
+                    timestamp: new Date().toISOString(),
+                    data: {
+                        resumes: [
+                            { id: 'import_1', basics: { name: 'Import Test 1' }, lastModified: new Date().toISOString() },
+                            { id: 'import_2', basics: { name: 'Import Test 2' }, lastModified: new Date().toISOString() }
+                        ]
+                    }
+                };
+
+                const result = await dataService.import(testImportData);
+                log(`✅ Import completed: ${JSON.stringify(result)}`, 'success');
+            } catch (error) {
+                log(`❌ Import failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testQueryJobs = async function() {
+            log('Querying jobs by status...', 'info');
+            try {
+                const jobs = await dataService.getJobs('saved');
+                log(`✅ Found ${jobs.length} jobs with status 'saved'`, 'success');
+                showResults('queryResults', jobs);
+            } catch (error) {
+                log(`❌ Query failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testSortResumes = async function() {
+            log('Sorting resumes by date...', 'info');
+            try {
+                const result = await dataService.query('resumes', null, { field: 'lastModified', direction: 'desc' }, 10);
+                const resumes = result.results || result;
+                log(`✅ Retrieved ${resumes.length} sorted resumes`, 'success');
+                showResults('queryResults', resumes);
+            } catch (error) {
+                log(`❌ Sort failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.testCountRecords = async function() {
+            log('Counting records...', 'info');
+            try {
+                const resumeCount = await dataService.count('resumes');
+                const jobCount = await dataService.count('jobs');
+                log(`✅ Resumes: ${resumeCount}, Jobs: ${jobCount}`, 'success');
+            } catch (error) {
+                log(`❌ Count failed: ${error.message}`, 'error');
+            }
+        };
+
+        window.clearDatabase = async function() {
+            if (!confirm('Are you sure you want to clear all data?')) return;
+
+            log('Clearing database...', 'info');
+            try {
+                await dataService.clear('resumes');
+                await dataService.clear('jobs');
+                await dataService.clear('logs');
+                await dataService.clear('coverLetters');
+                await dataService.clear('aiHistory');
+
+                log(`✅ Database cleared successfully`, 'success');
+            } catch (error) {
+                log(`❌ Clear failed: ${error.message}`, 'error');
+            }
+        };
+
+        // Helper functions
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        window.clearLog = function() {
+            document.getElementById('logContainer').innerHTML = '';
+        };
+
+        function showResults(containerId, data) {
+            const container = document.getElementById(containerId);
+            container.style.display = 'block';
+            container.innerHTML = data.map(item => `
+                <div class="data-item">
+                    <div class="data-item-header">
+                        ${item.basics?.name || item.title || item.id || 'Unknown'}
+                    </div>
+                    <div class="data-item-body">
+                        <pre>${JSON.stringify(item, null, 2)}</pre>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

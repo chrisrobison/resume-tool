@@ -34,9 +34,11 @@ export const defaultResumeData = {
 export const config = {
     storage: {
         resumeKey: "resumeJson",
-        savedResumesKey: "savedResumes", 
+        savedResumesKey: "savedResumes",
         settingsKey: "resumeEditorSettings",
-        apiKeysKey: "resumeApiKeys"
+        apiKeysKey: "resumeApiKeys",
+        jobsKey: "jobs",
+        logsKey: "activityLogs"
     },
     preview: {
         themes: ["modern", "classic", "minimal"]
