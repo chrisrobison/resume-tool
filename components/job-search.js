@@ -57,6 +57,7 @@ class JobSearch extends ComponentBase {
     }
 
     setupEventListeners() {
+        console.log('JobSearch: Setting up event listeners');
         const root = this.shadowRoot;
 
         // Feed selector
@@ -98,12 +99,16 @@ class JobSearch extends ComponentBase {
         // Resume dialog buttons
         const closeDialogBtn = root.querySelector('#close-resume-dialog');
         if (closeDialogBtn) {
+            console.log('JobSearch: Attaching close dialog listener');
             closeDialogBtn.addEventListener('click', this.handleCloseResumeDialog);
         }
 
         const extractDialogBtn = root.querySelector('#extract-dialog-btn');
         if (extractDialogBtn) {
+            console.log('JobSearch: Attaching extract dialog listener');
             extractDialogBtn.addEventListener('click', this.handleExtractKeywords);
+        } else {
+            console.log('JobSearch: Extract dialog button not found in DOM');
         }
 
         // Job checkboxes (delegated)
@@ -210,18 +215,25 @@ class JobSearch extends ComponentBase {
     }
 
     handleOpenResumeDialog() {
+        console.log('JobSearch: Opening resume dialog');
         this._showResumeDialog = true;
         this.render();
     }
 
     handleCloseResumeDialog() {
+        console.log('JobSearch: Closing resume dialog');
         this._showResumeDialog = false;
         this.render();
     }
 
     async handleExtractKeywords() {
+        console.log('JobSearch: handleExtractKeywords called');
+
         const root = this.shadowRoot;
         const resumeSelect = root.querySelector('#resume-select');
+
+        console.log('JobSearch: Resume select element:', resumeSelect);
+        console.log('JobSearch: Selected resume ID:', resumeSelect?.value);
 
         if (!resumeSelect || !resumeSelect.value) {
             if (this._appManager?.showToast) {
