@@ -174,7 +174,18 @@ class GlobalStore extends ComponentBase {
                 settings: {
                     apiProviders: {},
                     theme: 'light',
-                    defaultResume: null
+                    defaultResume: null,
+                    jobFeeds: {
+                        keywords: '',
+                        autoImport: false,
+                        notifyOnReady: true,
+                        sources: {
+                            hackernews: true,
+                            linkedin: false,
+                            indeed: false
+                        },
+                        lastFetchedAt: null
+                    }
                 },
                 ui: {
                     activeView: 'jobs',
@@ -215,7 +226,18 @@ class GlobalStore extends ComponentBase {
             settings: {
                 apiProviders: {},
                 theme: 'light',
-                defaultResume: null
+                defaultResume: null,
+                jobFeeds: {
+                    keywords: '',
+                    autoImport: false,
+                    notifyOnReady: true,
+                    sources: {
+                        hackernews: true,
+                        linkedin: false,
+                        indeed: false
+                    },
+                    lastFetchedAt: null
+                }
             },
             ui: {
                 activeView: 'jobs',

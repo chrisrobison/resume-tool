@@ -29,6 +29,9 @@ class AIWorker {
             case 'parse-job':
                 this.handleParseJob(data, requestId);
                 break;
+            case 'ingest-jobs':
+                this.handleIngestJobs(data, requestId);
+                break;
             case 'test-api-key':
                 this.handleTestApiKey(data, requestId);
                 break;
@@ -347,6 +350,174 @@ class AIWorker {
 
         } catch (error) {
             this.postError(`Job parsing failed: ${error.message}`, requestId);
+        }
+    }
+
+    async handleIngestJobs(data, requestId) {
+        const startTime = Date.now();
+        try {
+            this.postProgress('Starting job ingestion...', requestId);
+
+            const {
+                url,
+                content,
+                description,
+                provider,
+                apiKey,
+                resume,
+                model,
+                includeAnalysis = true,
+                keywords = [],
+                maxJobs = 20,
+                route = 'auto',
+                instructions = ''
+            } = data || {};
+
+            if (!provider || !apiKey) {
+                throw new Error('Missing provider or API key for job ingestion');
+            }
+
+            if (!url && !content && !description) {
+                throw new Error('Provide a URL or job content to ingest');
+            }
+
+            this.currentOperation = 'ingest-jobs';
+            const normalizedKeywords = Array.isArray(keywords)
+                ? keywords.map(kw => kw && typeof kw === 'string' ? kw.trim() : kw).filter(Boolean)
+                : (typeof keywords === 'string' && keywords.trim().length > 0
+                    ? keywords.split(/[,;]/).map(kw => kw.trim()).filter(Boolean)
+                    : []);
+            this.currentRequestData = {
+                url,
+                keywords: normalizedKeywords,
+                maxJobs,
+                includeAnalysis
+            };
+
+            const promptOptions = {
+                content: content || description || '',
+                keywords: normalizedKeywords,
+                maxJobs,
+                instructions,
+                sourceUrl: url || null
+            };
+
+            const basePrompt = this.buildJobListPrompt(promptOptions);
+            let aiResponse;
+
+            if (url) {
+                if (route === 'direct') {
+                    throw new Error('Direct ingestion from URL is not supported; use proxy or auto routing');
+                }
+                this.postProgress('Fetching job source via server proxy...', requestId);
+                const metadata = {
+                    operation: 'parse-job-list',
+                    targetUrl: url,
+                    instructions,
+                    jobFilters: { keywords: normalizedKeywords, maxJobs }
+                };
+                aiResponse = await this.callServerAPI(provider, apiKey, basePrompt, requestId, metadata, model);
+            } else {
+                this.postProgress('Parsing provided job content...', requestId);
+                aiResponse = await this.makeAIRequest(provider, apiKey, basePrompt, requestId, model, route);
+            }
+
+            const parsedJobs = this.parseJobListResponse(aiResponse, {
+                sourceUrl: url,
+                keywords: normalizedKeywords
+            });
+
+            if (!Array.isArray(parsedJobs) || parsedJobs.length === 0) {
+                this.postSuccess({
+                    type: 'ingest-jobs',
+                    jobs: [],
+                    metadata: {
+                        sourceUrl: url || null,
+                        keywords: normalizedKeywords,
+                        maxJobs,
+                        includeAnalysis: includeAnalysis && !!resume,
+                        processedJobs: 0,
+                        processingTimeMs: Date.now() - startTime
+                    },
+                    raw: aiResponse
+                }, requestId);
+                return;
+            }
+
+            const limitedJobs = parsedJobs.slice(0, Math.max(1, maxJobs));
+
+            let scoredJobs = limitedJobs;
+            if (resume && includeAnalysis) {
+                const results = [];
+
+                for (let i = 0; i < limitedJobs.length; i++) {
+                    const jobEntry = limitedJobs[i];
+                    const descriptionText = this.buildJobDescriptionText(jobEntry);
+
+                    if (!descriptionText) {
+                        results.push({
+                            ...jobEntry,
+                            matchScore: null,
+                            matchAnalysis: null,
+                            matchStatus: 'missing-description'
+                        });
+                        continue;
+                    }
+
+                    this.postProgress(`Scoring job ${i + 1} of ${limitedJobs.length}...`, requestId);
+
+                    this.currentOperation = 'analyze_match';
+                    this.currentRequestData = {
+                        resume,
+                        jobDescription: descriptionText,
+                        includeAnalysis: true
+                    };
+
+                    const matchPrompt = this.buildMatchAnalysisPrompt(resume, descriptionText);
+
+                    try {
+                        const matchResponse = await this.makeAIRequest(provider, apiKey, matchPrompt, requestId, model, route);
+                        const parsedAnalysis = this.parseAIResponse(matchResponse, 'match-analysis');
+                        const analysis = parsedAnalysis?.analysis || null;
+
+                        results.push({
+                            ...jobEntry,
+                            matchScore: analysis?.overallScore ?? null,
+                            matchAnalysis: analysis || null,
+                            matchStatus: analysis ? 'analyzed' : 'no-analysis'
+                        });
+                    } catch (analysisError) {
+                        results.push({
+                            ...jobEntry,
+                            matchScore: null,
+                            matchAnalysis: null,
+                            matchStatus: 'analysis-failed',
+                            matchError: analysisError?.message || String(analysisError)
+                        });
+                    }
+                }
+
+                scoredJobs = results;
+            }
+
+            this.postSuccess({
+                type: 'ingest-jobs',
+                jobs: scoredJobs,
+                metadata: {
+                    sourceUrl: url || null,
+                    keywords: normalizedKeywords,
+                    maxJobs,
+                    includeAnalysis: includeAnalysis && !!resume,
+                    processedJobs: scoredJobs.length,
+                    processingTimeMs: Date.now() - startTime
+                }
+            }, requestId);
+
+        } catch (error) {
+            this.postError(`Job ingestion failed: ${error.message}`, requestId);
+        } finally {
+            this.currentOperation = 'ingest-jobs';
+            this.currentRequestData = null;
         }
     }
 
@@ -688,6 +859,420 @@ Provide honest, constructive analysis that will help the candidate understand th
 `;
     }
 
+    extractJSONStructure(aiResponse) {
+        const tryParseFromText = (text) => {
+            if (!text || typeof text !== 'string') return null;
+            let trimmed = text.trim();
+            if (!trimmed) return null;
+
+            // Normalize common markdown fences
+            trimmed = trimmed.replace(/\u200b/g, '');
+            const candidates = new Set();
+            const fencePattern = /```(?:json)?\s*([\s\S]*?)\s*```/gi;
+            let fenceMatch;
+            while ((fenceMatch = fencePattern.exec(trimmed)) !== null) {
+                if (fenceMatch[1]) {
+                    candidates.add(fenceMatch[1].trim());
+                }
+            }
+
+            candidates.add(trimmed);
+
+            const arrayMatch = trimmed.match(/\[[\s\S]*\]/);
+            if (arrayMatch) {
+                candidates.add(arrayMatch[0]);
+            }
+
+            const objectMatch = trimmed.match(/\{[\s\S]*\}/);
+            if (objectMatch) {
+                candidates.add(objectMatch[0]);
+            }
+
+            for (const candidate of candidates) {
+                try {
+                    return JSON.parse(candidate);
+                } catch (e) {
+                    // Try to progressively trim trailing characters
+                    const lastBrace = candidate.lastIndexOf('}');
+                    const lastBracket = candidate.lastIndexOf(']');
+                    const stopIndex = Math.max(lastBrace, lastBracket);
+                    if (stopIndex > 0) {
+                        const trimmedCandidate = candidate.slice(0, stopIndex + 1);
+                        try {
+                            return JSON.parse(trimmedCandidate);
+                        } catch (err) {
+                            continue;
+                        }
+                    }
+                    continue;
+                }
+            }
+            return null;
+        };
+
+        if (aiResponse === null || aiResponse === undefined) {
+            return null;
+        }
+
+        if (typeof aiResponse === 'object') {
+            if (Array.isArray(aiResponse)) {
+                return aiResponse;
+            }
+
+            if (aiResponse.choices && aiResponse.choices[0]) {
+                const choice = aiResponse.choices[0];
+                const message = choice.message || choice;
+                const content = message?.content || message?.text || choice?.text || null;
+                if (typeof content === 'string') {
+                    const parsed = tryParseFromText(content);
+                    if (parsed) return parsed;
+                } else if (Array.isArray(content)) {
+                    const joined = content.map(item => item?.text || item?.content || '').join('\n');
+                    const parsed = tryParseFromText(joined);
+                    if (parsed) return parsed;
+                }
+            }
+
+            if (typeof aiResponse.output_text === 'string') {
+                const parsed = tryParseFromText(aiResponse.output_text);
+                if (parsed) return parsed;
+            }
+
+            if (typeof aiResponse.response === 'string') {
+                const parsed = tryParseFromText(aiResponse.response);
+                if (parsed) return parsed;
+            }
+
+            if (typeof aiResponse.content === 'string') {
+                const parsed = tryParseFromText(aiResponse.content);
+                if (parsed) return parsed;
+            }
+
+            if (Array.isArray(aiResponse.content)) {
+                const joined = aiResponse.content.map(part => {
+                    if (typeof part === 'string') return part;
+                    if (part?.text) return part.text;
+                    if (part?.content) return part.content;
+                    return '';
+                }).join('\n');
+                const parsed = tryParseFromText(joined);
+                if (parsed) return parsed;
+            }
+
+            if (aiResponse.result) {
+                const parsed = this.extractJSONStructure(aiResponse.result);
+                if (parsed) return parsed;
+            }
+
+            const jobKeys = ['title', 'company', 'location', 'description', 'requirements', 'skills', 'jobs', 'results', 'listings', 'postings'];
+            const keys = Object.keys(aiResponse);
+            if (keys.some(key => jobKeys.includes(key))) {
+                return aiResponse;
+            }
+        }
+
+        if (typeof aiResponse === 'string') {
+            const parsed = tryParseFromText(aiResponse);
+            if (parsed) return parsed;
+
+            try {
+                return JSON.parse(aiResponse);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    buildJobListPrompt(options = {}) {
+        const {
+            content = '',
+            keywords = [],
+            maxJobs = 20,
+            instructions = '',
+            sourceUrl = ''
+        } = options;
+
+        const keywordNote = Array.isArray(keywords) && keywords.length > 0
+            ? `Focus on roles that mention these keywords: ${keywords.join(', ')}. Populate "matchedKeywords" with any keywords you observe for each role.`
+            : 'If you identify relevant keywords, include them in "matchedKeywords".';
+
+        const promptSections = [
+            'You are an expert at extracting structured job data from unstructured text.',
+            'Analyze the provided content and return ONLY a JSON array (no additional text) of job postings.',
+            'Each job object must follow this shape:',
+            `{
+  "id": "stable unique identifier (slugified if possible)",
+  "title": "Job title",
+  "company": "Company name",
+  "location": "Location string or null",
+  "remote": true | false,
+  "summary": "1-2 sentence summary",
+  "description": "Full textual description suitable for resume tailoring",
+  "requirements": ["List of requirements or must-haves"],
+  "responsibilities": ["List of responsibilities"],
+  "skills": ["Key technologies or skills"],
+  "tags": ["Any additional tags or categories"],
+  "matchedKeywords": ["Keywords that align with user focus"],
+  "jobType": "Employment type (full-time, contract, etc.)",
+  "postedDate": "ISO date if available",
+  "compensation": "Salary or rate details if provided",
+  "applyUrl": "Direct application URL if present",
+  "sourceUrl": "Original posting URL if present",
+  "rawText": "Any extra raw text snippet that may be useful"
+}`,
+            `Limit the output to the top ${Math.max(1, maxJobs)} distinct positions ordered by relevance.`,
+            keywordNote
+        ];
+
+        if (instructions) {
+            promptSections.push(`Additional instructions: ${instructions}`);
+        }
+        if (sourceUrl) {
+            promptSections.push(`Source URL: ${sourceUrl}`);
+        }
+        if (content) {
+            promptSections.push('Content to analyze:');
+            promptSections.push(content);
+        }
+
+        return promptSections.join('\n\n');
+    }
+
+    parseJobListResponse(aiResponse, options = {}) {
+        const parsed = this.extractJSONStructure(aiResponse);
+        if (!parsed) {
+            return [];
+        }
+
+        let jobs = [];
+        if (Array.isArray(parsed)) {
+            jobs = parsed;
+        } else if (Array.isArray(parsed.jobs)) {
+            jobs = parsed.jobs;
+        } else if (Array.isArray(parsed.listings)) {
+            jobs = parsed.listings;
+        } else if (Array.isArray(parsed.results)) {
+            jobs = parsed.results;
+        } else if (Array.isArray(parsed.postings)) {
+            jobs = parsed.postings;
+        } else if (parsed.job) {
+            jobs = [parsed.job];
+        } else if (parsed.items && Array.isArray(parsed.items)) {
+            jobs = parsed.items;
+        } else {
+            const jobKeys = ['title', 'company', 'description'];
+            const looksLikeJob = jobKeys.some(key => Object.prototype.hasOwnProperty.call(parsed, key));
+            if (looksLikeJob) {
+                jobs = [parsed];
+            }
+        }
+
+        if (!Array.isArray(jobs)) {
+            return [];
+        }
+
+        const normalized = jobs
+            .map((entry, index) => this.normalizeJobEntry(entry, index, options))
+            .filter(job => !!job);
+
+        return normalized;
+    }
+
+    normalizeJobEntry(entry, index, options = {}) {
+        if (!entry || typeof entry !== 'object') {
+            return null;
+        }
+
+        const { sourceUrl = '', keywords = [] } = options;
+
+        const candidateIdFields = [
+            entry.id,
+            entry.jobId,
+            entry.slug,
+            entry.identifier,
+            entry.refId,
+            entry.reference,
+            entry.applyUrl,
+            entry.url
+        ];
+        let identifier = candidateIdFields.find(value => typeof value === 'string' && value.trim().length > 0);
+        if (identifier) {
+            identifier = identifier.trim();
+        } else {
+            const seed = [
+                entry.title,
+                entry.company,
+                entry.location,
+                index
+            ].filter(Boolean).join('-').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            identifier = seed || this.generateJobFallbackId(index);
+        }
+
+        const summary = typeof entry.summary === 'string' ? entry.summary.trim() : '';
+
+        let description = entry.description;
+        if (Array.isArray(description)) {
+            description = description.join('\n');
+        }
+        if (typeof description !== 'string' || description.trim().length === 0) {
+            description = typeof entry.rawText === 'string' ? entry.rawText : '';
+        }
+        description = this.truncateText((description || '').trim(), 8000);
+
+        const responsibilities = this.normalizeList(entry.responsibilities || entry.duties || entry.responsibilitiesList);
+        const requirements = this.normalizeList(entry.requirements || entry.qualifications || entry.mustHave);
+        const skills = this.normalizeList(entry.skills || entry.technologies || entry.techStack);
+        const tags = this.normalizeList(entry.tags || entry.categories || entry.keywords);
+        const matchedKeywords = this.normalizeList(entry.matchedKeywords);
+
+        const keywordSet = Array.isArray(keywords)
+            ? keywords.map(kw => kw.trim()).filter(Boolean)
+            : [];
+
+        const haystack = [
+            summary,
+            description,
+            responsibilities.join(' '),
+            requirements.join(' '),
+            skills.join(' '),
+            tags.join(' ')
+        ].join(' ').toLowerCase();
+
+        const keywordMatches = Array.from(new Set(keywordSet.filter(keyword => {
+            if (!keyword) return false;
+            return haystack.includes(keyword.toLowerCase());
+        })));
+
+        const combinedMatchedKeywords = matchedKeywords.length > 0
+            ? Array.from(new Set(matchedKeywords))
+            : keywordMatches;
+
+        const normalizedJob = {
+            id: identifier,
+            order: index + 1,
+            title: this.sanitizeText(entry.title || entry.position || entry.role || '', 200),
+            company: this.sanitizeText(entry.company || entry.organization || entry.employer || '', 200),
+            location: this.sanitizeText(entry.location || entry.city || entry.region || '', 200),
+            remote: this.inferRemoteFlag(entry, description, tags),
+            summary: this.truncateText(summary, 1000),
+            description,
+            responsibilities,
+            requirements,
+            skills,
+            tags: tags.length > 0 ? Array.from(new Set(tags)) : skills,
+            matchedKeywords: combinedMatchedKeywords,
+            jobType: entry.jobType || entry.employmentType || entry.positionType || '',
+            postedDate: entry.postedDate || entry.datePosted || entry.listedDate || null,
+            compensation: entry.compensation || entry.salary || entry.payRange || null,
+            applyUrl: entry.applyUrl || entry.applicationUrl || entry.url || '',
+            sourceUrl: entry.sourceUrl || sourceUrl || entry.url || '',
+            rawText: this.truncateText(entry.rawText || entry.fullText || description, 8000),
+            metadata: entry.metadata || {},
+            extra: entry.extra || {}
+        };
+
+        return normalizedJob;
+    }
+
+    buildJobDescriptionText(jobEntry) {
+        if (!jobEntry || typeof jobEntry !== 'object') {
+            return '';
+        }
+
+        const sections = [];
+
+        if (jobEntry.title && jobEntry.company) {
+            sections.push(`${jobEntry.title} at ${jobEntry.company}`);
+        }
+        if (jobEntry.summary) {
+            sections.push(`Summary:\n${jobEntry.summary}`);
+        }
+        if (jobEntry.description) {
+            sections.push(`Description:\n${jobEntry.description}`);
+        }
+        if (Array.isArray(jobEntry.requirements) && jobEntry.requirements.length > 0) {
+            const bulletList = jobEntry.requirements.map(item => `- ${item}`).join('\n');
+            sections.push(`Requirements:\n${bulletList}`);
+        }
+        if (Array.isArray(jobEntry.responsibilities) && jobEntry.responsibilities.length > 0) {
+            const bulletList = jobEntry.responsibilities.map(item => `- ${item}`).join('\n');
+            sections.push(`Responsibilities:\n${bulletList}`);
+        }
+        if (Array.isArray(jobEntry.skills) && jobEntry.skills.length > 0) {
+            sections.push(`Skills:\n${jobEntry.skills.join(', ')}`);
+        }
+
+        return sections.join('\n\n').trim();
+    }
+
+    normalizeList(value) {
+        if (!value) return [];
+        if (Array.isArray(value)) {
+            return value
+                .map(item => {
+                    if (typeof item === 'string') return item.trim();
+                    if (item === null || item === undefined) return '';
+                    return String(item).trim();
+                })
+                .filter(Boolean);
+        }
+        if (typeof value === 'string') {
+            return value
+                .split(/[\n\r,;•·\-]+/g)
+                .map(item => item.trim())
+                .filter(Boolean);
+        }
+        return [];
+    }
+
+    sanitizeText(value, maxLen = 500) {
+        if (value === null || value === undefined) return '';
+        const text = String(value).trim();
+        if (!text) return '';
+        return this.truncateText(text, maxLen);
+    }
+
+    truncateText(text, maxLen = 4000) {
+        if (typeof text !== 'string') return '';
+        if (text.length <= maxLen) return text;
+        return `${text.slice(0, maxLen - 3)}...`;
+    }
+
+    inferRemoteFlag(entry, description, tags) {
+        if (entry && typeof entry.remote === 'boolean') {
+            return entry.remote;
+        }
+
+        const textFragments = [
+            entry?.location,
+            entry?.summary,
+            entry?.workModel,
+            entry?.workType,
+            entry?.employmentModel,
+            description,
+            Array.isArray(tags) ? tags.join(' ') : ''
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        if (!textFragments) return false;
+
+        if (textFragments.includes('not remote') || textFragments.includes('on-site only')) {
+            return false;
+        }
+
+        if (textFragments.includes('remote') || textFragments.includes('work from home') || textFragments.includes('distributed')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    generateJobFallbackId(index = 0) {
+        const randomSuffix = Math.random().toString(36).slice(2, 8);
+        return `job_${Date.now()}_${index}_${randomSuffix}`;
+    }
+
     parseAIResponse(response, type) {
         try {
             console.log('Worker parseAIResponse - Type:', type);
@@ -937,7 +1522,9 @@ Provide honest, constructive analysis that will help the candidate understand th
                     model,
                     resume: metadata.resume,
                     operation: metadata.operation,
-                    targetUrl: metadata.targetUrl || null
+                    targetUrl: metadata.targetUrl || null,
+                    instructions: metadata.instructions || null,
+                    jobFilters: metadata.jobFilters || null
                 })
             });
                     

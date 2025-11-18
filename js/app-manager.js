@@ -2,6 +2,7 @@
 // Extracted from jobs.html embedded JavaScript
 
 import { setState, getState } from './store.js';
+import db from './database.js';
 import * as sectionManager from './section-manager.js';
 import * as formGenerator from './form-generator.js';
 import * as modalManager from './modal-manager.js';
@@ -40,6 +41,19 @@ class AppManager {
         try {
             this.setupEventListeners();
             await this.syncWithGlobalStore();
+            // Initialize background data layer (IndexedDB) without blocking UI
+            try {
+                const dbReady = await db.init();
+                if (dbReady) {
+                    // Best-effort migration from localStorage if DB is empty
+                    const mig = await db.migrateFromLocalStorage();
+                    if (mig?.migrated) {
+                        console.log('AppManager: Migrated localStorage snapshot to IndexedDB', mig.counts || {});
+                    }
+                }
+            } catch (dbErr) {
+                console.warn('AppManager: Data service init skipped', dbErr);
+            }
             // Listen for global store changes to sync resume components directly
             document.addEventListener('global-state-changed', async (e) => {
                 try {
