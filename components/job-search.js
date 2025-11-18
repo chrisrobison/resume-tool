@@ -108,10 +108,12 @@ class JobSearch extends ComponentBase {
             console.log('JobSearch: Attaching extract dialog listener', extractDialogBtn);
             console.log('JobSearch: Button disabled?', extractDialogBtn.disabled);
             console.log('JobSearch: Handler bound?', typeof this.handleExtractKeywords);
-            extractDialogBtn.addEventListener('click', this.handleExtractKeywords);
-            // Test if listener is working
+            console.log('JobSearch: Handler is:', this.handleExtractKeywords);
+
+            // Try direct call to verify handler works
             extractDialogBtn.addEventListener('click', (e) => {
-                console.log('JobSearch: TEST LISTENER FIRED', e);
+                console.log('JobSearch: TEST LISTENER FIRED - calling handler directly');
+                this.handleExtractKeywords(e);
             });
         } else {
             console.log('JobSearch: Extract dialog button not found in DOM');
