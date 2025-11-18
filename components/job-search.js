@@ -105,8 +105,14 @@ class JobSearch extends ComponentBase {
 
         const extractDialogBtn = root.querySelector('#extract-dialog-btn');
         if (extractDialogBtn) {
-            console.log('JobSearch: Attaching extract dialog listener');
+            console.log('JobSearch: Attaching extract dialog listener', extractDialogBtn);
+            console.log('JobSearch: Button disabled?', extractDialogBtn.disabled);
+            console.log('JobSearch: Handler bound?', typeof this.handleExtractKeywords);
             extractDialogBtn.addEventListener('click', this.handleExtractKeywords);
+            // Test if listener is working
+            extractDialogBtn.addEventListener('click', (e) => {
+                console.log('JobSearch: TEST LISTENER FIRED', e);
+            });
         } else {
             console.log('JobSearch: Extract dialog button not found in DOM');
         }
@@ -942,7 +948,7 @@ Return 5-10 most relevant keywords for job searching. Be specific and use terms 
 
                             <div class="dialog-actions">
                                 <button class="btn-text" id="close-resume-dialog">Cancel</button>
-                                <button class="btn btn-primary" id="extract-dialog-btn" ${resumes.length === 0 ? 'disabled' : ''}>
+                                <button class="btn btn-primary" id="extract-dialog-btn" ${resumes.length === 0 ? 'disabled' : ''} onclick="console.log('Button clicked via onclick!')">
                                     Extract Keywords
                                 </button>
                             </div>
