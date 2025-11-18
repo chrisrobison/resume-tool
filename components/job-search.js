@@ -235,17 +235,8 @@ class JobSearch extends ComponentBase {
 
         const resumeId = resumeSelect.value;
 
-        // Get storage and AI service from app manager
-        const storage = this._appManager?.storage;
-        if (!storage) {
-            if (this._appManager?.showToast) {
-                this._appManager.showToast('Storage not available', 'error');
-            }
-            return;
-        }
-
-        // Get resume data
-        const resumes = storage.getSavedResumes();
+        // Get resume data from app manager
+        const resumes = this._appManager?.data?.resumes || [];
         const resume = resumes.find(r => r.id === resumeId);
 
         if (!resume) {
@@ -256,8 +247,8 @@ class JobSearch extends ComponentBase {
         }
 
         // Check if AI is configured
-        const apiKeys = storage.getApiKeys();
-        if (!apiKeys.key || !apiKeys.type) {
+        const apiKeys = this.getApiKeys();
+        if (!apiKeys || !apiKeys.key || !apiKeys.type) {
             if (this._appManager?.showToast) {
                 this._appManager.showToast('Please configure your API key in Settings first', 'error');
             }
@@ -398,6 +389,22 @@ Return 5-10 most relevant keywords for job searching. Be specific and use terms 
         };
     }
 
+    getApiKeys() {
+        try {
+            const apiKeysJson = localStorage.getItem('resumeApiKeys');
+            if (!apiKeysJson) return null;
+
+            const apiKeys = JSON.parse(apiKeysJson);
+            return {
+                type: apiKeys.type,
+                key: apiKeys.key
+            };
+        } catch (error) {
+            console.error('JobSearch: Failed to load API keys:', error);
+            return null;
+        }
+    }
+
     async callOpenAIAPI(prompt, apiKey) {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -450,30 +457,32 @@ Return 5-10 most relevant keywords for job searching. Be specific and use terms 
             // Convert to internal job format
             const internalJobs = jobsToImport.map(job => convertToInternalJob(job));
 
-            // Get storage from app manager
-            const storage = this._appManager?.storage;
-            if (!storage) {
-                throw new Error('Storage not available');
+            // Get existing jobs from app manager
+            const appData = this._appManager?.data;
+            if (!appData) {
+                throw new Error('App data not available');
             }
 
-            // Load existing jobs
-            const existingJobs = storage.getJobs() || {};
+            // Get existing jobs as array
+            const existingJobsArray = Array.isArray(appData.jobs) ? appData.jobs : [];
+            const existingJobIds = new Set(existingJobsArray.map(j => j.id));
 
-            // Add new jobs
+            // Add new jobs (avoid duplicates)
             let imported = 0;
             internalJobs.forEach(job => {
-                if (!existingJobs[job.id]) {
-                    existingJobs[job.id] = job;
+                if (!existingJobIds.has(job.id)) {
+                    existingJobsArray.push(job);
                     imported++;
                 }
             });
 
             // Save to storage
-            storage.saveJobs(existingJobs);
+            appData.jobs = existingJobsArray;
+            this._appManager.saveData();
 
             // Update global state
             this.updateGlobalState({
-                jobs: existingJobs
+                jobs: existingJobsArray
             }, 'job-search-import');
 
             // Show success message
@@ -513,9 +522,8 @@ Return 5-10 most relevant keywords for job searching. Be specific and use terms 
         const selectedAdapter = this._feedManager?.getAdapter(this._selectedFeed);
         const searchParams = selectedAdapter?.getSearchParams() || {};
 
-        // Get resumes for dropdown
-        const storage = this._appManager?.storage;
-        const resumes = storage?.getSavedResumes() || [];
+        // Get resumes for dropdown from app manager data
+        const resumes = this._appManager?.data?.resumes || [];
 
         this.shadowRoot.innerHTML = `
             <style>
