@@ -46,11 +46,8 @@ class JobSearch extends ComponentBase {
 
         console.log('JobSearch: Registered adapters:', this._feedManager.getAllAdapters());
 
-        // Render component
+        // Render component (this will also setup event listeners)
         this.render();
-
-        // Setup event listeners
-        this.setupEventListeners();
     }
 
     onCleanup() {
@@ -518,8 +515,14 @@ Return 5-10 most relevant keywords for job searching. Be specific and use terms 
     }
 
     render() {
-        const adapters = this._feedManager?.getAllAdapters() || [];
-        const selectedAdapter = this._feedManager?.getAdapter(this._selectedFeed);
+        // Don't render if feed manager is not initialized yet
+        if (!this._feedManager) {
+            console.log('JobSearch: Skipping render - feed manager not initialized');
+            return;
+        }
+
+        const adapters = this._feedManager.getAllAdapters() || [];
+        const selectedAdapter = this._feedManager.getAdapter(this._selectedFeed);
         const searchParams = selectedAdapter?.getSearchParams() || {};
 
         // Get resumes for dropdown from app manager data
