@@ -12,7 +12,7 @@
     "test:screenshots": "cypress run --spec '**/screenshots/**'",
     "test:visual": "cypress run --spec '**/visual-regression/**'",
     "serve": "python -m http.server 8080",
-    "serve:bg": "python -m http.server 8080 &",
+    "serve:bg": "bash scripts/start-server.sh",
     "test:ci": "npm run serve:bg && sleep 2 && npm run test:headless",
     "test:report": "npm run test:headless && npm run report:merge && npm run report:generate && npm run report:open",
     "test:report:single": "npx cypress run --spec \"cypress/e2e/basic-ui.cy.js\" --headless && npm run report:merge && npm run report:generate && npm run report:open",
@@ -20,7 +20,7 @@
     "report:generate": "marge cypress/reports/merged-report.json --reportDir cypress/reports/html --inline",
     "report:open": "echo 'HTML Report available at: https://cdr2.com/job-tool/cypress/reports/html/merged-report.html'",
     "pretest": "npm run serve:bg && sleep 2",
-    "posttest": "pkill -f 'python.*server' || true",
+    "posttest": "bash scripts/stop-server.sh || true",
     "clean:reports": "rm -rf cypress/reports cypress/screenshots cypress/videos",
     "test:verify": "echo 'Run: npm run serve:bg && npm run test:open' to verify tests manually"
   },

@@ -816,7 +816,7 @@ function setupJobsModal(app) {
                 const getSelectedModelForProvider = (providerKey) => {
                     const key = providerKey === 'chatgpt' ? 'openai' : providerKey;
                     try {
-                        const store = document.querySelector('global-store-migrated');
+                        const store = document.querySelector('global-store');
                         const settings = store?.getState('settings');
                         const providers = settings?.apiProviders || {};
                         const prefsProvider = settings?.preferences?.defaultProvider;

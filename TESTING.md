@@ -1,174 +1,65 @@
-# Testing Strategy for Resume Tool
+TESTING
+=======
 
-This document outlines how to test the resume tool functionality to prevent issues like missing event handlers or broken functionality.
+This document describes local testing, running the static server, and using the AI proxy for `parse-job` flows.
 
-## Quick Manual Testing
+Quick start
+-----------
 
-### 1. Browser Console Testing
-1. Open `demo.html` in a browser
-2. Open Developer Tools (F12) and go to Console tab
-3. Load the test script:
-   ```javascript
-   // Copy and paste the contents of test-in-browser.js
-   // Or if you can load scripts:
-   fetch('test-in-browser.js').then(r => r.text()).then(eval);
-   ```
-4. Run tests:
-   ```javascript
-   testDemo.runQuickTests();
-   testDemo.testEditButtonFunctionality();
-   ```
+- Install dev dependencies: `npm ci` (if you need to run Cypress locally).
+- Start a static server: `npm run serve` (serves `.` on `http://localhost:8080`).
+- Run a single Cypress spec (local):
+  - `CYPRESS_BASE_URL=http://localhost:8080 npx cypress run --spec 'cypress/e2e/basic-ui.cy.js'`
 
-### 2. Manual UI Testing Checklist
+Overriding Cypress baseUrl
+--------------------------
 
-#### Navigation Testing
-- [ ] Click "Resumes" tab - should show resumes list
-- [ ] Click "Jobs" tab - should show jobs list  
-- [ ] Click "Settings" tab - should show settings
-- [ ] Click "Logs" tab - should show logs
+Cypress base URL defaults to `http://localhost:8080` for local development. To override it (for example in CI), set the `CYPRESS_BASE_URL` environment variable:
 
-#### Resume Creation Testing
-- [ ] Click "New Resume" button - should open resume editor
-- [ ] Switch between tabs (Basics, Work, Education, Skills, Projects, Preview)
-- [ ] All tabs should be clickable and show correct panels
-- [ ] Form fields in Basics tab should be functional
+- Unix/macOS: `CYPRESS_BASE_URL=https://example.com npx cypress run --spec 'cypress/e2e/basic-ui.cy.js'`
+- Windows (PowerShell): `$env:CYPRESS_BASE_URL='https://example.com'; npx cypress run --spec 'cypress/e2e/basic-ui.cy.js'`
 
-#### Edit/Delete Button Testing
-- [ ] Go to Work tab, add some test data manually to app.currentResumeData
-- [ ] Check if edit/delete buttons appear
-- [ ] Click edit button - should show alert with index
-- [ ] Click delete button - should show confirmation and remove item
+Visual tests (opt-in)
+---------------------
 
-#### Data Persistence Testing
-- [ ] Enter data in forms
-- [ ] Save resume with a name
-- [ ] Load the saved resume
-- [ ] Verify data is preserved
+Visual regression tests are intentionally opt-in. To run the visual suite set either `--env visual=1` or the environment variable `CYPRESS_VISUAL=1`.
 
-## Automated Testing Options
+- Example: `CYPRESS_BASE_URL=http://localhost:8080 npx cypress run --spec 'cypress/e2e/visual-regression.cy.js' --env visual=1`
+- Or: `CYPRESS_VISUAL=1 CYPRESS_BASE_URL=http://localhost:8080 npx cypress run --spec 'cypress/e2e/visual-regression.cy.js'`
 
-### Option 1: Headless Browser Testing (Puppeteer)
-```bash
-# Install dependencies
-npm install puppeteer
+AI proxy and `.env`
+-------------------
 
-# Run tests
-node test-demo.js
-```
+This project provides a small server-side proxy `ai-proxy.php` that can use a `.env` file to supply API keys. A sample `.env.example` is included.
 
-### Option 2: Browser-based Testing
-Open `verify-demo.html` in a browser to run automated tests in an iframe.
+Steps to test parse-job flows locally:
 
-### Option 3: Command Line with Your Headless Chromium
-```bash
-# Example command structure
-chromium --headless --run-all-tests --dump-dom demo.html
-```
+1. Ensure PHP is available (for `ai-proxy.php`) or run the Node server in `server/` if available.
+2. Copy `.env.example` to `.env` and populate your API keys (do NOT commit `.env`).
+   - `cp .env.example .env`
+   - Edit `.env` and add your real `OPENAI_API_KEY` and/or `ANTHROPIC_API_KEY`.
+3. Start the static server: `npm run serve` (serves `http://localhost:8080`).
+4. Open the test harness `test-ai-proxy.html` or run the import flow in the UI that triggers `ai-proxy.php`.
 
-## Key Areas to Test
+Notes on `.env.example`
+-----------------------
 
-### 1. Event Delegation
-**Problem:** Edit buttons calling undefined functions
-**Test:** Verify containers exist and event listeners are attached
-```javascript
-// Check containers exist
-['#work-list', '#education-list', '#skills-list', '#projects-list'].forEach(id => {
-    console.assert(document.querySelector(id), `Container ${id} missing`);
-});
+The repository includes `.env.example` with the following keys documented:
 
-// Check event delegation setup
-console.assert(typeof app.setupSectionEventDelegation === 'function', 'Event delegation method missing');
-```
+- `ANTHROPIC_API_KEY` — optional, used by Claude/Anthropic backend.
+- `OPENAI_API_KEY` — optional, used by OpenAI requests.
+- `ALLOWED_ORIGINS` — CORS allowed origins for `ai-proxy.php` (default `*`).
+- `CLAUDE_MODEL` / `OPENAI_MODEL` — defaults for server-side requests.
 
-### 2. Function Availability
-**Problem:** Methods called from HTML that don't exist
-**Test:** Verify all referenced functions exist
-```javascript
-// Check required methods exist
-['updateWorkSection', 'updateEducationSection', 'updateSkillsSection', 'updateProjectsSection'].forEach(method => {
-    console.assert(typeof app[method] === 'function', `Method ${method} missing`);
-});
-```
+CI notes
+--------
 
-### 3. Data Flow
-**Problem:** Data updates not reflected in UI
-**Test:** Modify data and verify UI updates
-```javascript
-// Add test data and verify it renders
-app.currentResumeData = { work: [{ name: 'Test', position: 'Test' }] };
-app.updateWorkSection();
-console.assert(document.querySelector('#work-list .section-item'), 'Work item not rendered');
-```
+- Use `npm run test:ci` in CI pipelines. This starts the static server in background then runs headless tests.
+- Visual tests should only be enabled when you intentionally want to produce baseline screenshots.
 
-### 4. No JavaScript Errors
-**Test:** Monitor console for errors during operations
-```javascript
-let errorCount = 0;
-const originalError = console.error;
-console.error = (...args) => { errorCount++; originalError(...args); };
+Troubleshooting
+---------------
 
-// Perform operations...
-// Check errorCount === 0
-```
+- If Cypress cannot connect, verify `CYPRESS_BASE_URL` and that `npm run serve` is running.
+- If AI proxy requests fail, check `ai.log` (generated by `ai-proxy.php`) and ensure API keys are set in `.env`.
 
-## Testing Workflow
-
-### Before Making Changes
-1. Run `testDemo.runQuickTests()` to establish baseline
-2. Document which functionality currently works
-3. Save test results for comparison
-
-### After Making Changes
-1. Run the same tests again
-2. Compare results - ensure no regressions
-3. Test new functionality specifically
-4. Check browser console for errors
-
-### Before Committing
-1. Run full test suite
-2. Test on multiple browsers if possible
-3. Verify in both dev and production environments
-
-## Common Issues to Watch For
-
-1. **Container ID Mismatches**: Event delegation targeting wrong IDs
-2. **Method Name Typos**: Functions called from HTML that don't exist
-3. **Timing Issues**: Events attached before DOM elements exist
-4. **Data Structure Mismatches**: Code expecting different data formats
-5. **CSS Selector Errors**: Event delegation using wrong selectors
-
-## Emergency Testing Script
-
-If you need to quickly verify functionality works:
-
-```javascript
-// Emergency test - paste in console
-function quickCheck() {
-    const tests = [
-        () => !!window.app,
-        () => !!document.querySelector('#work-list'),
-        () => typeof app.setupSectionEventDelegation === 'function',
-        () => typeof app.updateWorkSection === 'function'
-    ];
-    
-    const results = tests.map((test, i) => {
-        try { return test(); } catch { return false; }
-    });
-    
-    console.log('Quick Test Results:', results);
-    return results.every(r => r);
-}
-quickCheck();
-```
-
-## Integration with Your Headless Chromium
-
-You can integrate these tests with your headless setup by:
-
-1. Loading `demo.html` 
-2. Injecting `test-in-browser.js`
-3. Running `testDemo.runQuickTests()`
-4. Capturing console output to verify results
-5. Failing the build if tests don't pass
-
-This will catch issues like the edit button problem before they reach you!

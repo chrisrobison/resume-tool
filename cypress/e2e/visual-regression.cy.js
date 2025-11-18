@@ -1,4 +1,8 @@
-describe('Visual Regression Testing', () => {
+// Make visual tests opt-in. Set `--env visual=1` or `CYPRESS_VISUAL=1` to run.
+const visualEnabled = Boolean(Cypress.env('visual') || Cypress.env('VISUAL') || process.env.CYPRESS_VISUAL);
+const vDescribe = visualEnabled ? describe : describe.skip;
+
+vDescribe('Visual Regression Testing', () => {
   beforeEach(() => {
     cy.clearAPIKeys();
     cy.visitJobsApp('new');

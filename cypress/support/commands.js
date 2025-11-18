@@ -4,13 +4,36 @@
 
 // Job Hunt Manager specific commands
 Cypress.Commands.add('visitJobsApp', (version = 'new') => {
-  const url = version === 'new' ? '/jobs-new.html' : '/jobs.html';
-  cy.visit(url);
-  // Wait for app initialization; be flexible about selectors (legacy vs new layout)
-  // Allow longer timeouts for CI environments
-  cy.get('body', { timeout: 20000 }).should('be.visible');
-  cy.get('#main-nav, nav, [id*="nav"], .sidebar', { timeout: 20000 }).should('exist');
-  cy.get('#main-content, .main-content, #app, main', { timeout: 20000 }).should('exist');
+  // Probe multiple possible entry paths and visit the first that responds 2xx/3xx.
+  const candidates = version === 'new'
+    ? ['/', '/jobs-new.html', '/index.html', '/jobs.html']
+    : ['/jobs.html', '/index.html', '/'];
+
+  function tryVisit(index = 0) {
+    if (index >= candidates.length) {
+      // Last resort: attempt visiting root and allow Cypress to report the error
+      return cy.visit(candidates[0]);
+    }
+
+    const candidate = candidates[index];
+    cy.log(`visitJobsApp: probing ${candidate}`);
+    cy.request({ url: candidate, failOnStatusCode: false }).then((resp) => {
+      if (resp.status >= 200 && resp.status < 400) {
+        cy.log(`visitJobsApp: using ${candidate} (status ${resp.status})`);
+        cy.visit(candidate);
+
+        // Wait for app initialization; be flexible about selectors (legacy vs new layout)
+        cy.get('body', { timeout: 20000 }).should('be.visible');
+        cy.get('#main-nav, nav, [id*="nav"], .sidebar', { timeout: 20000 }).should('exist');
+        cy.get('#main-content, .main-content, #app, main', { timeout: 20000 }).should('exist');
+      } else {
+        cy.log(`visitJobsApp: ${candidate} returned ${resp.status}, trying next`);
+        return tryVisit(index + 1);
+      }
+    });
+  }
+
+  return tryVisit(0);
 });
 
 // Navigation commands
@@ -194,4 +217,14 @@ Cypress.Commands.add('checkA11y', () => {
   cy.get('body').should('be.visible'); // Basic check that page loads
   cy.get('h1, h2, h3, h4, h5, h6').should('exist'); // Check for headings
   cy.get('button').should('exist'); // Check for interactive elements
+});
+
+// Basic tabbing support so tests can call cy.focused().tab()
+// This avoids adding an external plugin dependency in the test environment.
+Cypress.Commands.add('tab', { prevSubject: 'element' }, (subject) => {
+  // Trigger a Tab keydown/keyup on the provided element and return the newly focused element
+  // Use small timeout to allow browser focus movement
+  cy.wrap(subject).trigger('keydown', { key: 'Tab', keyCode: 9, which: 9, bubbles: true });
+  cy.wait(10);
+  return cy.focused();
 });

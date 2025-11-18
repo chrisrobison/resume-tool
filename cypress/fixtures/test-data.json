@@ -117,8 +117,8 @@
   ],
   
   "testAPIKeys": {
-    "claude": "sk-test-claude-key-12345",
-    "openai": "sk-test-openai-key-67890"
+    "claude": "test-claude-key",
+    "openai": "test-openai-key"
   },
   
   "importJobTestData": {

@@ -103,12 +103,12 @@
 
                 <!-- Settings Panel -->
                 <div id="settings-panel" class="settings-panel" style="display:none; width:100%;">
-                    <settings-manager-migrated></settings-manager-migrated>
+                    <settings-manager></settings-manager>
                 </div>
 
                 <!-- AI Assistant Panel -->
                 <div id="ai-assistant-panel" class="ai-assistant-panel" style="display:none; width:100%;">
-                    <ai-assistant-worker-migrated></ai-assistant-worker-migrated>
+                    <ai-assistant-worker></ai-assistant-worker>
                 </div>
 
                 <!-- Resumes Panel (placeholder for legacy selector) -->
@@ -199,6 +199,14 @@
             </div>
         </div>
     </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/job-tool/service-worker.js').then(reg => {
+                console.log('Service worker registered:', reg.scope);
+            }).catch(err => console.warn('Service worker registration failed:', err));
+        }
+    </script>
 
     <!-- Generic Form Modal -->
     <div class="modal-backdrop hidden" id="form-modal">
@@ -495,17 +503,17 @@
     <div id="toast" class="toast"></div>
 
     <!-- Resume Editor Component -->
-    <script type="module" src="./components/resume-editor-migrated.js"></script>
-    <script type="module" src="./components/resume-viewer-migrated.js"></script>
+    <script type="module" src="./components/resume-editor.js"></script>
+    <script type="module" src="./components/resume-viewer.js"></script>
     <script type="module" src="./components/resume-analytics.js"></script>
-    <script type="module" src="./components/global-store-migrated.js"></script>
-    <script type="module" src="./components/settings-manager-migrated.js"></script>
-    <script type="module" src="./components/ai-assistant-worker-migrated.js"></script>
+    <script type="module" src="./components/global-store.js"></script>
+    <script type="module" src="./components/settings-manager.js"></script>
+    <script type="module" src="./components/ai-assistant-worker.js"></script>
     <script type="module" src="./js/ai-service.js"></script>
     <script type="module" src="./js/store.js"></script>
 
     <!-- Global Store Instance -->
-    <global-store-migrated></global-store-migrated>
+    <global-store></global-store>
 
     <!-- Main Application JavaScript - Now Modular! -->
     <script type="module" src="./js/app-manager.js"></script>

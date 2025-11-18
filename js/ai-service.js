@@ -276,18 +276,33 @@ class AIService {
                 onProgress
             });
 
-            // Augment data with settings-driven route if not provided
-            try {
-                const settings = getState('settings');
-                const provider = data && data.provider;
-                if (provider && (!data.route || typeof data.route !== 'string')) {
-                    const providerCfg = settings?.apiProviders?.[provider];
-                    if (providerCfg && providerCfg.route) {
-                        data.route = providerCfg.route;
-                    }
+            // Handle both old (provider/apiKey/model) and new (providerList) formats
+            // Convert old format to new if needed
+            if (data.provider && !data.providerList) {
+                // Legacy single provider format - convert to list
+                data.providerList = [{
+                    provider: data.provider,
+                    apiKey: data.apiKey || '',
+                    model: data.model || '',
+                    route: data.route || 'auto'
+                }];
+                // Keep old fields for backward compatibility
+            } else if (data.providerList && data.providerList.length > 0) {
+                // New providerList format - augment with settings routes if not provided
+                try {
+                    const settings = getState('settings');
+                    data.providerList = data.providerList.map(providerCfg => {
+                        if (!providerCfg.route || typeof providerCfg.route !== 'string') {
+                            const settingsCfg = settings?.apiProviders?.[providerCfg.provider];
+                            if (settingsCfg && settingsCfg.route) {
+                                return { ...providerCfg, route: settingsCfg.route };
+                            }
+                        }
+                        return providerCfg;
+                    });
+                } catch (e) {
+                    // Non-fatal: proceed without settings
                 }
-            } catch (e) {
-                // Non-fatal: proceed without settings
             }
 
             // Send request to worker

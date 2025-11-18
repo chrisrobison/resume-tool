@@ -43,50 +43,62 @@ class AIWorker {
     async handleTailorResume(data, requestId) {
         try {
             this.postProgress('Starting resume tailoring...', requestId);
-            
+
             // Debug logging
             console.log('Worker handleTailorResume - Received data:', data);
-            
-            const { resume, jobDescription, provider, apiKey, model, includeAnalysis = false, route = 'auto' } = data;
-            
+
+            const { resume, jobDescription, providerList, provider, apiKey, model, includeAnalysis = false, route = 'auto' } = data;
+
             // Set metadata for logging
             this.currentOperation = 'tailor_resume';
             this.currentRequestData = { resume, jobDescription, includeAnalysis };
-            
+
             // Debug individual parameters
             console.log('Worker - resume:', !!resume);
             console.log('Worker - jobDescription:', !!jobDescription, jobDescription?.substring(0, 100));
-            console.log('Worker - provider:', provider);
-            console.log('Worker - apiKey:', !!apiKey, apiKey?.substring(0, 10) + '...');
-            
-            if (!resume || !jobDescription || !provider || !apiKey) {
+            console.log('Worker - providerList:', providerList);
+            console.log('Worker - provider (legacy):', provider);
+
+            // Validate inputs
+            if (!resume || !jobDescription) {
                 const missing = [];
                 if (!resume) missing.push('resume');
                 if (!jobDescription) missing.push('jobDescription');
-                if (!provider) missing.push('provider');
-                if (!apiKey) missing.push('apiKey');
                 throw new Error(`Missing required parameters for resume tailoring: ${missing.join(', ')}`);
             }
 
+            // Handle both new (providerList) and legacy (provider/apiKey/model) formats
+            let providers = providerList;
+            if (!providers || providers.length === 0) {
+                // Legacy format fallback
+                if (provider) {
+                    providers = [{ provider, apiKey: apiKey || '', model: model || '', route: route || 'auto' }];
+                } else {
+                    throw new Error('No AI providers configured');
+                }
+            }
+
             let prompt = this.buildTailorResumePrompt(resume, jobDescription, includeAnalysis);
-            
+
             this.postProgress('Sending request to AI service...', requestId);
-            
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
-            
+
+            const { result, usedProvider, usedModel } = await this.makeAIRequestWithFallback(providers, prompt, requestId);
+
             this.postProgress('Processing AI response...', requestId);
-            
+
             const parsedResult = this.parseAIResponse(result, 'tailor-resume');
-            
+
             this.postSuccess({
                 type: 'tailor-resume',
                 result: parsedResult,
                 originalResume: resume,
                 jobDescription: jobDescription,
-                provider: provider,
+                provider: usedProvider,
+                usedProvider,
+                usedModel,
                 timestamp: new Date().toISOString()
             }, requestId);
-            
+
         } catch (error) {
             this.postError(`Resume tailoring failed: ${error.message}`, requestId);
         }
@@ -98,31 +110,43 @@ class AIWorker {
             // Set metadata for logging/proxy
             this.currentOperation = 'generate_cover_letter';
             this.currentRequestData = { resume: data?.resume, jobDescription: data?.jobDescription, jobInfo: data?.jobInfo, includeAnalysis: data?.includeAnalysis };
-            
-            const { resume, jobDescription, jobInfo, provider, apiKey, model, includeAnalysis = true, route = 'auto' } = data;
-            
-            if (!resume || !jobDescription || !provider || !apiKey) {
+
+            const { resume, jobDescription, jobInfo, providerList, provider, apiKey, model, includeAnalysis = true, route = 'auto' } = data;
+
+            if (!resume || !jobDescription) {
                 throw new Error('Missing required parameters for cover letter generation');
             }
 
+            // Handle both new (providerList) and legacy formats
+            let providers = providerList;
+            if (!providers || providers.length === 0) {
+                if (provider) {
+                    providers = [{ provider, apiKey: apiKey || '', model: model || '', route: route || 'auto' }];
+                } else {
+                    throw new Error('No AI providers configured');
+                }
+            }
+
             let prompt = this.buildCoverLetterPrompt(resume, jobDescription, jobInfo, includeAnalysis);
-            
+
             this.postProgress('Generating cover letter with AI...', requestId);
-            
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
-            
+
+            const { result, usedProvider, usedModel } = await this.makeAIRequestWithFallback(providers, prompt, requestId);
+
             this.postProgress('Processing cover letter response...', requestId);
-            
+
             const parsedResult = this.parseAIResponse(result, 'cover-letter');
-            
+
             this.postSuccess({
                 type: 'cover-letter',
                 result: parsedResult,
                 jobInfo: jobInfo,
-                provider: provider,
+                provider: usedProvider,
+                usedProvider,
+                usedModel,
                 timestamp: new Date().toISOString()
             }, requestId);
-            
+
         } catch (error) {
             this.postError(`Cover letter generation failed: ${error.message}`, requestId);
         }
@@ -134,30 +158,42 @@ class AIWorker {
             // Set metadata for logging/proxy
             this.currentOperation = 'analyze_match';
             this.currentRequestData = { resume: data?.resume, jobDescription: data?.jobDescription };
-            
-            const { resume, jobDescription, provider, apiKey, model, route = 'auto' } = data;
-            
-            if (!resume || !jobDescription || !provider || !apiKey) {
+
+            const { resume, jobDescription, providerList, provider, apiKey, model, route = 'auto' } = data;
+
+            if (!resume || !jobDescription) {
                 throw new Error('Missing required parameters for match analysis');
             }
 
+            // Handle both new (providerList) and legacy formats
+            let providers = providerList;
+            if (!providers || providers.length === 0) {
+                if (provider) {
+                    providers = [{ provider, apiKey: apiKey || '', model: model || '', route: route || 'auto' }];
+                } else {
+                    throw new Error('No AI providers configured');
+                }
+            }
+
             let prompt = this.buildMatchAnalysisPrompt(resume, jobDescription);
-            
+
             this.postProgress('Analyzing match with AI...', requestId);
-            
-            const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
-            
+
+            const { result, usedProvider, usedModel } = await this.makeAIRequestWithFallback(providers, prompt, requestId);
+
             this.postProgress('Processing match analysis...', requestId);
-            
+
             const parsedResult = this.parseAIResponse(result, 'match-analysis');
-            
+
             this.postSuccess({
                 type: 'match-analysis',
                 result: parsedResult,
-                provider: provider,
+                provider: usedProvider,
+                usedProvider,
+                usedModel,
                 timestamp: new Date().toISOString()
             }, requestId);
-            
+
         } catch (error) {
             this.postError(`Match analysis failed: ${error.message}`, requestId);
         }
@@ -172,7 +208,7 @@ class AIWorker {
 
             const { url, description, instructions, provider, apiKey, model, route = 'auto' } = data;
 
-            if (!provider || !apiKey) {
+            if (!provider || (provider !== 'browser' && !apiKey)) {
                 throw new Error('Missing provider or apiKey for parse-job');
             }
 
@@ -488,22 +524,22 @@ class AIWorker {
     async handleTestApiKey(data, requestId) {
         try {
             this.postProgress('Testing API key...', requestId);
-            
+
             // Set metadata for logging/proxy
             this.currentOperation = 'test-api-key';
             this.currentRequestData = { provider: data?.provider };
 
             const { provider, apiKey, model, route = 'auto' } = data;
-            
-            if (!provider || !apiKey) {
+
+            if (!provider || (provider !== 'browser' && !apiKey)) {
                 throw new Error('Missing provider or API key');
             }
 
             // Simple test prompt
             const testPrompt = 'Respond with exactly: "API key test successful"';
-            
+
             const result = await this.makeAIRequest(provider, apiKey, testPrompt, requestId, model, route);
-            
+
             this.postSuccess({
                 type: 'api-test',
                 success: true,
@@ -511,10 +547,121 @@ class AIWorker {
                 provider: provider,
                 timestamp: new Date().toISOString()
             }, requestId);
-            
+
         } catch (error) {
             this.postError(`API key test failed: ${error.message}`, requestId);
         }
+    }
+
+    /**
+     * Make AI request with automatic provider fallback
+     * Tries each provider in order until one succeeds
+     * @param {Array} providers - Array of provider configs: [{provider, apiKey, model, route}]
+     * @param {string} prompt - The prompt to send
+     * @param {number} requestId - Request ID for progress updates
+     * @returns {Promise<{result, usedProvider, usedModel}>} The result and provider info
+     */
+    async makeAIRequestWithFallback(providers, prompt, requestId) {
+        const errors = [];
+
+        for (let i = 0; i < providers.length; i++) {
+            const providerConfig = providers[i];
+            const { provider, apiKey, model, route } = providerConfig;
+
+            try {
+                this.postProgress(`Trying provider ${i + 1}/${providers.length}: ${provider}...`, requestId);
+
+                const result = await this.makeAIRequest(provider, apiKey, prompt, requestId, model, route);
+
+                // Success! Return result with provider info
+                this.postProgress(`Successfully connected using ${provider}`, requestId);
+                return {
+                    result,
+                    usedProvider: provider,
+                    usedModel: model || 'default'
+                };
+
+            } catch (error) {
+                console.error(`Provider ${provider} failed:`, error.message);
+                errors.push({ provider, error: error.message });
+
+                // Intelligent error handling - decide whether to try next provider
+                const errorType = this.classifyError(error);
+
+                if (errorType === 'authentication') {
+                    // Auth failed - try next provider immediately
+                    this.postProgress(`${provider} authentication failed, trying next provider...`, requestId);
+                    continue;
+                }
+
+                if (errorType === 'rate_limit') {
+                    // Rate limited - try next provider (could add delay if we want)
+                    this.postProgress(`${provider} rate limited, trying next provider...`, requestId);
+                    continue;
+                }
+
+                if (errorType === 'cors' || errorType === 'network') {
+                    // Network/CORS issue - try next provider
+                    this.postProgress(`${provider} connection failed, trying next provider...`, requestId);
+                    continue;
+                }
+
+                if (errorType === 'invalid_request') {
+                    // Invalid request - likely won't work with other providers either, but try anyway
+                    this.postProgress(`${provider} rejected request, trying next provider...`, requestId);
+                    continue;
+                }
+
+                // Unknown error - try next provider
+                this.postProgress(`${provider} failed with unknown error, trying next provider...`, requestId);
+                continue;
+            }
+        }
+
+        // All providers failed - throw comprehensive error
+        const errorSummary = errors.map(e => `${e.provider}: ${e.error}`).join('; ');
+        throw new Error(`All ${providers.length} AI providers failed. Errors: ${errorSummary}`);
+    }
+
+    /**
+     * Classify error type for intelligent fallback
+     * @param {Error} error - The error to classify
+     * @returns {string} Error type: authentication, rate_limit, cors, network, invalid_request, unknown
+     */
+    classifyError(error) {
+        const message = (error.message || '').toLowerCase();
+
+        // Authentication errors (401, 403, invalid API key)
+        if (message.includes('401') || message.includes('403') ||
+            message.includes('unauthorized') || message.includes('invalid api key') ||
+            message.includes('authentication') || message.includes('api key')) {
+            return 'authentication';
+        }
+
+        // Rate limiting errors (429)
+        if (message.includes('429') || message.includes('rate limit') ||
+            message.includes('too many requests') || message.includes('quota')) {
+            return 'rate_limit';
+        }
+
+        // CORS errors
+        if (message.includes('cors') || message.includes('cross-origin')) {
+            return 'cors';
+        }
+
+        // Network errors
+        if (message.includes('network') || message.includes('fetch failed') ||
+            message.includes('connection') || message.includes('timeout')) {
+            return 'network';
+        }
+
+        // Invalid request errors (400, 422)
+        if (message.includes('400') || message.includes('422') ||
+            message.includes('invalid') || message.includes('bad request')) {
+            return 'invalid_request';
+        }
+
+        return 'unknown';
     }
 
     async makeAIRequest(provider, apiKey, prompt, requestId, model, route = 'auto') {
@@ -537,6 +684,11 @@ class AIWorker {
                 // - 'auto' : try direct then fallback to server proxy (existing behavior)
                 // - 'direct': force direct API call from browser; do not fallback to proxy
                 // - 'proxy': always use server-side ai-proxy
+                // Special-case: Browser LLM provider or explicit browser route
+                if (provider === 'browser' || route === 'browser') {
+                    return await this.callBrowserLLM(prompt, requestId, model);
+                }
+
                 if (provider === 'claude') {
                     if (route === 'proxy') {
                         return await this.callServerAPI('claude', apiKey, prompt, requestId, apiMetadata, model);
@@ -567,6 +719,40 @@ class AIWorker {
                 this.postProgress(`Attempt ${attempt} failed, retrying... (${error.message})`, requestId);
                 await this.sleep(1000 * attempt); // Exponential backoff
             }
+        }
+    }
+
+    async callBrowserLLM(prompt, requestId, model) {
+        try {
+            this.postProgress('Running prompt on local browser LLM...', requestId);
+
+            // Ensure worker-side browser LLM bridge is available
+            try {
+                // workers/browser-llm.js creates self.BrowserLLM shim
+                importScripts('/workers/browser-llm.js');
+            } catch (e) {
+                // If importScripts fails (e.g., path issue), try to proceed since the file may already be evaluated
+            }
+
+            if (!self.BrowserLLM || typeof self.BrowserLLM.generate !== 'function') {
+                throw new Error('Browser LLM runtime unavailable in worker. Provide a runtime at /vendor/web-llm/worker-llm.js');
+            }
+
+            // Optionally load model first (best-effort)
+            try {
+                if (model) {
+                    await self.BrowserLLM.loadModel(model, { source: 'huggingface' }).catch(() => {});
+                }
+            } catch (e) {
+                // Non-fatal: continue to generation
+            }
+
+            const out = await self.BrowserLLM.generate(prompt, { model });
+            // Post log for telemetry
+            this.postLog({ type: 'api_response', apiType: 'browser-llm', response: typeof out === 'string' ? out.substring(0, 2000) : out, processingTime: 0 });
+            return out;
+        } catch (e) {
+            throw new Error('Browser LLM error: ' + e.message);
         }
     }
 
@@ -1089,36 +1275,51 @@ Provide honest, constructive analysis that will help the candidate understand th
 
     parseAIResponse(response, type) {
         try {
+            console.log('Worker parseAIResponse - Type:', type);
+            console.log('Worker parseAIResponse - Response length:', response?.length);
+            console.log('Worker parseAIResponse - Response preview:', response?.substring(0, 200));
+
             // Extract JSON from response if it's wrapped in markdown or text
             const jsonMatch = response.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
+                console.error('Worker parseAIResponse - No JSON found in response:', response);
                 throw new Error('No JSON found in AI response');
             }
 
+            console.log('Worker parseAIResponse - Found JSON, parsing...');
             const parsed = JSON.parse(jsonMatch[0]);
-            
+            console.log('Worker parseAIResponse - Parsed successfully, keys:', Object.keys(parsed));
+
             // Validate based on response type
             switch (type) {
                 case 'tailor-resume':
-                    if (!parsed.tailoredResume || !parsed.changes) {
-                        throw new Error('Invalid tailor resume response format');
+                    if (!parsed.tailoredResume && !parsed.tailored_resume && !parsed.tailored) {
+                        console.error('Worker parseAIResponse - Missing tailoredResume in parsed object:', parsed);
+                        throw new Error('Invalid tailor resume response format: missing tailoredResume field');
+                    }
+                    if (!parsed.changes) {
+                        console.warn('Worker parseAIResponse - Missing changes field, but continuing');
                     }
                     break;
                 case 'cover-letter':
-                    if (!parsed.coverLetter) {
-                        throw new Error('Invalid cover letter response format');
+                    if (!parsed.coverLetter && !parsed.cover_letter) {
+                        console.error('Worker parseAIResponse - Missing coverLetter in parsed object:', parsed);
+                        throw new Error('Invalid cover letter response format: missing coverLetter field');
                     }
                     break;
                 case 'match-analysis':
                     if (!parsed.analysis || typeof parsed.analysis.overallScore !== 'number') {
-                        throw new Error('Invalid match analysis response format');
+                        console.error('Worker parseAIResponse - Invalid analysis in parsed object:', parsed);
+                        throw new Error('Invalid match analysis response format: missing or invalid analysis field');
                     }
                     break;
             }
-            
+
+            console.log('Worker parseAIResponse - Validation passed');
             return parsed;
-            
+
         } catch (error) {
+            console.error('Worker parseAIResponse - Error:', error.message);
             throw new Error(`Failed to parse AI response: ${error.message}`);
         }
     }
@@ -1354,7 +1555,9 @@ Provide honest, constructive analysis that will help the candidate understand th
             }
 
             const data = await response.json();
-            
+
+            console.log('Worker callServerAPI - Raw response from server:', data);
+
             // Handle different response formats from server
             if (typeof data === 'string') {
                 return data;
@@ -1362,9 +1565,29 @@ Provide honest, constructive analysis that will help the candidate understand th
                 return data.result;
             } else if (data.response) {
                 return data.response;
-            } else {
-                return JSON.stringify(data);
+            } else if (data.content && Array.isArray(data.content) && data.content.length > 0) {
+                // Anthropic API response format from ai-proxy.php
+                // Extract the actual text content from Claude's response
+                const textContent = data.content.find(c => c.type === 'text');
+                if (textContent && textContent.text) {
+                    console.log('Worker callServerAPI - Extracted Claude content.text');
+                    return textContent.text;
+                }
+            } else if (data.choices && Array.isArray(data.choices) && data.choices.length > 0) {
+                // OpenAI API response format from ai-proxy.php
+                const choice = data.choices[0];
+                if (choice.message && choice.message.content) {
+                    console.log('Worker callServerAPI - Extracted OpenAI message.content');
+                    return choice.message.content;
+                } else if (choice.text) {
+                    console.log('Worker callServerAPI - Extracted OpenAI choice.text');
+                    return choice.text;
+                }
             }
+
+            // Fallback: return as stringified JSON
+            console.log('Worker callServerAPI - No recognized format, returning stringified data');
+            return JSON.stringify(data);
             
         } catch (error) {
             throw error;

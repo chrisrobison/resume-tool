@@ -79,23 +79,27 @@ export function generatePdf(resumeData) {
         const themeSelector = $('#preview-theme');
         const theme = themeSelector ? themeSelector.value : 'modern';
         
-        // Configure options for html2pdf
+        // Configure options for html2pdf (US Letter 8.5" x 11") with smaller margins
         const options = {
-            margin: 10,
+            margin: [8, 8, 8, 8], // top, left, bottom, right in mm (reduced from 15mm to 8mm)
             filename: `${resumeData.basics.name || 'Resume'}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
         };
-        
+
         // Clone the preview container to avoid modifying the displayed content
         const clonedElement = previewContainer.cloneNode(true);
-        
-        // Apply additional PDF-specific styling
+
+        // Apply additional PDF-specific styling for US Letter with smaller margins
         clonedElement.style.margin = '0';
-        clonedElement.style.padding = '20px';
+        clonedElement.style.padding = '8px'; // Reduced from 15px to 8px to match margins
         clonedElement.style.backgroundColor = 'white';
-        clonedElement.style.width = '210mm';
+        clonedElement.style.width = '200mm'; // Increased from 185mm to utilize more page width
+        clonedElement.style.maxWidth = '200mm';
+        clonedElement.style.boxSizing = 'border-box';
+        clonedElement.style.fontSize = '12px'; // Reduce base font size for PDF
+        clonedElement.style.lineHeight = '1.3'; // Tighter line height
         
         // Generate PDF using html2pdf library
         html2pdf()
@@ -184,9 +188,9 @@ function generateModernTheme(resumeData) {
                             </div>
                         </div>
                         <div class="work-date">
-                            ${work.startDate ? escapeHtml(formatDate(work.startDate)) : ''} 
-                            ${work.startDate ? ' - ' : ''}
-                            ${work.endDate ? escapeHtml(formatDate(work.endDate)) : 'Present'}
+                            ${work.startDate ? escapeHtml(formatDate(work.startDate)) : ''}
+                            ${work.startDate && work.endDate ? ' - ' : ''}
+                            ${work.endDate ? escapeHtml(formatDate(work.endDate)) : ''}
                         </div>
                     </div>
                     ${work.location ? `<div class="work-location"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(work.location)}</div>` : ''}
@@ -211,9 +215,9 @@ function generateModernTheme(resumeData) {
                             <div class="education-institution">${escapeHtml(edu.institution || '')}</div>
                         </div>
                         <div class="education-date">
-                            ${edu.startDate ? escapeHtml(formatDate(edu.startDate)) : ''} 
-                            ${edu.startDate ? ' - ' : ''}
-                            ${edu.endDate ? escapeHtml(formatDate(edu.endDate)) : 'Present'}
+                            ${edu.startDate ? escapeHtml(formatDate(edu.startDate)) : ''}
+                            ${edu.startDate && edu.endDate ? ' - ' : ''}
+                            ${edu.endDate ? escapeHtml(formatDate(edu.endDate)) : ''}
                         </div>
                     </div>
                     ${edu.gpa ? `<div class="education-gpa">GPA: ${escapeHtml(edu.gpa)}</div>` : ''}

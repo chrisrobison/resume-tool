@@ -5,7 +5,7 @@ import { ComponentBase } from '../js/component-base.js';
 import aiService from '../js/ai-service.js';
 import { addResume, setCurrentResume, updateJob } from '../js/store.js';
 
-class AIAssistantWorkerMigrated extends ComponentBase {
+class AIAssistantWorker extends ComponentBase {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -14,7 +14,8 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         this._currentJob = null;
         this._currentResume = null;
         this._isProcessing = false;
-        this._currentProgress = '';
+        this._currentProgress = ''; // For compatibility - kept for simple display
+        this._progressLog = []; // Array of {timestamp, message} objects
         this._lastResult = null;
         
         // Bind methods for external access and event handling
@@ -43,7 +44,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
      * Replaces connectedCallback()
      */
     async onInitialize() {
-        console.log('AIAssistantWorkerMigrated: Initializing AI Assistant');
+        console.log('AIAssistantWorker: Initializing AI Assistant');
         
         // Load current state from global store
         await this.updateFromStore();
@@ -60,7 +61,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
      * Called when setData() is used
      */
     onDataChange(newData, previousData, source) {
-        console.log('AIAssistantWorkerMigrated: AI data changed from', source);
+        console.log('AIAssistantWorker: AI data changed from', source);
         
         // Handle AI operation results or configuration changes
         if (newData && typeof newData === 'object') {
@@ -81,7 +82,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
      * Called when refresh() is used
      */
     async onRefresh(force = false) {
-        console.log('AIAssistantWorkerMigrated: Refreshing AI Assistant');
+        console.log('AIAssistantWorker: Refreshing AI Assistant');
         
         // Update from global store
         await this.updateFromStore();
@@ -144,10 +145,14 @@ class AIAssistantWorkerMigrated extends ComponentBase {
     handleStoreChange(event) {
         // React to relevant store changes
         const source = event.detail?.source || '';
-        if (source.includes('job') || source.includes('Job') || 
+        const detail = event.detail || {};
+
+        console.log('AIAssistantWorker: Store change received', { source, hasCurrentJob: !!detail.currentJob, hasCurrentResume: !!detail.currentResume });
+
+        if (source.includes('job') || source.includes('Job') ||
             source.includes('resume') || source.includes('Resume') ||
             source.includes('settings') || source.includes('Settings')) {
-            console.log('AIAssistantWorkerMigrated: Relevant state change detected, updating...', source);
+            console.log('AIAssistantWorker: Relevant state change detected, updating...', source);
             this.updateFromStore();
         }
     }
@@ -157,7 +162,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
      * Replaces disconnectedCallback()
      */
     onCleanup() {
-        console.log('AIAssistantWorkerMigrated: Cleaning up AI Assistant');
+        console.log('AIAssistantWorker: Cleaning up AI Assistant');
         
         // Clear any ongoing processing
         this._isProcessing = false;
@@ -173,24 +178,48 @@ class AIAssistantWorkerMigrated extends ComponentBase {
     async updateFromStore() {
         try {
             const state = this.getGlobalState();
-            console.log('AIAssistantWorkerMigrated updating from store. State:', state);
-            
+            console.log('AIAssistantWorker: Updating from store', {
+                hasState: !!state,
+                hasCurrentJob: !!state?.currentJob,
+                hasCurrentResume: !!state?.currentResume,
+                isReady: this.isReady()
+            });
+
             const previousJob = this._currentJob;
             const previousResume = this._currentResume;
-            
+
             this._currentJob = state?.currentJob || null;
             this._currentResume = state?.currentResume || null;
-            
-            console.log('AIAssistantWorkerMigrated current job:', this._currentJob);
-            console.log('AIAssistantWorkerMigrated current resume:', this._currentResume);
-            
+
+            // Log the actual selections
+            if (this._currentJob) {
+                console.log('AIAssistantWorker: Current job set -', this._currentJob.title || this._currentJob.position || 'Untitled');
+            } else {
+                console.log('AIAssistantWorker: No current job selected');
+            }
+
+            if (this._currentResume) {
+                console.log('AIAssistantWorker: Current resume set -', this._currentResume.name || 'Untitled');
+            } else {
+                console.log('AIAssistantWorker: No current resume selected');
+            }
+
             // Only re-render if job or resume changed
             if (this._currentJob !== previousJob || this._currentResume !== previousResume) {
+                console.log('AIAssistantWorker: Selection changed, re-rendering');
                 if (this.isReady()) {
                     this.render();
+                } else {
+                    console.warn('AIAssistantWorker: Component not ready for render, deferring...');
+                    // Defer render until component is ready
+                    setTimeout(() => {
+                        if (this.isReady()) {
+                            this.render();
+                        }
+                    }, 100);
                 }
             }
-            
+
         } catch (error) {
             this.handleError(error, 'Failed to update from store');
         }
@@ -277,10 +306,14 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                     <h3>Requirements Status</h3>
                     ${this.renderRequirements()}
                 </div>
-                
+
                 ${this._isProcessing ? this.renderProgress() : ''}
+
+                <!-- AI Activity Log -->
+                ${this.renderProgressLog()}
+
                 ${this._lastResult ? this.renderResult() : ''}
-                
+
                 <div class="actions">
                     <div class="action-group">
                         <button class="action-btn primary" id="tailor-resume" ${this.canTailorResume() ? '' : 'disabled'}>
@@ -335,8 +368,8 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         const allJobs = this.getGlobalState('jobs') || [];
         const allResumes = this.getGlobalState('resumes') || [];
         
-        console.log('AIAssistantWorkerMigrated renderCurrentSelection - Available jobs:', allJobs);
-        console.log('AIAssistantWorkerMigrated renderCurrentSelection - Available resumes:', allResumes);
+        console.log('AIAssistantWorker renderCurrentSelection - Available jobs:', allJobs);
+        console.log('AIAssistantWorker renderCurrentSelection - Available resumes:', allResumes);
         
         return `
             <div class="selection-item">
@@ -427,6 +460,63 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                 </div>
             </div>
         `;
+    }
+
+    /**
+     * Render progress log (new interactive console)
+     */
+    renderProgressLog() {
+        const hasMessages = this._progressLog.length > 0;
+
+        return `
+            <div class="progress-log ${hasMessages ? '' : 'empty'}">
+                <div class="progress-log-header">
+                    <h4>AI Activity Log</h4>
+                    <div class="progress-log-controls">
+                        ${hasMessages ? `
+                            <button class="btn-small" id="clear-log" title="Clear log">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="progress-log-messages">
+                    ${hasMessages ?
+                        this._progressLog.map(entry => {
+                            const time = this.formatTime(entry.timestamp);
+                            return `
+                                <div class="log-entry">
+                                    <span class="log-time">${time}</span>
+                                    <span class="log-message">${this.escapeHtml(entry.message)}</span>
+                                </div>
+                            `;
+                        }).join('')
+                        :
+                        `<div class="log-empty">No activity yet. Start an AI operation to see progress here.</div>`
+                    }
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Format timestamp for log display
+     */
+    formatTime(date) {
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+        const ms = date.getMilliseconds().toString().padStart(3, '0');
+        return `${hours}:${minutes}:${seconds}.${ms}`;
+    }
+
+    /**
+     * Escape HTML for safe display
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     /**
@@ -531,7 +621,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         if (!this.shadowRoot) return;
         
         this.shadowRoot.addEventListener('click', (e) => {
-            console.log('AIAssistantWorkerMigrated: Click detected:', e.target);
+            console.log('AIAssistantWorker: Click detected:', e.target);
             
             // Handle different types of clickable elements
             let target = null;
@@ -544,7 +634,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
             
             if (!target) return;
             
-            console.log('AIAssistantWorkerMigrated: Button clicked:', target.id);
+            console.log('AIAssistantWorker: Button clicked:', target.id);
             
             switch (target.id) {
                 case 'tailor-resume':
@@ -569,11 +659,11 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                     this.handleSaveCoverLetter();
                     break;
                 case 'select-job':
-                    console.log('AIAssistantWorkerMigrated: Opening job selection modal');
+                    console.log('AIAssistantWorker: Opening job selection modal');
                     this.showJobSelectionModal();
                     break;
                 case 'select-resume':
-                    console.log('AIAssistantWorkerMigrated: Opening resume selection modal');
+                    console.log('AIAssistantWorker: Opening resume selection modal');
                     this.showResumeSelectionModal();
                     break;
                 case 'cancel-job-selection':
@@ -582,8 +672,11 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                 case 'cancel-resume-selection':
                     this.hideResumeSelectionModal();
                     break;
+                case 'clear-log':
+                    this.clearProgressLog();
+                    break;
                 default:
-                    console.log('AIAssistantWorkerMigrated: Unknown button clicked:', target.id);
+                    console.log('AIAssistantWorker: Unknown button clicked:', target.id);
             }
         });
         
@@ -609,7 +702,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
      * Handle resume tailoring
      */
     async handleTailorResume() {
-        console.log('AIAssistantWorkerMigrated handleTailorResume called');
+        console.log('AIAssistantWorker handleTailorResume called');
         console.log('Can tailor resume:', this.canTailorResume());
         console.log('Current job:', this._currentJob);
         console.log('Current resume:', this._currentResume);
@@ -624,32 +717,28 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         this.render();
         
         try {
-            const { provider, apiKey, model } = this.getApiConfig();
-            console.log('AIAssistantWorkerMigrated - Using provider:', provider);
-            console.log('AIAssistantWorkerMigrated - API key length:', apiKey?.length);
-            
-            console.log('AIAssistantWorkerMigrated - About to call aiService.tailorResume...');
-            
+            const providerList = this.getApiConfig();
+            console.log('AIAssistantWorker - Provider list:', providerList);
+
+            console.log('AIAssistantWorker - About to call aiService.tailorResume...');
+
             const resumeData = this._currentResume.content || this._currentResume.data;
             const jobDesc = this._currentJob.description || this._currentJob.jobDetails;
-            
-            console.log('AIAssistantWorkerMigrated - Sending parameters:');
-            console.log('  - resume:', !!resumeData, resumeData);
+
+            console.log('AIAssistantWorker - Sending parameters:');
+            console.log('  - resume:', !!resumeData);
             console.log('  - jobDescription:', !!jobDesc, jobDesc?.substring(0, 100) + '...');
-            console.log('  - provider:', provider);
-            console.log('  - apiKey:', !!apiKey, apiKey?.substring(0, 10) + '...');
-            
+            console.log('  - providerList length:', providerList.length);
+
             const result = await aiService.tailorResume({
                 resume: resumeData,
                 jobDescription: jobDesc,
-                provider,
-                apiKey,
-                model,
+                providerList,
                 includeAnalysis: true,
                 onProgress: this.handleProgress
             });
             
-            console.log('AIAssistantWorkerMigrated - Received result:', result);
+            console.log('AIAssistantWorker - Received result:', result);
             
             this._lastResult = { type: 'tailor-resume', data: result };
 
@@ -704,7 +793,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                 // Add to global store using helper functions
                 try {
                     addResume(newResume);
-                    console.log('AIAssistantWorkerMigrated: Added tailored resume via store helper', newResume.id);
+                    console.log('AIAssistantWorker: Added tailored resume via store helper', newResume.id);
                 } catch (e) {
                     // Fallback to direct state update
                     const currentRes = this.getGlobalState('resumes') || [];
@@ -730,20 +819,22 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                 // Log the AI operation using logs.js
                 try {
                     const { logApiCall } = await import('../js/logs.js');
-                    logApiCall(provider || 'unknown', 'tailor_resume', {
-                        model,
+                    const usedProvider = result.usedProvider || result.provider || 'unknown';
+                    const usedModel = result.usedModel || 'unknown';
+                    logApiCall(usedProvider, 'tailor_resume', {
+                        model: usedModel,
                         resume: !!this._currentResume,
                         jobDescriptionLength: (this._currentJob?.description || '').length || 0
                     }, result, null, { jobId: this._currentJob?.id, resumeId: newResume.id });
                 } catch (logErr) {
-                    console.warn('AIAssistantWorkerMigrated: Failed to log API call', logErr);
+                    console.warn('AIAssistantWorker: Failed to log API call', logErr);
                 }
 
                 // Update the currentResume pointer
                 this.updateGlobalState({ currentResume: newResume }, 'ai-assistant-tailor');
 
             } catch (persistError) {
-                console.error('AIAssistantWorkerMigrated: Failed to persist tailored resume', persistError);
+                console.error('AIAssistantWorker: Failed to persist tailored resume', persistError);
             }
 
             // Emit successful tailor event
@@ -755,7 +846,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
             });
             
         } catch (error) {
-            console.error('AIAssistantWorkerMigrated - Error in handleTailorResume:', error);
+            console.error('AIAssistantWorker - Error in handleTailorResume:', error);
             this.handleError(error, 'Failed to tailor resume');
             this.showError(`Failed to tailor resume: ${error.message}`);
         } finally {
@@ -775,8 +866,8 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         this.render();
         
         try {
-            const { provider, apiKey, model } = this.getApiConfig();
-            
+            const providerList = this.getApiConfig();
+
             const result = await aiService.generateCoverLetter({
                 resume: this._currentResume.content || this._currentResume.data,
                 jobDescription: this._currentJob.description || this._currentJob.jobDetails,
@@ -785,9 +876,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                     company: this._currentJob.company,
                     location: this._currentJob.location
                 },
-                provider,
-                apiKey,
-                model,
+                providerList,
                 includeAnalysis: true,
                 onProgress: this.handleProgress
             });
@@ -797,13 +886,15 @@ class AIAssistantWorkerMigrated extends ComponentBase {
             // Persist the generated cover letter and log the API call
             try {
                 const coverLetter = result.result.coverLetter;
+                const usedProvider = result.usedProvider || result.provider || 'unknown';
+                const usedModel = result.usedModel || 'unknown';
                 const entry = {
                     id: 'cover_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
                     jobId: this._currentJob?.id,
                     resumeId: this._currentResume?.id,
                     content: coverLetter,
                     createdDate: new Date().toISOString(),
-                    provider: provider || 'unknown'
+                    provider: usedProvider
                 };
 
                 const gs = window.globalStore;
@@ -818,13 +909,13 @@ class AIAssistantWorkerMigrated extends ComponentBase {
                 // log API call
                 try {
                     const { logApiCall } = await import('../js/logs.js');
-                    logApiCall(provider || 'unknown', 'generate_cover_letter', { model }, result, null, { jobId: this._currentJob?.id, resumeId: this._currentResume?.id });
+                    logApiCall(usedProvider, 'generate_cover_letter', { model: usedModel }, result, null, { jobId: this._currentJob?.id, resumeId: this._currentResume?.id });
                 } catch (logErr) {
-                    console.warn('AIAssistantWorkerMigrated: Failed to log cover letter API call', logErr);
+                    console.warn('AIAssistantWorker: Failed to log cover letter API call', logErr);
                 }
 
             } catch (persistErr) {
-                console.warn('AIAssistantWorkerMigrated: Failed to persist cover letter', persistErr);
+                console.warn('AIAssistantWorker: Failed to persist cover letter', persistErr);
             }
 
             // Emit successful cover letter event
@@ -855,14 +946,12 @@ class AIAssistantWorkerMigrated extends ComponentBase {
         this.render();
         
         try {
-            const { provider, apiKey, model } = this.getApiConfig();
-            
+            const providerList = this.getApiConfig();
+
             const result = await aiService.analyzeMatch({
                 resume: this._currentResume.content || this._currentResume.data,
                 jobDescription: this._currentJob.description || this._currentJob.jobDetails,
-                provider,
-                apiKey,
-                model,
+                providerList,
                 onProgress: this.handleProgress
             });
             
@@ -891,7 +980,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
      */
     handleViewDetails() {
         if (this._lastResult) {
-            console.log('AIAssistantWorkerMigrated Result Details:', this._lastResult);
+            console.log('AIAssistantWorker Result Details:', this._lastResult);
             // Emit event for external detail viewing
             this.emitEvent('view-details-requested', {
                 result: this._lastResult
@@ -1031,6 +1120,36 @@ class AIAssistantWorkerMigrated extends ComponentBase {
      */
     handleProgress(message) {
         this._currentProgress = message;
+
+        // Add to progress log with timestamp
+        this._progressLog.push({
+            timestamp: new Date(),
+            message: message
+        });
+
+        // Keep log size reasonable (max 100 entries)
+        if (this._progressLog.length > 100) {
+            this._progressLog.shift();
+        }
+
+        if (this.isReady()) {
+            this.render();
+
+            // Auto-scroll to bottom of log after render
+            setTimeout(() => {
+                const logContainer = this.shadowRoot.querySelector('.progress-log-messages');
+                if (logContainer) {
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+            }, 0);
+        }
+    }
+
+    /**
+     * Clear progress log
+     */
+    clearProgressLog() {
+        this._progressLog = [];
         if (this.isReady()) {
             this.render();
         }
@@ -1120,71 +1239,126 @@ class AIAssistantWorkerMigrated extends ComponentBase {
             this.getApiConfig();
             return true;
         } catch (error) {
-            console.log('AIAssistantWorkerMigrated hasValidApiKey - No valid API key:', error.message);
+            console.log('AIAssistantWorker hasValidApiKey - No valid API key:', error.message);
             return false;
         }
     }
 
     /**
-     * Get API configuration
+     * Get API configuration - returns ordered list of providers to try
+     * @returns {Array} Array of provider configs in priority order
      */
     getApiConfig() {
-        // Check localStorage first (current implementation in jobs.html)
+        const providerList = [];
+
+        // Check localStorage first (legacy support)
         const apiKey = localStorage.getItem('api_key');
         const apiType = localStorage.getItem('api_type') || 'claude';
-        
-        console.log('AIAssistantWorkerMigrated getApiConfig - localStorage API Key exists:', !!apiKey);
-        console.log('AIAssistantWorkerMigrated getApiConfig - localStorage API Type:', apiType);
-        
+
+        console.log('AIAssistantWorker getApiConfig - localStorage API Key exists:', !!apiKey);
+        console.log('AIAssistantWorker getApiConfig - localStorage API Type:', apiType);
+
         if (apiKey && apiKey.trim().length > 0) {
-            console.log('AIAssistantWorkerMigrated getApiConfig - Using localStorage config');
+            console.log('AIAssistantWorker getApiConfig - Using localStorage config');
             const provider = apiType === 'chatgpt' ? 'openai' : apiType;
-            // Fallback model defaults when using legacy localStorage path
-            const defaultModels = { claude: 'claude-3-5-sonnet-20241022', openai: 'gpt-4o' };
-            return { 
+            const defaultModels = { claude: 'claude-3-5-sonnet-20241022', openai: 'gpt-4o', browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC' };
+
+            // Try to get route from settings if available, fallback to 'auto'
+            let route = 'auto';
+            const settings = this.getGlobalState('settings');
+            if (settings && settings.apiProviders && settings.apiProviders[provider]) {
+                route = settings.apiProviders[provider].route || 'auto';
+            }
+
+            providerList.push({
                 provider,
                 apiKey: apiKey.trim(),
-                model: defaultModels[provider] || 'gpt-4o'
-            };
+                model: defaultModels[provider] || 'gpt-4o',
+                route: route
+            });
+            console.log(`AIAssistantWorker getApiConfig - Using route: ${route} for ${provider}`);
         }
-        
-        // Check newer settings structure for future compatibility
+
+        // Check newer settings structure
         const settings = this.getGlobalState('settings');
         if (settings && settings.apiProviders) {
             const providers = settings.apiProviders;
-            const defaultProvider = settings.preferences?.defaultProvider || 'claude';
-            
-            console.log('AIAssistantWorkerMigrated getApiConfig - Default provider:', defaultProvider);
-            console.log('AIAssistantWorkerMigrated getApiConfig - Providers:', providers);
-            
-            // First try the default provider if it's enabled and has a key
-            if (providers[defaultProvider] && 
-                providers[defaultProvider].enabled && 
-                providers[defaultProvider].apiKey && 
-                providers[defaultProvider].apiKey.trim().length > 0) {
-                console.log(`AIAssistantWorkerMigrated getApiConfig - Using default provider: ${defaultProvider}`);
-                return { 
-                    provider: defaultProvider, 
-                    apiKey: providers[defaultProvider].apiKey.trim(),
-                    model: providers[defaultProvider].model || (defaultProvider === 'openai' ? 'gpt-4o' : 'claude-3-5-sonnet-20241022')
+            const providerPriority = settings.preferences?.providerPriority || ['claude', 'openai', 'browser'];
+
+            console.log('AIAssistantWorker getApiConfig - Provider priority:', providerPriority);
+            console.log('AIAssistantWorker getApiConfig - Providers:', providers);
+
+            // Build provider list in priority order
+            for (const providerName of providerPriority) {
+                const config = providers[providerName];
+
+                // Skip if not configured, not enabled, or missing API key (browser provider doesn't need key)
+                if (!config || !config.enabled) continue;
+                if (providerName !== 'browser' && (!config.apiKey || config.apiKey.trim().length === 0)) continue;
+
+                // Don't add duplicate if already in list from localStorage
+                if (providerList.some(p => p.provider === providerName)) continue;
+
+                const defaultModels = {
+                    claude: 'claude-3-5-sonnet-20241022',
+                    openai: 'gpt-4o',
+                    browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC'
                 };
+
+                const providerConfig = {
+                    provider: providerName,
+                    apiKey: config.apiKey ? config.apiKey.trim() : '',
+                    model: config.model || defaultModels[providerName] || 'gpt-4o',
+                    route: config.route || 'auto'
+                };
+                providerList.push(providerConfig);
+
+                console.log(`AIAssistantWorker getApiConfig - Added provider to list: ${providerName}, route: ${providerConfig.route}, model: ${providerConfig.model}`);
             }
-            
-            // Fallback: try any enabled provider with a key
+
+            // Fallback: add any remaining enabled providers not in priority list
             for (const [providerName, config] of Object.entries(providers)) {
-                if (config && config.enabled && config.apiKey && config.apiKey.trim().length > 0) {
-                    console.log(`AIAssistantWorkerMigrated getApiConfig - Using fallback provider: ${providerName}`);
-                    return { 
-                        provider: providerName, 
-                        apiKey: config.apiKey.trim(),
-                        model: config.model || (providerName === 'openai' ? 'gpt-4o' : 'claude-3-5-sonnet-20241022')
-                    };
-                }
+                if (!config || !config.enabled) continue;
+                if (providerName !== 'browser' && (!config.apiKey || config.apiKey.trim().length === 0)) continue;
+                if (providerList.some(p => p.provider === providerName)) continue;
+
+                const defaultModels = {
+                    claude: 'claude-3-5-sonnet-20241022',
+                    openai: 'gpt-4o',
+                    browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC'
+                };
+
+                const providerConfig = {
+                    provider: providerName,
+                    apiKey: config.apiKey ? config.apiKey.trim() : '',
+                    model: config.model || defaultModels[providerName] || 'gpt-4o',
+                    route: config.route || 'auto'
+                };
+                providerList.push(providerConfig);
+
+                console.log(`AIAssistantWorker getApiConfig - Added fallback provider: ${providerName}, route: ${providerConfig.route}, model: ${providerConfig.model}`);
             }
         }
-        
-        console.log('AIAssistantWorkerMigrated getApiConfig - No valid API key found');
-        throw new Error('No valid API key configured. Please set your API key in Settings.');
+
+        if (providerList.length === 0) {
+            console.log('AIAssistantWorker getApiConfig - No valid API providers found');
+            throw new Error('No valid API providers configured. Please set your API keys in Settings.');
+        }
+
+        console.log('AIAssistantWorker getApiConfig - Final provider list:', providerList);
+        return providerList;
+    }
+
+    /**
+     * Get single API configuration (legacy support)
+     * Returns the first provider from the list
+     */
+    getSingleApiConfig() {
+        const providerList = this.getApiConfig();
+        if (providerList.length === 0) {
+            throw new Error('No valid API providers configured');
+        }
+        return providerList[0];
     }
 
     // Selection Modal Methods
@@ -1193,7 +1367,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
      * Show job selection modal
      */
     showJobSelectionModal() {
-        console.log('AIAssistantWorkerMigrated showJobSelectionModal called');
+        console.log('AIAssistantWorker showJobSelectionModal called');
         const modal = this.shadowRoot.getElementById('job-selection-modal');
         const list = this.shadowRoot.getElementById('job-selection-list');
         
@@ -1253,7 +1427,7 @@ class AIAssistantWorkerMigrated extends ComponentBase {
      * Show resume selection modal
      */
     showResumeSelectionModal() {
-        console.log('AIAssistantWorkerMigrated showResumeSelectionModal called');
+        console.log('AIAssistantWorker showResumeSelectionModal called');
         const modal = this.shadowRoot.getElementById('resume-selection-modal');
         const list = this.shadowRoot.getElementById('resume-selection-list');
         
@@ -1864,11 +2038,130 @@ class AIAssistantWorkerMigrated extends ComponentBase {
             .hidden {
                 display: none;
             }
+
+            /* Progress Log Styles */
+            .progress-log {
+                background: #f8f9fa;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                margin: 20px 0;
+                overflow: hidden;
+            }
+
+            .progress-log.empty {
+                border-style: dashed;
+            }
+
+            .progress-log-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                background: #e9ecef;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            .progress-log-header h4 {
+                margin: 0;
+                font-size: 14px;
+                font-weight: 600;
+                color: #495057;
+            }
+
+            .progress-log-controls {
+                display: flex;
+                gap: 8px;
+            }
+
+            .btn-small {
+                padding: 4px 10px;
+                font-size: 12px;
+                border: 1px solid #6c757d;
+                background: white;
+                color: #6c757d;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .btn-small:hover {
+                background: #dc3545;
+                border-color: #dc3545;
+                color: white;
+            }
+
+            .btn-small i {
+                font-size: 10px;
+            }
+
+            .progress-log-messages {
+                max-height: 300px;
+                min-height: 120px;
+                overflow-y: auto;
+                padding: 12px 16px;
+                background: #ffffff;
+                font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+                font-size: 12px;
+                line-height: 1.6;
+            }
+
+            .progress-log-messages::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .progress-log-messages::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            .progress-log-messages::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 4px;
+            }
+
+            .progress-log-messages::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
+            .log-entry {
+                display: flex;
+                gap: 12px;
+                padding: 4px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+            .log-entry:last-child {
+                border-bottom: none;
+            }
+
+            .log-time {
+                color: #6c757d;
+                font-weight: 600;
+                white-space: nowrap;
+                flex-shrink: 0;
+                min-width: 115px;
+            }
+
+            .log-message {
+                color: #212529;
+                flex: 1;
+                word-wrap: break-word;
+            }
+
+            .log-empty {
+                color: #6c757d;
+                font-style: italic;
+                text-align: center;
+                padding: 40px 20px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
         `;
     }
 }
 
 // Register the migrated component
-customElements.define('ai-assistant-worker-migrated', AIAssistantWorkerMigrated);
+customElements.define('ai-assistant-worker', AIAssistantWorker);
 
-export { AIAssistantWorkerMigrated };
+export { AIAssistantWorker };

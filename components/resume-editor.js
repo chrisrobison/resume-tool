@@ -3,9 +3,9 @@
 
 import { ComponentBase } from '../js/component-base.js';
 // Signal module load for debugging
-console.info('Module loaded: components/resume-editor-migrated.js');
+console.info('Module loaded: components/resume-editor.js');
 
-class ResumeEditorMigrated extends ComponentBase {
+class ResumeEditor extends ComponentBase {
     constructor() {
         super();
         
@@ -60,7 +60,7 @@ class ResumeEditorMigrated extends ComponentBase {
      * Replaces connectedCallback()
      */
     async onInitialize() {
-        console.log('ResumeEditorMigrated: Initializing Resume Editor');
+        console.log('ResumeEditor: Initializing Resume Editor');
         
         // Initialize localStorage first
         this.initLocalStorage();
@@ -83,7 +83,7 @@ class ResumeEditorMigrated extends ComponentBase {
             this.updateAllFields();
             this.renderPreview();
         } catch (e) {
-            console.warn('ResumeEditorMigrated: Failed to populate fields on initialize', e);
+            console.warn('ResumeEditor: Failed to populate fields on initialize', e);
         }
         
         // Mark as loaded
@@ -103,7 +103,7 @@ class ResumeEditorMigrated extends ComponentBase {
      * Called when setData() is used
      */
     onDataChange(newData, previousData, source) {
-        console.log('ResumeEditorMigrated: Resume data changed from', source);
+        console.log('ResumeEditor: Resume data changed from', source);
         
         // Update internal resume data
         if (newData && typeof newData === 'object') {
@@ -161,7 +161,7 @@ class ResumeEditorMigrated extends ComponentBase {
 
             const currentResume = newState.currentResume || null;
             if (currentResume && currentResume.data) {
-                console.log('ResumeEditorMigrated: Updating resume from global store change');
+                console.log('ResumeEditor: Updating resume from global store change');
                 this._resumeData = { ...currentResume.data };
                 this.setData(this._resumeData, 'global-store-update');
                 
@@ -190,7 +190,7 @@ class ResumeEditorMigrated extends ComponentBase {
                 }
                 // If we already have valid resume data locally, do not clear it
                 if (this._resumeData && this.isValidResumeData(this._resumeData)) {
-                    console.log('ResumeEditorMigrated: Preserving local resume data (store requested clear)');
+                    console.log('ResumeEditor: Preserving local resume data (store requested clear)');
                     return;
                 }
                 // Clear to default if no resume selected
@@ -199,7 +199,7 @@ class ResumeEditorMigrated extends ComponentBase {
                 if (this.isReady()) this.updateAllFields();
             }
         } catch (e) {
-            console.warn('ResumeEditorMigrated: Error handling store change', e);
+            console.warn('ResumeEditor: Error handling store change', e);
         }
     }
 
@@ -208,7 +208,7 @@ class ResumeEditorMigrated extends ComponentBase {
      * Called when refresh() is used
      */
     async onRefresh(force = false) {
-        console.log('ResumeEditorMigrated: Refreshing Resume Editor');
+        console.log('ResumeEditor: Refreshing Resume Editor');
         
         // Reload data if forced or if no data
         if (force || !this._resumeData || Object.keys(this._resumeData).length === 0) {
@@ -277,7 +277,7 @@ class ResumeEditorMigrated extends ComponentBase {
      * Replaces disconnectedCallback()
      */
     onCleanup() {
-        console.log('ResumeEditorMigrated: Cleaning up Resume Editor');
+        console.log('ResumeEditor: Cleaning up Resume Editor');
         
         // Remove global event listeners
         document.removeEventListener('keydown', this._escapeHandler);
@@ -657,7 +657,7 @@ class ResumeEditorMigrated extends ComponentBase {
      * Update all form fields from current data
      */
     updateAllFields() {
-        console.log('ResumeEditorMigrated: updateAllFields() called, currentTab=', this._state.currentTab);
+        console.log('ResumeEditor: updateAllFields() called, currentTab=', this._state.currentTab);
         // Update basics fields
         this.updateBasicsFields();
         
@@ -681,10 +681,10 @@ class ResumeEditorMigrated extends ComponentBase {
         fields.forEach(field => {
             const input = this.querySelector(`#${field}`);
             if (input) {
-                console.log(`ResumeEditorMigrated: setting field #${field} to:`, basics[field] || '');
+                console.log(`ResumeEditor: setting field #${field} to:`, basics[field] || '');
                 try { input.value = basics[field] || ''; } catch (e) { console.warn('Failed to set input.value for', field, e); }
             } else {
-                console.warn(`ResumeEditorMigrated: input #${field} not found in DOM`);
+                console.warn(`ResumeEditor: input #${field} not found in DOM`);
             }
         });
         
@@ -694,7 +694,7 @@ class ResumeEditorMigrated extends ComponentBase {
         locationFields.forEach(field => {
             const input = this.querySelector(`#location-${field}`);
             if (input) {
-                console.log(`ResumeEditorMigrated: setting field #location-${field} to:`, location[field] || '');
+                console.log(`ResumeEditor: setting field #location-${field} to:`, location[field] || '');
                 try { input.value = location[field] || ''; } catch (e) { console.warn('Failed to set location input', field, e); }
             }
         });
@@ -1677,7 +1677,7 @@ class ResumeEditorMigrated extends ComponentBase {
                 <h3>Resume Preview</h3>
                 <div class="preview-controls">
                     <button class="btn btn-primary" onclick="window.print()">Print</button>
-                    <button class="btn btn-secondary" onclick="this.closest('resume-editor-migrated').generatePDF()">Download PDF</button>
+                    <button class="btn btn-secondary" onclick="this.closest('resume-editor').generatePDF()">Download PDF</button>
                 </div>
                 <div id="preview-content" class="preview-container"></div>
             </div>
@@ -1986,23 +1986,23 @@ class ResumeEditorMigrated extends ComponentBase {
                     font-weight: 500;
                 }
 
-                resume-editor-migrated .tab:hover {
+                resume-editor .tab:hover {
                     background: #e9ecef;
                     color: #333;
                 }
-                resume-editor-migrated .tab.active {
+                resume-editor .tab.active {
                     background: white;
                     color: #007bff;
                     border-bottom-color: #007bff;
                 }
 
-                resume-editor-migrated .tab-content {
+                resume-editor .tab-content {
                     display: none;
                     padding: 30px;
                     min-height: 500px;
                 }
 
-                resume-editor-migrated .tab-content.active {
+                resume-editor .tab-content.active {
                     display: block;
                 }
 
@@ -2324,12 +2324,12 @@ class ResumeEditorMigrated extends ComponentBase {
                         flex-wrap: wrap;
                     }
 
-                    resume-editor-migrated .tab {
+                    resume-editor .tab {
                         padding: 12px 15px;
                         font-size: 14px;
                     }
 
-                    resume-editor-migrated .tab-content {
+                    resume-editor .tab-content {
                         display: none;
                         padding: 20px 15px;
                     }
@@ -2371,17 +2371,17 @@ class ResumeEditorMigrated extends ComponentBase {
 }
 
 // Register the migrated component
-customElements.define('resume-editor-migrated', ResumeEditorMigrated);
+customElements.define('resume-editor', ResumeEditor);
 
 // Backwards-compatible registration: if legacy tag name isn't defined, register it
 if (!customElements.get('resume-editor')) {
     try {
-        customElements.define('resume-editor', ResumeEditorMigrated);
-        console.info('Registered legacy tag <resume-editor> as alias for ResumeEditorMigrated');
+        customElements.define('resume-editor', ResumeEditor);
+        console.info('Registered legacy tag <resume-editor> as alias for ResumeEditor');
     } catch (e) {
         // ignore if registration fails (name already used)
     }
 }
-console.info('components/resume-editor-migrated.js: customElements registered');
+console.info('components/resume-editor.js: customElements registered');
 
-export { ResumeEditorMigrated };
+export { ResumeEditor };

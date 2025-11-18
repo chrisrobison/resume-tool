@@ -3,7 +3,7 @@
 
 import { ComponentBase } from '../js/component-base.js';
 
-class ApiSettingsMigrated extends ComponentBase {
+class ApiSettings extends ComponentBase {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -25,7 +25,7 @@ class ApiSettingsMigrated extends ComponentBase {
      * Replaces connectedCallback()
      */
     async onInitialize() {
-        console.log('ApiSettingsMigrated: Initializing API settings');
+        console.log('ApiSettings: Initializing API settings');
         
         // Load initial API keys data
         await this.loadApiKeys();
@@ -42,7 +42,7 @@ class ApiSettingsMigrated extends ComponentBase {
      * Called when setData() is used - API keys data
      */
     onDataChange(newData, previousData, source) {
-        console.log('ApiSettingsMigrated: API keys data changed from', source);
+        console.log('ApiSettings: API keys data changed from', source);
         
         // Update internal API keys when data changes
         if (newData && typeof newData === 'object') {
@@ -61,7 +61,7 @@ class ApiSettingsMigrated extends ComponentBase {
      * Called when refresh() is used
      */
     async onRefresh(force = false) {
-        console.log('ApiSettingsMigrated: Refreshing API settings');
+        console.log('ApiSettings: Refreshing API settings');
         
         // Reload API keys if forced or if no data
         if (force || !this.getData()) {
@@ -110,7 +110,7 @@ class ApiSettingsMigrated extends ComponentBase {
      * Replaces disconnectedCallback()
      */
     onCleanup() {
-        console.log('ApiSettingsMigrated: Cleaning up API settings');
+        console.log('ApiSettings: Cleaning up API settings');
         
         // Clear any timeouts or intervals
         if (this._statusTimeout) {
@@ -742,6 +742,6 @@ class ApiSettingsMigrated extends ComponentBase {
 }
 
 // Register the migrated component
-customElements.define('api-settings-migrated', ApiSettingsMigrated);
+customElements.define('api-settings', ApiSettings);
 
-export { ApiSettingsMigrated };
+export { ApiSettings };

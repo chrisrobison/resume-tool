@@ -63,12 +63,10 @@ class AppManager {
                         // derive resume data from possible shapes
                         const resumeData = currentResume.data || (currentResume.content ? (typeof currentResume.content === 'string' ? (() => { try { return JSON.parse(currentResume.content); } catch { return null; } })() : currentResume.content) : currentResume);
                         if (resumeData) {
-                            // Wait for components to be defined (migrated or legacy)
+                            // Wait for components to be defined
                             try {
                                 if (customElements) {
                                     await Promise.all([
-                                        customElements.whenDefined('resume-editor-migrated').catch(() => {}),
-                                        customElements.whenDefined('resume-viewer-migrated').catch(() => {}),
                                         customElements.whenDefined('resume-editor').catch(() => {}),
                                         customElements.whenDefined('resume-viewer').catch(() => {})
                                     ]);
@@ -77,8 +75,8 @@ class AppManager {
                                 // ignore
                             }
 
-                            const editor = document.querySelector('resume-editor-migrated') || document.querySelector('resume-editor');
-                            const viewer = document.querySelector('resume-viewer-migrated') || document.querySelector('resume-viewer');
+                            const editor = document.querySelector('resume-editor');
+                            const viewer = document.querySelector('resume-viewer');
                             try { if (editor && typeof editor.setResumeData === 'function') editor.setResumeData(resumeData); } catch (err) { console.warn(err); }
                             try { if (viewer && typeof viewer.setResumeData === 'function') viewer.setResumeData(resumeData); } catch (err) { console.warn(err); }
                         }
@@ -274,16 +272,14 @@ class AppManager {
                         try {
                             if (customElements) {
                                 await Promise.all([
-                                    customElements.whenDefined('resume-editor-migrated').catch(() => {}),
-                                    customElements.whenDefined('resume-viewer-migrated').catch(() => {}),
                                     customElements.whenDefined('resume-editor').catch(() => {}),
                                     customElements.whenDefined('resume-viewer').catch(() => {})
                                 ]);
                             }
                         } catch (waitErr) { /* ignore */ }
 
-                        const editor = document.querySelector('resume-editor-migrated') || document.querySelector('resume-editor');
-                        const viewer = document.querySelector('resume-viewer-migrated') || document.querySelector('resume-viewer');
+                        const editor = document.querySelector('resume-editor');
+                        const viewer = document.querySelector('resume-viewer');
                         try { if (editor && typeof editor.setResumeData === 'function') editor.setResumeData(parsed); } catch (err) { console.warn(err); }
                         try { if (viewer && typeof viewer.setResumeData === 'function') viewer.setResumeData(parsed); } catch (err) { console.warn(err); }
                     }

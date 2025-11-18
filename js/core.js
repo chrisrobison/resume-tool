@@ -10,8 +10,8 @@ import * as jobs from './jobs.js';
 import * as logs from './logs.js';
 
 // Import migrated web components
-import '../components/job-manager-migrated.js';
-import '../components/resume-viewer-migrated.js';
+import '../components/job-manager.js';
+import '../components/resume-viewer.js';
 
 // Main application object
 export const app = {

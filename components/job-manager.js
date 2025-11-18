@@ -5,7 +5,7 @@ import { ComponentBase } from '../js/component-base.js';
 import aiService from '../js/ai-service.js';
 import { createDefaultJob } from '../js/jobs.js';
 
-class JobManagerMigrated extends ComponentBase {
+class JobManager extends ComponentBase {
     constructor() {
         super();
         
@@ -58,6 +58,7 @@ class JobManagerMigrated extends ComponentBase {
         this.handleTabSwitch = this.handleTabSwitch.bind(this);
         this.handleFormInput = this.handleFormInput.bind(this);
         this.handleResumeAction = this.handleResumeAction.bind(this);
+        this.handleStoreChange = this.handleStoreChange.bind(this);
         
         // Public API methods
         this.getAllJobs = this.getAllJobs.bind(this);
@@ -72,7 +73,7 @@ class JobManagerMigrated extends ComponentBase {
      * Replaces connectedCallback()
      */
     async onInitialize() {
-        console.log('JobManagerMigrated: Initializing Job Manager');
+        console.log('JobManager: Initializing Job Manager');
         
         // Load jobs from storage and global state
         await this.loadJobs();
@@ -94,7 +95,7 @@ class JobManagerMigrated extends ComponentBase {
         try {
             document.addEventListener('global-state-changed', this.handleStoreChange);
         } catch (e) {
-            console.warn('JobManagerMigrated: Failed to attach document global-state listener', e);
+            console.warn('JobManager: Failed to attach document global-state listener', e);
         }
         
         // Update global state
@@ -109,7 +110,7 @@ class JobManagerMigrated extends ComponentBase {
      * Called when setData() is used
      */
     onDataChange(newData, previousData, source) {
-        console.log('JobManagerMigrated: Job data changed from', source);
+        console.log('JobManager: Job data changed from', source);
         
         // Update internal state based on data changes
         if (newData && typeof newData === 'object') {
@@ -153,7 +154,7 @@ class JobManagerMigrated extends ComponentBase {
      * Called when refresh() is used
      */
     async onRefresh(force = false) {
-        console.log('JobManagerMigrated: Refreshing Job Manager');
+        console.log('JobManager: Refreshing Job Manager');
         
         // Reload jobs if forced or if no jobs
         if (force || Object.keys(this._jobs).length === 0) {
@@ -210,7 +211,7 @@ class JobManagerMigrated extends ComponentBase {
                 }
             }, 50);
         } catch (e) {
-            console.warn('JobManagerMigrated: Error handling store change', e);
+            console.warn('JobManager: Error handling store change', e);
         }
     }
 
@@ -267,7 +268,7 @@ class JobManagerMigrated extends ComponentBase {
      * Replaces disconnectedCallback()
      */
     onCleanup() {
-        console.log('JobManagerMigrated: Cleaning up Job Manager');
+        console.log('JobManager: Cleaning up Job Manager');
         
         // Clear auto-save timeout
         if (this._autoSaveTimeout) {
@@ -2386,7 +2387,7 @@ class JobManagerMigrated extends ComponentBase {
                                     </div>
                                     <div class="resume-actions">
                                         ${resume.id !== this._selectedJob.resumeId ? `
-                                            <button class="btn btn-sm btn-outline" onclick="this.closest('job-manager-migrated').handleAssociateResume('${resume.id}')">
+                                            <button class="btn btn-sm btn-outline" onclick="this.closest('job-manager').handleAssociateResume('${resume.id}')">
                                                 Associate
                                             </button>
                                         ` : `
@@ -3451,6 +3452,6 @@ class JobManagerMigrated extends ComponentBase {
 }
 
 // Register the migrated component
-customElements.define('job-manager-migrated', JobManagerMigrated);
+customElements.define('job-manager', JobManager);
 
-export { JobManagerMigrated };
+export { JobManager };
