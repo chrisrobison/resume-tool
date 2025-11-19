@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Tool API Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .textarea-large {
+            min-height: 200px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .result pre {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .error {
+            border-left-color: #f56565;
+        }
+
+        .error pre {
+            color: #fc8181;
+        }
+
+        .success {
+            border-left-color: #48bb78;
+        }
+
+        .loading {
+            display: inline-block;
+            margin-left: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h4 {
+            color: #1890ff;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Job Tool API Tester</h1>
+        <p class="subtitle">Test the centralized API endpoints for job search, resume tailoring, and cover letter generation</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('search')">Job Search</button>
+            <button class="tab" onclick="switchTab('tailor')">Resume Tailoring</button>
+            <button class="tab" onclick="switchTab('letter')">Cover Letter</button>
+        </div>
+
+        <!-- Job Search Tab -->
+        <div id="search" class="tab-content active">
+            <div class="info-box">
+                <h4>Job Search API</h4>
+                <p>Search for jobs across multiple platforms (Indeed, LinkedIn, ZipRecruiter, Google). Note: Requires Python jobspy package installed.</p>
+            </div>
+
+            <form onsubmit="testJobSearch(event)">
+                <div class="form-group">
+                    <label>Search Term *</label>
+                    <input type="text" id="searchTerm" value="software engineer" required>
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="location" value="San Francisco, CA">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Results</label>
+                        <input type="number" id="results" value="10" min="1" max="50">
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Hours Old</label>
+                        <input type="number" id="hoursOld" value="72" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Remote Only</label>
+                        <select id="remoteOnly">
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit">
+                    Search Jobs
+                    <span class="loading" style="display: none;">⏳</span>
+                </button>
+            </form>
+
+            <div id="searchResult"></div>
+        </div>
+
+        <!-- Resume Tailoring Tab -->
+        <div id="tailor" class="tab-content">
+            <div class="info-box">
+                <h4>Resume Tailoring API</h4>
+                <p>Tailor your resume to match a specific job description using AI (Claude or OpenAI).</p>
+            </div>
+
+            <form onsubmit="testResumeTailoring(event)">
+                <div class="grid">
+                    <div class="form-group">
+                        <label>AI Provider *</label>
+                        <select id="tailorProvider">
+                            <option value="claude">Claude (Anthropic)</option>
+                            <option value="openai">OpenAI (GPT)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>API Key *</label>
+                        <input type="password" id="tailorApiKey" placeholder="sk-ant-... or sk-...">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Resume JSON *</label>
+                    <textarea id="resumeJson" class="textarea-large" required>{
+  "basics": {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "summary": "Experienced software engineer with 5 years in web development"
+  },
+  "work": [
+    {
+      "name": "Tech Company",
+      "position": "Software Engineer",
+      "startDate": "2020-01-01",
+      "highlights": ["Built React applications", "Led team of 3 developers"]
+    }
+  ],
+  "skills": [
+    {
+      "name": "JavaScript",
+      "keywords": ["React", "Node.js", "TypeScript"]
+    }
+  ]
+}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Job Description *</label>
+                    <textarea id="jobDescription" required>We are looking for a Senior Software Engineer with strong React and Node.js experience. Must have 5+ years of experience and team leadership skills.</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Include Analysis</label>
+                    <select id="includeAnalysis">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <button type="submit">
+                    Tailor Resume
+                    <span class="loading" style="display: none;">⏳</span>
+                </button>
+            </form>
+
+            <div id="tailorResult"></div>
+        </div>
+
+        <!-- Cover Letter Tab -->
+        <div id="letter" class="tab-content">
+            <div class="info-box">
+                <h4>Cover Letter Generation API</h4>
+                <p>Generate a personalized cover letter based on your resume and the job description.</p>
+            </div>
+
+            <form onsubmit="testCoverLetter(event)">
+                <div class="grid">
+                    <div class="form-group">
+                        <label>AI Provider *</label>
+                        <select id="letterProvider">
+                            <option value="claude">Claude (Anthropic)</option>
+                            <option value="openai">OpenAI (GPT)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>API Key *</label>
+                        <input type="password" id="letterApiKey" placeholder="sk-ant-... or sk-...">
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" id="company" value="Tech Corp">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Job Title</label>
+                        <input type="text" id="jobTitle" value="Senior Software Engineer">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Resume JSON *</label>
+                    <textarea id="letterResumeJson" class="textarea-large" required>{
+  "basics": {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "summary": "Experienced software engineer with 5 years in web development"
+  },
+  "work": [
+    {
+      "name": "Tech Company",
+      "position": "Software Engineer",
+      "startDate": "2020-01-01",
+      "highlights": ["Built React applications", "Led team of 3 developers"]
+    }
+  ]
+}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Job Description *</label>
+                    <textarea id="letterJobDescription" required>We are looking for a Senior Software Engineer with strong React and Node.js experience. Must have 5+ years of experience and team leadership skills.</textarea>
+                </div>
+
+                <button type="submit">
+                    Generate Cover Letter
+                    <span class="loading" style="display: none;">⏳</span>
+                </button>
+            </form>
+
+            <div id="letterResult"></div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showLoading(buttonElement) {
+            const loading = buttonElement.querySelector('.loading');
+            if (loading) loading.style.display = 'inline-block';
+            buttonElement.disabled = true;
+        }
+
+        function hideLoading(buttonElement) {
+            const loading = buttonElement.querySelector('.loading');
+            if (loading) loading.style.display = 'none';
+            buttonElement.disabled = false;
+        }
+
+        function displayResult(elementId, data, isError = false) {
+            const resultDiv = document.getElementById(elementId);
+            const className = isError ? 'result error' : 'result success';
+            const title = isError ? 'Error' : 'Success';
+
+            resultDiv.innerHTML = `
+                <div class="${className}">
+                    <h3>${title}</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        async function testJobSearch(event) {
+            event.preventDefault();
+            const button = event.target.querySelector('button');
+            showLoading(button);
+
+            try {
+                const response = await fetch('/job-tool/api.php?x=search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        searchTerm: document.getElementById('searchTerm').value,
+                        location: document.getElementById('location').value,
+                        results: parseInt(document.getElementById('results').value),
+                        hoursOld: parseInt(document.getElementById('hoursOld').value),
+                        remoteOnly: document.getElementById('remoteOnly').value === 'true'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+
+                displayResult('searchResult', data);
+            } catch (error) {
+                displayResult('searchResult', { error: error.message }, true);
+            } finally {
+                hideLoading(button);
+            }
+        }
+
+        async function testResumeTailoring(event) {
+            event.preventDefault();
+            const button = event.target.querySelector('button');
+            showLoading(button);
+
+            try {
+                const resumeJson = JSON.parse(document.getElementById('resumeJson').value);
+
+                const response = await fetch('/job-tool/api.php?x=tailor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        resume: resumeJson,
+                        jobDescription: document.getElementById('jobDescription').value,
+                        provider: document.getElementById('tailorProvider').value,
+                        apiKey: document.getElementById('tailorApiKey').value,
+                        includeAnalysis: document.getElementById('includeAnalysis').value === 'true'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+
+                displayResult('tailorResult', data);
+            } catch (error) {
+                displayResult('tailorResult', { error: error.message }, true);
+            } finally {
+                hideLoading(button);
+            }
+        }
+
+        async function testCoverLetter(event) {
+            event.preventDefault();
+            const button = event.target.querySelector('button');
+            showLoading(button);
+
+            try {
+                const resumeJson = JSON.parse(document.getElementById('letterResumeJson').value);
+
+                const response = await fetch('/job-tool/api.php?x=letter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        resume: resumeJson,
+                        jobDescription: document.getElementById('letterJobDescription').value,
+                        jobInfo: {
+                            company: document.getElementById('company').value,
+                            title: document.getElementById('jobTitle').value
+                        },
+                        provider: document.getElementById('letterProvider').value,
+                        apiKey: document.getElementById('letterApiKey').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+
+                displayResult('letterResult', data);
+            } catch (error) {
+                displayResult('letterResult', { error: error.message }, true);
+            } finally {
+                hideLoading(button);
+            }
+        }
+    </script>
+</body>
+</html>

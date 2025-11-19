@@ -1,0 +1,1163 @@
+"id","site","job_url","job_url_direct","title","company","location","date_posted","job_type","salary_source","interval","min_amount","max_amount","currency","is_remote","job_level","job_function","listing_type","emails","description","company_industry","company_url","company_logo","company_url_direct","company_addresses","company_num_employees","company_revenue","company_description","skills","experience_range","company_rating","company_reviews_count","vacancy_count","work_from_home_type"
+"in-447b5b88ec418b92","indeed","https://www.indeed.com/viewjob?jk=447b5b88ec418b92","https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/requisitions/preview/55361","Staff Vehicle Software Integration Engineer","Ford Motor Company","Palo Alto, CA, US","2025-11-17","fulltime","","","","","",True,"","","","","We are the movers of the world and the makers of the future. We get up every day, roll up our sleeves and build a better world \\- together. At Ford, we’re all a part of something bigger than ourselves. Are you ready to change the way the world moves?  
+
+
+
+Ford’s Electric Vehicles, Digital and Design (EVDD) team is charged with delivering the company’s vision of a fully electric transportation future. EVDD is customer\\-obsessed, entrepreneurial, and data\\-driven and is dedicated to delivering industry\\-leading customer experience for electric vehicle buyers and owners. You’ll join an agile team of doers pioneering our EV future by working collaboratively, staying focused on only what matters, and delivering excellence day in and day out. Join us to make positive change by helping build a better world where every person is free to move and pursue their dreams.
+
+
+  
+You'll have...
+  
+
+* Bachelor’s or Master’s in Electrical/Computer Engineering, Mechanical Engineering, or related field.
+* 8\\+ years of experience in automotive software or systems integration, with at least 3 years at vehicle\\-level scope.
+* Strong knowledge of embedded automotive ECUs (chassis, powertrain, body, ADAS, thermal).
+* Proficient in vehicle communication protocols (CAN, LIN, FlexRay, Automotive Ethernet).
+* Experience with diagnostics (UDS, OBD\\-II, DoIP) and flashing tools.
+* Hands\\-on experience with HIL/SIL environments and prototype vehicle bring\\-up.
+* Familiarity with tools: CANoe, CANalyzer, CANape, Vector tools, dSPACE, ETAS, Python/C\\+\\+ scripting.
+* Strong debugging and root\\-cause analysis skills across hardware/software boundaries.
+* Understanding of functional safety (ISO 26262\\) and ASPICE processes is a plus.
+* Ability to work in a fast\\-paced, prototype\\-heavy environment with limited documentation.
+* Willingness to travel to proving grounds and remote test sites.
+
+You may not check every box, or your experience may look a little different from what we've outlined, but if you think you can bring value to Ford Motor Company, we encourage you to apply!  
+
+
+
+As an established global company, we offer the benefit of choice. You can choose what your Ford future will look like: will your story span the globe, or keep you close to home? Will your career be a deep dive into what you love, or a series of new teams and new skills? Will you be a leader, a changemaker, a technical expert, a culture builder…or all of the above? No matter what you choose, we offer a work life that works for you, including:
+  
+
+* Immediate medical, dental, vision and prescription drug coverage
+* Flexible family care days, paid parental leave, new parent ramp\\-up programs, subsidized back\\-up child care and more
+* Family building benefits including adoption and surrogacy expense reimbursement, fertility treatments, and more
+* Vehicle discount program for employees and family members and management leases
+* Tuition assistance
+* Established and active employee resource groups
+* Paid time off for individual and team community service
+* A generous schedule of paid holidays, including the week between Christmas and New Year’s Day
+* Paid time off and the option to purchase additional vacation time.
+  
+
+This position is a leadership level 6\\.
+  
+
+For more information on salary and benefits, click here: https://fordcareers.co/LL6SP4
+
+
+Visa sponsorship is available for this position.
+  
+
+Candidates for positions with Ford Motor Company must be legally authorized to work in the United States. Verification of employment eligibility will be required at the time of hire.
+
+
+We are an Equal Opportunity Employer. All qualified applicants will receive consideration for employment without regard to race, religion, color, age, sex, national origin, sexual orientation, gender identity, disability status or protected veteran status. In the United States, if you need a reasonable accommodation for the online application process due to a disability, please call 1\\-888\\-336\\-0660\\.
+
+
+Onsite work of up to three days per week may be required for candidates within commuting distance of a Ford hub location. \\#LI\\-Hybrid \\#LI\\-MZ1
+
+
+  
+What you'll do...
+  
+
+* Lead vehicle\\-level software integration across all domains, ensuring compatibility of in\\-house and supplier ECUs.
+* Define and manage integration strategies, test plans, and regression loops for pre\\-merge and post\\-merge software releases.
+* Own and operate prototype vehicle bring\\-up, including flashing, network validation (CAN/LIN/FlexRay/Ethernet), and feature smoke testing.
+* Drive root\\-cause analysis of cross\\-domain software/hardware issues, coordinating with domain software teams and suppliers.
+* Establish and maintain vehicle\\-level SIL/HIL “virtual car” environments for automated regression testing.
+* Collaborate with Release Engineering to develop efficient software flashing, build, and logging pipelines.
+* Define and maintain interface specifications (signals, diagnostics, timing budgets, communication protocols) across domains.
+* Partner with calibration and attribute teams to ensure vehicle\\-level attributes (driveability, responsiveness, safety, NVH) are met.
+* Provide technical mentorship to junior integration engineers and operators.
+* Support vehicle testing at proving grounds, winter test sites, and internal fleet usage.","","https://www.indeed.com/cmp/Ford-Motor-Company","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/275994252c5f8300cd63ba9b9f4012c7","http://corporate.ford.com","Dearborn, MI","10,000+","more than $10B (USD)","Tomorrow’s mobility opportunities call for candidates with experiences of all kinds. We’re looking for talent that wants to take us somewhere new.","","","","","",""
+"in-234658a442339d4d","indeed","https://www.indeed.com/viewjob?jk=234658a442339d4d","https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/California---San-Francisco/Android-Mobile-Engineer_JR317184-1","Android Mobile Engineer","Salesforce","San Francisco, CA, US","2025-11-17","fulltime","direct_data","yearly",143300.0,236500.0,"USD",False,"","","","","*To get the best candidate experience, please consider applying for a maximum of 3 roles within 12 months to ensure you are not duplicating efforts.*
+
+Job Category
+
+
+Software Engineering
+Job Details
+
+
+**About Salesforce**
+
+Salesforce is the \\#1 AI CRM, where humans with agents drive customer success together. Here, ambition meets action. Tech meets trust. And innovation isn’t a buzzword — it’s a way of life. The world of work as we know it is changing and we're looking for Trailblazers who are passionate about bettering business and the world through AI, driving innovation, and keeping Salesforce's core values at the heart of it all.
+
+
+Ready to level\\-up your career at the company leading workforce transformation in the agentic era? You’re in the right place! Agentforce is the future of AI, and you are the future of Salesforce.
+
+
+**About Slack**  
+
+Slack is your Digital HQ – a place where work flows between your people, systems, partners, and customers. From Fortune 100 companies to corner markets, millions of people around the world use Slack to connect their teams, unify their systems, and drive their business forward.
+  
+
+Slack breaks down communication silos inside and beyond your organization by bringing teams and tools together around common goals, projects and processes in channels and in Slack Connect. It removes the limits of physical walls, giving people the flexibility to do their best work where, when and how they prefer with features like huddles and clips. And it empowers everyone to automate common tasks with apps and workflows. In this digital\\-first era, Slack’s mission is to make people’s work lives simpler, more pleasant, and more productive.
+  
+
+A taste of our scale and reach:
+
+
+* Slack delivers 300k\\+ messages per second
+* 77% of the fortune 100 use Slack
+* 150\\+ countries have daily active users in Slack
+* To date, 1\\.79 trillion messages have been sent on Slack
+* 2\\.65 billion actions are taken in Slack each day
+* Slack has 200k\\+ paid customers
+* Users are spending a combined 243 million minutes per week in Huddles
+We're looking for people who are passionate about crafting phenomenal Android applications.  
+* 
+
+  
+
+You've been around for a few API levels and you know how to delight Android users. You've got an eye for the alluring Android design our users expect and an attention to detail down to the very last density independent pixel. You know your way around the View hierarchy and are eager to partner with Product and Design to craft efficient, performant, and delightful user experiences. You like building for the long term and value patterns and structures that allow for maximum flexibility in a constantly evolving product.
+  
+
+  
+
+We are looking for feature, infrastructure, and performance engineers to take our Slack Android app to the next level. As an Android Engineer, you will work with a cross\\-disciplinary team, using your extensive knowledge of building applications across a wide array of Android devices to make the Slack experience on Android be the best it can possibly be.
+  
+
+  
+
+Slack on Android is used by millions of people every week \\- we need engineers who want to make that experience as enjoyable as possible.
+  
+
+  
+
+Slack has a positive, diverse, and supportive culture; we look for people who are curious, inventive, and work to be a little better every single day. In our work together we aim to be smart, humble, hardworking and above all, collaborative.
+  
+
+  
+
+**What You Should Have:**
+
+* At least 4\\+ years of mobile engineering experience, ideally in a team environment
+* Experience developing with Kotlin
+* Extensive understanding of Android framework components and their respective lifecycles
+* Strong computer science fundamentals: data structures, algorithms and programming languages
+* Experience working closely with product teams, designers, and other developers to create a truly delightful mobile experience
+* Current and detailed knowledge of the capabilities of different Android API levels
+* Experience developing highly performant Java code and view layouts and the ability to diagnose performance bottlenecks
+* A disciplined approach to development, testing, documentation and code structure in a team environment
+* A familiarity with the Android tool ecosystem for development, testing, debugging, and performance benchmarking
+* An excellent understanding of best practices for concurrency and threading
+* A constant desire to improve, learn more and take things higher
+* A related technical degree required
+
+**Bonus Points**
+
+* Experience using Slack and a keen interest in making it better
+* Experience building design systems to create reusable and scalable components
+* A passion for creating accessible applications
+* A passion for building and maintaining great open source projects or otherwise contributing to the Android community
+* Experience with reactive programming (e.g. RXJava)
+
+Unleash Your Potential
+
+
+When you join Salesforce, you’ll be limitless in all areas of your life. Our benefits and resources support you to find balance and *be your best* , and our AI agents accelerate your impact so you can *do your best* . Together, we’ll bring the power of Agentforce to organizations of all sizes and deliver amazing experiences that customers love. Apply today to not only shape the future — but to redefine what’s possible — for yourself, for AI, and the world.
+
+
+Accommodations
+
+
+If you require assistance due to a disability applying for open positions please submit a request via this Accommodations Request Form .
+
+
+Posting Statement
+
+
+Salesforce is an equal opportunity employer and maintains a policy of non\\-discrimination with all employees and applicants for employment. What does that mean exactly? It means that at Salesforce, we believe in equality for all. And we believe we can lead the path to equality in part by creating a workplace that’s inclusive, and free from discrimination. Know your rights: workplace discrimination is illegal. Any employee or potential employee will be assessed on the basis of merit, competence and qualifications – without regard to race, religion, color, national origin, sex, sexual orientation, gender expression or identity, transgender status, age, disability, veteran or marital status, political viewpoint, or other classifications protected by law. This policy applies to current and prospective employees, no matter where they are in their Salesforce employment journey. It also applies to recruiting, hiring, job assignment, compensation, promotion, benefits, training, assessment of job performance, discipline, termination, and everything in between. Recruiting, hiring, and promotion decisions at Salesforce are fair and based on merit. The same goes for compensation, benefits, promotions, transfers, reduction in workforce, recall, training, and education.
+
+
+In the United States, compensation offered will be determined by factors such as location, job level, job\\-related knowledge, skills, and experience. Certain roles may be eligible for incentive compensation, equity, and benefits. Salesforce offers a variety of benefits to help you live well including: time off programs, medical, dental, vision, mental health support, paid parental leave, life and disability insurance, 401(k), and an employee stock purchasing program. More details about company benefits can be found at the following link: https://www.salesforcebenefits.com.Pursuant to the San Francisco Fair Chance Ordinance and the Los Angeles Fair Chance Initiative for Hiring, Salesforce will consider for employment qualified applicants with arrest and conviction records.
+For Washington\\-based roles, the base salary hiring range for this position is $143,300 to $216,700\\.
+For California\\-based roles, the base salary hiring range for this position is $157,600 to $236,500\\.","","https://www.indeed.com/cmp/Salesforce","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/581b81cad76664246c42f85c30523dd2","http://www.salesforce.com","San Francisco, CA","10,000+","more than $10B (USD)","","","","","","",""
+"in-b4a3501cae9a0449","indeed","https://www.indeed.com/viewjob?jk=b4a3501cae9a0449","https://usource.ripplehire.com/candidate/?token=xHQWoFn4C242POo7xMpH&source=CAREERSITE#detail/job/48364","Senior Automation Test Engineer","UST","CA, US","2025-11-17","fulltime","direct_data","yearly",59000.0,89000.0,"USD",True,"","","","","2 Openings
+California  
+
+
+### **Role description**
+
+
+**Senior Automation Test Engineer**
+
+
+**Tester III \\- Software Testing**
+
+  
+
+
+**Who We Are:**
+
+
+
+Born digital, UST transforms lives through the power of technology. We walk alongside our clients and partners, embedding innovation and agility into everything they do. We help them create transformative experiences and human\\-centered solutions for a better world.
+
+
+
+UST is a mission\\-driven group of 29,000\\+ practical problem solvers and creative thinkers in more than 30 countries. Our entrepreneurial teams are empowered to innovate, act nimbly, and create a lasting and sustainable impact for our clients, their customers, and the communities in which we live.
+
+
+
+With us, you’ll create a boundless impact that transforms your career—and the lives of people across the world.
+
+
+
+Visit us at UST.com.
+
+  
+
+
+**You Are:**
+
+
+
+We are seeking a highly experienced **Senior Automation Test Engineer** with a strong background in test automation, Java\\-based frameworks, and API testing. The ideal candidate will bring expertise in designing, developing, and maintaining automation frameworks to ensure high\\-quality software delivery.
+
+  
+
+
+**The Opportunity:**
+
+
+* Design, develop, and maintain robust automation frameworks using Selenium with Java.
+* Create, execute, and maintain automated test scripts for web, API, and integration testing.
+* Perform API testing using tools like Postman, REST Assured, or similar frameworks.
+* Collaborate with developers, QA engineers, and business stakeholders to understand requirements and ensure test coverage.
+* Analyze test results, identify defects, and work closely with teams for quick resolutions.
+* Implement best practices for test automation and continuously improve test efficiency and reliability.
+* Contribute to CI/CD pipelines by integrating automation test suites.
+* Mentor junior QA engineers and guide them in automation best practices.
+
+  
+
+
+
+This position description identifies the responsibilities and tasks typically associated with the performance of the position. Other relevant essential functions may be required.
+
+  
+
+
+**What You** **Need:**
+
+
+* Minimum 8\\+ years of experience in software testing, with a strong focus on automation testing.
+* Strong hands\\-on experience with Selenium WebDriver and Java\\-based automation frameworks (e.g., TestNG, JUnit, Maven/Gradle).
+* Expertise in API testing using Postman, REST Assured, or similar tools.
+* Solid understanding of SDLC, STLC, Agile/Scrum methodologies.
+* Experience with version control tools like Git/GitHub/Bitbucket.
+* Exposure to CI/CD tools (e.g., Jenkins, Bamboo, GitLab CI).
+* Strong problem\\-solving skills, analytical thinking, and attention to detail.
+* Excellent communication and collaboration skills.
+
+  
+
+
+
+Compensation can differ depending on factors including but not limited to the specific office location, role, skill set, education, and level of experience. UST provides a reasonable range of compensation for roles that may be hired in various U.S. markets as set forth below.
+
+
+**Role Location:** **Remote**
+
+
+**Compensation Range:** $59,000\\-$89,000
+
+  
+
+
+**Benefits**
+
+
+
+Full\\-time, regular employees accrue a minimum of 10 days of paid vacation per year, receive 6 days of paid sick leave each year (pro\\-rated for new hires throughout the year), 10 paid holidays, and are eligible for paid bereavement leave and jury duty. They are eligible to participate in the Company’s 401(k) Retirement Plan with employer matching. They and their dependents residing in the US are eligible for medical, dental, and vision insurance, as well as the following Company\\-paid Employee Only benefits: basic life insurance, accidental death and disability insurance, and short\\- and long\\-term disability benefits. Regular employees may purchase additional voluntary short\\-term disability benefits, and participate in a Health Savings Account (HSA) as well as a Flexible Spending Account (FSA) for healthcare, dependent child care, and/or commuting expenses as allowable under IRS guidelines. Benefits offerings vary in Puerto Rico.
+
+
+
+Part\\-time employees receive 6 days of paid sick leave each year (pro\\-rated for new hires throughout the year) and are eligible to participate in the Company’s 401(k) Retirement Plan with employer matching.
+
+
+
+Full\\-time temporary employees receive 6 days of paid sick leave each year (pro\\-rated for new hires throughout the year) and are eligible to participate in the Company’s 401(k) program with employer matching. They and their dependents residing in the US are eligible for medical, dental, and vision insurance.
+
+
+
+Part\\-time temporary employees receive 6 days of paid sick leave each year (pro\\-rated for new hires throughout the year).
+
+
+
+All US employees who work in a state or locality with more generous paid sick leave benefits than specified here will receive the benefit of those sick leave laws.
+
+  
+
+
+**What we believe:**
+
+
+
+We proudly embrace the values that have shaped UST since day one. We build our culture of Humility, Humanity, and Integrity. These values inspire us to nurture a people\\-first, human centric culture that fosters diversity, prioritizes sustainable solutions, and keeps our people and clients at the forefront of all decisions.
+
+
+**Humility:**
+
+
+
+We will listen, learn, be empathetic and help selflessly in our interactions with everyone.
+
+
+**Humanity:**
+
+
+
+Through business, we will better the lives of those less fortunate than ourselves.
+
+
+**Integrity:**
+
+
+
+We honor our commitments and act with responsibility in all our relationships.
+
+
+**Equal Employment Opportunity Statement**
+
+  
+
+UST is an Equal Opportunity Employer.  
+
+
+
+All qualified applicants will receive consideration for employment without regard to race, color, religion, sex, sexual orientation, gender identity, national origin, disability, status as a protected veteran, or any other applicable characteristics protected by law. We will consider qualified applicants with arrest or conviction records in accordance with state and local laws and “fair chance” ordinances.
+
+
+
+UST reserves the right to periodically redefine your roles and responsibilities based on the requirements of the organization and/or your performance.  
+
+
+
+\\#UST
+
+\\#CB
+
+\\#LI\\-Remote
+### **Skills**
+
+
+Selenium Framework,Java,Postman,Automation Testing
+
+
+### **Benefits**
+
+
+### **Compensation range: $ 59,000\\.00 to 89,000\\.00 per year**
+
+
+  
+### **About UST**
+
+
+UST is a global digital transformation solutions provider. For more than 20 years, UST has worked side by side with the world’s best companies to make a real impact through transformation. Powered by technology, inspired by people and led by purpose, UST partners with their clients from design to operation. With deep domain expertise and a future\\-proof philosophy, UST embeds innovation and agility into their clients’ organizations. With over 30,000 employees in 30 countries, UST builds for boundless impact—touching billions of lives in the process.","","https://www.indeed.com/cmp/Ust-2","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/07ea3746bef405d42fc8185242f1222b","https://www.ust.com/","Aliso Viejo, CA","10,000+","Decline to state","UST is a global digital transformation solutions provider for more than 20 years. With over 29K+ employees in 30 countries, UST builds for boundless impact—touching billions of lives in the process.","","","","","",""
+"in-476c0b307c073fac","indeed","https://www.indeed.com/viewjob?jk=476c0b307c073fac","https://secure4.saashr.com/ta/6164782.careers?ShowJob=822403657","Manufacturing Automation Engineer II","Ferrotec (USA) Corporation","Livermore, CA, US","2025-11-17","fulltime","direct_data","yearly",85000.0,98000.0,"USD",True,"","","","","**WHO** **WE** **ARE**
+
+
+
+Together we are a world\\-class diversified manufacturer with a commitment from our team to proudly provide pure precision solutions to our customers, delivering superior quality, value, and service.
+
+
+
+Ferrotec (USA) Corporation is a technology company with a worldwide presence in various end products, manufacturing systems, and industries serving primarily the semiconductor industry. We provide our customers with advanced materials, components, systems, and manufacturing solutions. Please visit www.ferrotec.com for a list of office locations.
+
+  
+
+
+**HOW** **YOU** **MAKE AN IMPACT**
+
+
+
+Automation Engineer II has the responsibility and skills to specify, develop, modify, test, troubleshoot, document, and deploy new or existing control system and related software for Ferrotec products, internal scientific research, and to support other goals. Assigned projects will have timeframes ranging from short tasks of a few hours to development efforts on the order of months. In addition, this role continuously assists customers with automation equipment and software issues, most\\-often remotely, and generally with limited or incomplete information. Collaboration with other team members will be frequent, but professional experience enables Automation Engineer II to be productive with greater independence.
+
+  
+
+
+**WHAT** **SUCCESS** **LOOKS LIKE**
+
+
+* Specify, develop, modify, test, troubleshoot, document, and deploy new or existing control system and related software for Ferrotec products, internal scientific research, and other company objectives.
+* Startup, troubleshoot, and repair existing, new, or upgraded control systems, including soft logic, human/machine interface, wiring, and hard logic. Mark\\-up schematics, if applicable; document problems and solutions to improve next startup cycle for self and others.
+* Perform engineering development activities in a manner consistent with established conventions, producing work products compliant with departmental standards and expectations.
+* Seek opportunities to add value to products or reduce recurring costs by advancing designs with new technology, improved processes, and procedures, or by other means in a cost\\-justified manner.
+* Communicates changes and documents requirements, defines scope and objectives for the generation of documentation, procedures, logs, and instructions, both for internal and external consumption.
+* Compiles key project\\-relevant information from vendor documentation and recommend course of action.
+* Create software specifications for larger changes and projects
+* Ability to identify problems and root causes, then quickly resolve.
+* Performs other related duties as may be reasonably assigned in the course of business.
+
+
+**Not a comprehensive list of duties. Duties may change without notice at management’s sole discretion**
+
+  
+
+
+**WHAT** **YOU** **NEED TO BE SUCCESSFUL**
+
+* Degree in Engineering with an emphasis in embedded control, automation, and computer programming.
+* 2 to 4 years of work related experience
+* Programming languages:
+
+
+	+ C\\# \\- For low level programming
+	+ TwinCat/Ladder logic \\- PLC programming
+	+ XML \\- Configuration
+	+ XAML \\- Screen control
+* Robotics integration
+* Teamwork and communication
+
+
+**Preferred Skills:**
+
+
+
+Systems Thinking
+
+
+* **Holistic View**: Systems thinking is the ability to see the big picture and understand how different parts of the system interact. As an automation engineer, you need to understand how automation in one area might affect other parts of the system.
+* **Feedback Loops**: Recognizing feedback mechanisms within a system is essential. For example, if an automated task fails, it’s important to understand how the system should react and whether alerts or retries are needed.
+* **Reliability and Redundancy**: Designing automation that ensures reliability and fault tolerance in systems. Ensuring that systems can recover from failures or errors without affecting the overall process is crucial.
+
+  
+
+
+**PERKS OF** **JOINING** **OUR TEAM**
+
+
+
+With positive values, a productive atmosphere, and a commitment to excellence, Ferrotec encourages employees to maximize and realize their potential.
+
+
+
+The salary range included in this job posting is relevant to applicants who reside or work in the Livermore, CA area only**.** Salary offers will depend on experience, knowledge, skills, education, and location. Actual salary may vary due to these and other factors.
+
+
+
+ Ferrotec is proud to offer a Competitive Benefits Package including Medical, Dental, Vision, Life \\& Disability, 401K Matching, Flexible Work Hours, Tuition Reimbursement, Leadership Development, Travel and Hotel Discounts, Paid Time Off, Sick \\& Wellness and Volunteer Time, Employee Recognition Program, Employee Engagement \\& Appreciation Events hosted throughout the year. Virtual Wellness Activities and Classes are available to all employees \\& family members and Much More!
+
+  
+
+
+**We would love to get to know you better and you get to know us better! You can easily apply!**
+
+  
+
+
+
+Equal Opportunity Employer. All qualified applicants will receive consideration for employment without regard to race, color, religion, sex, sexual orientation, gender identity, national origin, age, pregnancy, genetic information, disability, status as a protected veteran, or any other protected category under applicable federal, state, and local laws.","","https://www.indeed.com/cmp/Ferrotec-(usa)-Corporation","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/6ff3c6c23700194d4851ca730f5feaa3","https://www.ferrotec.com","Livermore, CA","201 to 500","","We are a world-leading manufacturer, marketer, and distributor of advanced materials, components, and assembly solutions used in a wide range of end products, manufacturing systems, and industries.","","","","","",""
+"in-aeb86d21d0e2332d","indeed","https://www.indeed.com/viewjob?jk=aeb86d21d0e2332d","https://grnh.se/31uoljub2us","Customer Centric Engineer (Ruby)","Workato","Palo Alto, CA, US","2025-11-17","","","yearly","","","USD",True,"","","","","**About Workato**
+=================
+
+
+
+Workato transforms technology complexity into business opportunity. As the leader in enterprise orchestration, Workato helps businesses globally streamline operations by connecting data, processes, applications, and experiences. Its AI\\-powered platform enables teams to navigate complex workflows in real\\-time, driving efficiency and agility.
+
+
+
+Trusted by a community of 400,000 global customers, Workato empowers organizations of every size to unlock new value and lead in today's fast\\-changing world. Learn how Workato helps businesses of all sizes achieve more at workato.com.
+
+
+**Why join us?**
+================
+
+
+
+Ultimately, Workato believes in fostering a **flexible, trust\\-oriented culture that empowers everyone to take full ownership of their roles**. We are driven by **innovation** and looking for **team players** who want to actively build our company.
+
+
+
+But, we also believe in **balancing productivity with self\\-care**. That's why we offer all of our employees a vibrant and dynamic work environment along with a multitude of benefits they can enjoy inside and outside of their work lives.
+
+
+
+If this sounds right up your alley, please submit an application. We look forward to getting to know you!
+
+
+
+Also, feel free to check out why:
+
+
+* Business Insider named us an ""enterprise startup to bet your career on""
+* Forbes' Cloud 100 recognized us as one of the top 100 private cloud companies in the world
+* Deloitte Tech Fast 500 ranked us as the 17th fastest growing tech company in the Bay Area, and 96th in North America
+* Quartz ranked us the \\#1 best company for remote workers
+**Responsibilities**
+====================
+
+
+
+We are looking for an exceptional **Customer Centric Engineer** to join our growing team. In this role, you will also be responsible to:
+
+
+* Using your programming, database, and web API and UI skills to solve critical customer technical escalations to Product Engineering from our Success and Support organization.
+* Identifying root causes by utilizing top\\-notch troubleshooting techniques and all the tools and systems available within the R\\&D organization.
+* Digging deep into code to propose test cases and fixes.
+* Contribute and/or develop product diagnostic tools and utilities that enable Workato teams to provide support efficiencies and improvements
+* Providing timely information to customer\\-facing teams to improve overall customer satisfaction.
+* Mentoring Technical Support on technical issues and best practices.
+* Author and maintain internal knowledge base documentation.
+* Building relationships with other teams across Success, Product Engineering, Infrastructure, and Site Reliability as a technical expert
+* Championing Supportability and Debuggability initiatives throughout Product Engineering
+
+**Requirements**
+================
+
+
+### **Qualifications / Experience / Technical Skills**
+
+
+* **5\\+ years** of experience in a similar role (CCE, Technical Support Engineer, etc.)
+* Familiarity with **Ruby** (at least the ability to read and understand code) \\- our core product is based on Ruby!
+* BS/MS Degree in Computer Science, Computer Engineering, Information Systems or equivalent
+* Unparalleled troubleshooting and problem\\-solving skills
+* Excellent debugging, analytical, and social skills
+* Knowledge of Internet development technologies (e.g Java, PostgresSQL, gRPC, REST)
+* Experience with user\\-level automation frameworks and scripting with Ruby, Python or Go
+* Good understanding of network protocols and stacks
+* Experience in SaaS development environment and cloud technologies
+* Good understanding of DB technologies: classic databases and modern no\\-SQL.
+* Scripting and coding knowledge are required
+
+### **Soft Skills / Personal Characteristics**
+
+
+* You should be passionate about solving tough technical problems and recommending improvements to products and processes.
+* Excellent written and verbal communication skills, as exemplified by clear bug/issue explanations, documentation of knowledge, mentoring ability, and comfort interacting with all levels of management
+* Demonstrable curiosity, passion, integrity, and outstanding attention to detail in professional and personal pursuits
+* Developer\\-level technical chops, along with a strong desire to interact with engineering customers, support engineers and management on high\\-profile issues critical to the long\\-term success of the company
+
+The pay for this role begins at $110,000 and goes up depending on the experience.
+
+
+**To stand out in our hiring process, please take the time to respond to the Job Application Questions below with concise yet informative answers. All submissions are personally reviewed by the Hiring Team, not evaluated by AI.**
+
+
+**(REQ ID: 2335\\)**","","https://www.indeed.com/cmp/Workato","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/88a9458c317b3f7ee62b206b8ee4574b","https://www.workato.com/","Cupertino","2 to 10","less than $1M (USD)","Workato is the leading Enterprise Automation Platform.","","","","","",""
+"in-929f5d67575da61f","indeed","https://www.indeed.com/viewjob?jk=929f5d67575da61f","https://jobs.ashbyhq.com/Jerry.ai/6fb02b3d-4847-4268-9f3d-00c548aef518","Sr. Software Engineer, Infra","Jerry","Palo Alto, CA, US","2025-11-17","fulltime","","","","","",True,"","","","recruiting@jerry.ai","Hi! We’re Jerry.ai. We’re building the first AI\\-powered **AllCar™ super app** to make car ownership affordable, seamless, and even magical. From insurance to repairs to road safety, we’re connecting the entire car ownership experience into one mobile\\-first platform. Our revenue has grown 60x in the last 5 years, we’re profitable, and our goal is to scale from **5M 50M** users next.
+We're seeking a **Sr.** **Software Engineer** to take complete ownership of our infrastructure. We've achieved product\\-market fit and are in a rapid scaling phase, making this a critical moment for our team. We need a seasoned professional who can lead the charge in building, maintaining, and optimizing the core systems that power our business.
+
+
+In this role, you'll be the key driver of **automation, scalability, and reliability** across our entire infrastructure and CI/CD pipelines. This is a hands\\-on position where you'll be responsible for more than just keeping the lights on. You will be a strategic partner, designing and implementing solutions that enable our engineering teams to move faster and deliver high\\-quality products to our customers.
+
+**Why you’ll love working here**
+
+* **Real business impact:** Your work supports the entire engineering org at Jerry.ai \\- the work you do means engineers have a seamless experience and Jerry is secure, fast, and reliable
+* **Meaningful work**: You’ll tackle different types of challenges every day, learning both the technical and business sides of our core products.
+* **Zero bureaucracy:** Have an idea? Pitch it, implement it, and see it live in days. No red tape, no slow\\-moving processes.
+* **Brilliant \\+ supportive teammates:** Work with talented and kind engineers, product managers, and data scientists. Be in an environment that encourages challenging the status quo, innovation, collaboration, and helping each other succeed.
+* **Flexibility:** Work on projects that excite you. Explore new technologies, like AI/LLM tools, early — without bureaucracy slowing you down. Remote\\-friendly and flexible work arrangements allowing you to balance life and work, even internationally.
+* **Growth \\+ learning:** Engineers at Jerry get to take a ton of ownership, swim outside their lanes, level up quickly, and mentor others. Everyone is passionate, involved, and cares intensely about their work and their teammates.
+
+**What you'll do:**
+
+* Take full ownership of Jerry’s infrastructure including managing our cloud accounts end to end, ensuring robustness and security
+* Develop systems / components to improve operational simplicity and reliability of Jerry’s product systems, for example, monitoring system, deployment automation, and diagnostic tools etc;
+* Develop systems and tools to manage the security access and capacity planning of cloud resources;
+* Work with various product teams to guide systems architecture and offer suggestions for reliability and optimization of production systems;
+* Be the shepherd to coordinate Jerry’s production incident handling across teams
+
+**What we're looking for**
+
+* Experience building infrastructure for a scaling company
+* B.S. degree in Computer Science or related discipline;
+* 5\\+ years of experience working with Amazon AWS services and tools, such as ECS, EKS, RDS, S3, ElasticCache, ELB, ECR, cdk etc;
+* Meticulous attention to detail to ensure systems are always up
+* Solid coding skills preferably in Python or Golang, familiarity with NodeJS and Typescript, and strong system analysis and problem solving skills;
+* Excellent teammate with strong communication, collaboration, and technical writing skills;
+* Highly motivated and thrive in dynamic and fast\\-paced environments with a real passion for ensuring scalable and highly available systems in the cloud
+
+**Our stack**
+
+* **Frontend \\& backend:** TypeScript, Nest.js, Next.js, React, React Native, Expo
+* **API:** GraphQL
+* **Data:** Postgres, DynamoDB, Clickhouse, Redis
+* **Infrastructure:** AWS, microservices, containerized services on ECS/EKS, asynchronous processing on Lambda
+
+**Why Jerry?**
+
+
+This isn’t just another coding job —you’ll be **solving real\\-world problems at scale**, helping millions of people manage their most expensive (or at least second most expensive) asset more effortlessly. You’ll work in a **flexible, fast\\-moving, and highly collaborative culture**, **where innovation is encouraged**, **your voice is heard**, and the **impact of your work is immediate**. You’ll tackle meaningful challenges, learn constantly, and grow alongside extremely talented engineers.
+
+
+ If this sounds like your kind of place, we want to meet you!
+
+*While we appreciate your interest and application, only applicants under consideration will be contacted.*
+
+*Jerry.ai is proud to be an Equal Employment Opportunity employer. We prohibit discrimination based on race, religion, color, national origin, sex, pregnancy, reproductive health decisions or related medical conditions, sexual orientation, gender identity, gender expression, age, veteran status, disability, genetic information, or other characteristics protected by applicable local, state or federal laws.*
+
+*Jerry.ai is committed to providing reasonable accommodations for individuals with disabilities in our job application process. If you need assistance or an accommodation due to a disability, please contact us at* *recruiting@jerry.ai*
+
+*The successful candidate’s starting pay will fall within the pay range listed on this job posting, determined based on job\\-related factors including, but not limited to, skills, experience, qualifications, work location, and market conditions. Ranges are market\\-dependent and may be modified in the future. In addition to base salary, the compensation may include opportunities for equity grants.*
+
+*We offer a comprehensive benefits package to regular employees, including health, dental, and vision coverage, paid time off, paid parental leave, 401(K) plan with employer matching, and wellness benefits, among others. Equity opportunities may also be part of your total rewards package. Part\\-time, contract, or freelance roles may not be eligible for certain benefits.*
+
+**About Jerry.ai:**
+
+
+Jerry.ai is America’s first and only super app to radically simplify car ownership. We are redefining how people manage owning a car, one of their most expensive and time\\-consuming assets.
+
+
+Backed by artificial intelligence and machine learning, Jerry.ai simplifies and automates owning and maintaining a car while providing personalized services for all car owners' needs. We spend every day innovating and improving our AI\\-powered app to provide the best possible experience for our customers. From car insurance and financing to maintenance and safety, Jerry.ai does it all.
+
+
+We are the \\#1 rated and most downloaded app in our category with a 4\\.7 star rating in the App Store. We have more than 5 million customers — and we’re just getting started.
+
+
+Jerry.ai was founded in 2017 by serial entrepreneurs and has raised more than $240 million in financing.
+
+
+Join our team and work with passionate, curious and egoless people who love solving real\\-world problems. Help us build a revolutionary product that’s disrupting a massive market.","","https://www.indeed.com/cmp/Jerry-3","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/3c64236eae6ed895faf02a0db2d57aae","http://getjerry.com","430 Sherman Ave
+Palo Alto, CA 94306","51 to 200","","At Jerry, we’re making car ownership easier and more affordable for every driver. As America’s only AllCar™ app, Jerry is redefining how to manage all things car for our 5+ million customers.","","","","","",""
+"in-5f047b52a941bae5","indeed","https://www.indeed.com/viewjob?jk=5f047b52a941bae5","https://click.appcast.io/t/LyFPT7vQ5Iiuwx1fMkwvepx3WhkNTdVLDJ8M7-F_N3k=","Senior Software Engineer, CAD Automation","NVIDIA","Santa Clara, CA, US","2025-11-17","fulltime","direct_data","yearly",136000.0,212750.0,"USD",False,"","","","","For over two decades, NVIDIA has been at the forefront of transforming how the world computes—from pioneering the GPU in 1999 to powering today's AI revolution. We're a company that thrives on collective innovation, where diverse perspectives drive breakthrough solutions in Graphics, Data Center, and Artificial Intelligence. As both a learning machine and organization, we believe the best ideas emerge when brilliant minds from all backgrounds collaborate to solve the world's most complex challenges. Join us in building technology that amplifies human potential and creates opportunities for everyone to thrive in the digital future.
+
+
+Today, we’re tapping into the unlimited potential of AI to define the next era of computing. An era in which our GPU acts as the brains of computers, robots, and self\\-driving cars that can understand the world. Doing what’s never been done before takes vision, innovation, and the world’s best talent. As an NVIDIAN, you will be immersed in a diverse, encouraging environment where everyone is inspired to do their best work. Come join our dynamic team and see how you can make a lasting impact on the world! We are currently looking for a Software/CAD engineer to join our team! In this role you'll be building solutions to boost productivity and efficiency of our custom circuit designs. You will be engaging with multi\\-functional teams to ensure the robustness of the designs that will have direct impact across all product lines.
+
+**What you'll be doing:**
+
+* Work within a multi\\-functional team on various projects involving Pre\\-silicon and Post Silicon hardware design and related data
+* Support circuit design engineers to automate typical design tasks and improve efficiency
+* Build flows and methodology around vendor EDA tool and design collaterals to streamline design and verification workflows
+* Work closely with design engineers to support the existing development infrastructure, identify possible improvements and solutions
+* Employ good software engineering practices to develop complex and scalable systems
+
+**What we need to see:**
+
+* MS/PhD preferred in Computer Science/Engineering or equivalent experience
+* 3\\+ years of experience in VLSI CAD flows and methodology
+* Prior experience and background in VLSI is required
+* Strong programming skills in multiple languages (C\\+\\+, Tcl, Python, Makefile or other scripting languages)
+* Good interpersonal skills, quick learner, proactive, innovative, highly motivated, and committed.
+
+**Ways to stand out from the crowd:**
+
+* Experience with design collaterals such as .v, .gv, .lib, gds, etc...
+* Enjoy working with multiple levels and teams across organizations
+* Effective interpersonal and technical presentation skills
+* Self\\-starter with passion for growth, real enthusiasm for continuous learning and sharing findings across the team
+
+
+NVIDIA is a pioneer in bringing groundbreaking technology to new markets. We have some of the most forward\\-thinking and hardworking people in the world working with us. If you're creative and autonomous, we want to hear from you!
+
+
+\\#LI\\-Hybrid
+
+
+Your base salary will be determined based on your location, experience, and the pay of employees in similar positions. The base salary range is 136,000 USD \\- 212,750 USD.
+You will also be eligible for equity and benefits.
+
+
+Applications for this job will be accepted at least until November 22, 2025\\.
+NVIDIA is committed to fostering a diverse work environment and proud to be an equal opportunity employer. As we highly value diversity in our current and future employees, we do not discriminate (including in our hiring and promotion practices) on the basis of race, religion, color, national origin, gender, gender expression, sexual orientation, age, marital status, veteran status, disability status or any other characteristic protected by law.","","https://www.indeed.com/cmp/Nvidia","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/9cda2ebf26905efa812e1a5315c7a53d","http://www.nvidia.com","Santa Clara, CA","10,000+","$5B to $10B (USD)","Bringing superhuman capabilities to some of the world's toughest problems.","","","","","",""
+"in-66483347337b7eca","indeed","https://www.indeed.com/viewjob?jk=66483347337b7eca","https://click.appcast.io/t/o-I_VrGDuHeCtBHJdGwgy6y8qf653ivKC6mVrTXUFfY=","Senior DevOps Engineer, Switch and Firmware","NVIDIA","Santa Clara, CA, US","2025-11-17","fulltime","direct_data","yearly",148000.0,287500.0,"USD",False,"","","","","NVIDIA is looking for an excellent DevOps Engineer to join the Switch and Firmware DevOps team and make a wide impact on the company products and teams worldwide. The role includes the development of cutting\\-edge design automation tools, build systems, private cloud and continuous integration systems. With your help, our supportive and friendly team will be able to focus on more exciting programming tasks, better serving the needs of our customers through new and improved CI processes. We work in a dynamic environment where multiple projects will be active at once and priorities may shift frequently. We are looking for hardworking engineers who aren’t afraid of taking up new technologies, processes, and tools to make constant improvement in the automation infrastructure. The engineer will collaborate closely with our software developers as well as performance analysts to build and improve the world\\-class automation infrastructure.
+
+**What you’ll be doing:**
+
+* Design, develop and support CI processes of various products.
+* Collaborate with various teams across the globe to promote and improve CI practices.
+* Build infrastructure for effective, high quality, reliable development and release processes.
+* Be a part of an experienced team with a great atmosphere.
+
+**What we need to see:**
+
+* B.Sc. (or equivalent experience) in Computer Engineering, Computer Science or related technical discipline
+* 4\\+ year experience in Software development.
+* Solid experience with Linux operating system
+* Experience with Jenkins pipelines embedded with Groovy based libraries
+* Control of GIT SCM
+* Proven experience in Docker.
+* Excellent development abilities in python scripting language
+* Strong design, coding and debugging skills
+* High ability to focus on task execution with agility and multitasking
+* Great teammate
+
+**Ways to stand out from the crowd:**
+
+* Proven background with design and implementation of complex CI/CD pipelines
+* Proven experience with GitLab and Gerrit SCM administration
+
+
+With competitive salaries and a generous benefits package, we are widely considered to be one of the technology world’s most desirable employers. We have some of the most forward\\-thinking and hardworking people in the world working for us and, due to unprecedented growth, our exclusive engineering teams are rapidly growing. If you're a creative and autonomous engineer with a real passion for technology, we want to hear from you. NVIDIA is widely considered to be one of the technology world’s most desirable employers. We have some of the most hard\\-working and talented people in the world working for us. If you're creative and passionate about developing cloud services we want to hear from you!
+
+
+Your base salary will be determined based on your location, experience, and the pay of employees in similar positions. The base salary range is 148,000 USD \\- 235,750 USD for Level 3, and 184,000 USD \\- 287,500 USD for Level 4\\.
+You will also be eligible for equity and benefits.
+
+
+Applications for this job will be accepted at least until November 22, 2025\\.
+NVIDIA is committed to fostering a diverse work environment and proud to be an equal opportunity employer. As we highly value diversity in our current and future employees, we do not discriminate (including in our hiring and promotion practices) on the basis of race, religion, color, national origin, gender, gender expression, sexual orientation, age, marital status, veteran status, disability status or any other characteristic protected by law.","","https://www.indeed.com/cmp/Nvidia","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/9cda2ebf26905efa812e1a5315c7a53d","http://www.nvidia.com","Santa Clara, CA","10,000+","$5B to $10B (USD)","Bringing superhuman capabilities to some of the world's toughest problems.","","","","","",""
+"in-beba588b94b7cd55","indeed","https://www.indeed.com/viewjob?jk=beba588b94b7cd55","https://click.appcast.io/t/FLKJxv7LjtnPc_tXM3vgmIx3VCG6JotPAXiVF6Kr9oQ=","Senior Software Engineer, Subnet Manager","NVIDIA","Santa Clara, CA, US","2025-11-17","fulltime","direct_data","yearly",184000.0,287500.0,"USD",False,"","","","","NVIDIA is seeking a skilled Senior Software Engineer to join our Subnet Manager team. This team develops network management software that configures network devices and routing tables of NVLink and large\\-scale InfiniBand networks powering the world’s most advanced supercomputers. In this role, you will design and implement new features, and collaborate closely with different teams across NVIDIA to deliver robust and scalable networking solutions. This position offers a rare opportunity to influence the architecture and development of our software, contributing directly to the world’s leading AI and HPC systems.
+
+**What you’ll be doing:**
+
+* Design, develop and optimize server application responsible for managing NVLink networks of thousands of network devices!
+* Collaborate with multiple teams in our multi\\-functional environment on developing new features and improvements.
+* Participate in the design and architecture of new next generation network solutions for super computers.
+* Manage issues during integration, testing, deployment \\& QA.
+* Work and collaborate with team members in different geographical locations.
+
+**What we need to see:**
+
+* BSc. or MSc. in Computer Engineering or Computer Science (or equivalent experience).
+* 8\\+ years of experience as Software Engineer.
+* Proficient knowledge in C/C\\+\\+.
+* Strong analytical skills, deep knowledge of algorithms and proficiency with data structures.
+* Self and quick learning abilities.
+
+**Ways To Stand Out From The Crowd:**
+
+* Knowledge of network topologies design and routing algorithms.
+* Experience in performance optimizations.
+* Demonstrated use of creative ideas, providing solutions to challenging problems.
+* Excellent social and written communication skills.
+
+
+With competitive salaries and a generous benefits package, we are widely considered to be one of the technology world’s most desirable employers. We have some of the most forward\\-thinking and hardworking people in the world working for us and, due to unprecedented growth, our exclusive engineering teams are rapidly growing. If you're a creative and autonomous engineer with a real passion for technology, we want to hear from you. NVIDIA is widely considered to be one of the technology world’s most desirable employers. We have some of the most hard\\-working and talented people in the world working for us. If you're creative and passionate about developing cloud services we want to hear from you!
+
+
+Your base salary will be determined based on your location, experience, and the pay of employees in similar positions. The base salary range is 184,000 USD \\- 287,500 USD for Level 4, and 224,000 USD \\- 356,500 USD for Level 5\\.
+You will also be eligible for equity and benefits.
+
+
+Applications for this job will be accepted at least until November 22, 2025\\.
+NVIDIA is committed to fostering a diverse work environment and proud to be an equal opportunity employer. As we highly value diversity in our current and future employees, we do not discriminate (including in our hiring and promotion practices) on the basis of race, religion, color, national origin, gender, gender expression, sexual orientation, age, marital status, veteran status, disability status or any other characteristic protected by law.","","https://www.indeed.com/cmp/Nvidia","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/9cda2ebf26905efa812e1a5315c7a53d","http://www.nvidia.com","Santa Clara, CA","10,000+","$5B to $10B (USD)","Bringing superhuman capabilities to some of the world's toughest problems.","","","","","",""
+"in-666ec3c650bf1fa4","indeed","https://www.indeed.com/viewjob?jk=666ec3c650bf1fa4","https://click.appcast.io/t/ovKtV3Jga2HmSYAYamdKeOkqGxwyp4s2ya656ufhOf4=","Senior System Software Engineer, GPU Virtualization","NVIDIA","Santa Clara, CA, US","2025-11-17","fulltime","direct_data","yearly",184000.0,287500.0,"USD",False,"","","","","NVIDIA is groundbreaking on a variety of fronts, including artificial intelligence, deep learning, robotics, autonomous vehicles, computing and, of course, bringing GPU to cloud. It is a very exciting time to be at NVIDIA! NVIDIA is searching for a highly motivated, creative engineer with experience in system software to join the GPU Virtualization team. As a member of this core team, you will be working with highly motivated and hardworking engineers. As someone who is hardworking and passionate about their work, you must be proactive, able to work independently \\& multi\\-functionally, multi\\-task and thrive in a multifaceted work environment!
+
+**What you’ll be doing:**
+
+* Work closely with passionate engineers to design, develop, optimize, debug, unit test, document and maintain next\\-generation graphics and computing features for NVIDIA GPUs.
+* We work on next\\-generation GPU hardware and software features through all phases of development, and you will get an opportunity to work across user and kernel stacks.
+* Also work on customer issues and provide timely root cause of the problem and resolution.
+* Collaborate with many internal teams (software, hardware, architecture, QA and OEM support), partners and customers to define new products and features, and resolve issues.
+
+**What we need to see:**
+
+* BS degree or higher or equivalent experience (computer science or related).
+* 10\\+ years of industry experience.
+* In depth understanding of Windows or Linux device drivers, PC architecture and ability to work close to the hardware.
+* Proficient in C/C\\+\\+ with strong software development, optimization and analytical skills.
+* Strong debugging skills and extensive experience using gdb/kgdb/windbg to analyze complex pieces of software.
+* Strong articulation skills for crafting and improving technical documents, and to engage globally distributed engineering team.
+
+**Ways to stand out from the crowd:**
+
+* Understanding of Virtualization concepts and system software for ESX, Hyper\\-V or KVM.
+* Knowledge of DX/OGL graphics technologies, WDDM model.
+* Familiarity with computer system architecture, microprocessor, and microcontroller fundamentals (caches, buses, memory controllers, DMA, etc.).
+
+
+NVIDIA has some of the most forward\\-thinking and hardworking people in the world working for us and, due to outstanding growth, our world\\-class engineering teams are growing fast. If you're a creative and autonomous engineer with a real passion for technology, we want to hear from you!
+
+
+Your base salary will be determined based on your location, experience, and the pay of employees in similar positions. The base salary range is 184,000 USD \\- 287,500 USD for Level 4, and 224,000 USD \\- 356,500 USD for Level 5\\.
+You will also be eligible for equity and benefits.
+
+
+Applications for this job will be accepted at least until November 22, 2025\\.
+NVIDIA is committed to fostering a diverse work environment and proud to be an equal opportunity employer. As we highly value diversity in our current and future employees, we do not discriminate (including in our hiring and promotion practices) on the basis of race, religion, color, national origin, gender, gender expression, sexual orientation, age, marital status, veteran status, disability status or any other characteristic protected by law.","","https://www.indeed.com/cmp/Nvidia","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/9cda2ebf26905efa812e1a5315c7a53d","http://www.nvidia.com","Santa Clara, CA","10,000+","$5B to $10B (USD)","Bringing superhuman capabilities to some of the world's toughest problems.","","","","","",""
+"in-fee711b40f7e0862","indeed","https://www.indeed.com/viewjob?jk=fee711b40f7e0862","https://click.appcast.io/t/XPB2L_WJnKeGTlOWv16bMdpt2-H9jIYqZnu0fr8T-ko=","Senior Generative AI Software Engineer","NVIDIA","Santa Clara, CA, US","2025-11-17","fulltime","direct_data","yearly",224000.0,425500.0,"USD",False,"","","","","At NVIDIA, we're not just building the future, we're generating it! Our Cosmos generative AI engineering team is pushing the boundaries of what’s possible across multimodal learning, video generation, synthetic data, intelligent simulation, and agentic systems. We are looking for exceptionally driven engineers and applied scientists with deep experience in generative modeling to help define the next era of AI computing.
+
+ **What you'll be doing:**
+
+* You will own and evolve the Cosmos open\\-source and internal research codebases, crafting core infrastructure that supports our foundation model research and deployment.
+* Refactor and modularize large research\\-driven code into clean, testable, maintainable libraries for use across teams.
+* Integrate and adapt off\\-the\\-shelf models into our pipelines as preprocessors, postprocessors, or evaluation components.
+* Build model\\-serving endpoints (e.g., with Gradio or FastAPI) to enable researchers and internal users to experiment with models interactively.
+* Design, implement, and maintain evaluation pipelines, providing high\\-quality tooling to the broader team to measure model quality and track improvements.
+* Improve configuration hygiene and reproducibility using systems like Hydra, and ensure smooth overrides, templates, and environment switching.
+* Lead efforts in packaging and release of Python modules using modern tools (uv, just, pydantic) for both OSS and internal consumption.
+* Set the standard for code health, test coverage, and release readiness across the team. Write documentation and automation to scale good practices.
+
+ **What we need to see:**
+
+* Expert\\-level proficiency in Python, with a strong foundation in modular design, abstraction boundaries, and collaborative codebase evolution.
+* Fluency with PyTorch, including the ability to run, debug, and patch inference\\-time model behavior in research\\-level codebases. Comfort modifying pre/post\\-processors, model wrappers, and checkpoint logic.
+* Proven experience in refactoring large codebases—cleaning up legacy implementations, eliminating anti\\-patterns, and paying down tech debt to improve long\\-term maintainability.
+* Strong grasp of configuration systems, especially Hydra, with an emphasis on reproducibility, override logic, and environment scoping.
+* Familiarity with Python packaging tools like uv, just, and pydantic, including experience managing environment consistency and shipping libraries as artifacts.
+* Strong instincts around code health: API design, directory structure, writing unit and integration tests, exception hygiene, docstrings, and dependency isolation.
+* Comfortable deploying models internally via Gradio or similar frameworks to enable interactive evaluation and feedback from researchers or downstream users.
+* BS or MS (or equivalent experience) in Computer Science, Software Engineering, or a related technical field and 10\\+ years of industry experience.
+
+ **Ways to stand out from the crowd:**
+
+* Proficiency in model configs, especially Hydra! Comfortable crafting hierarchical config systems with reusable templates, environment scoping, and overrides for evaluation, inference, or release.
+* Prior work cleaning up sophisticated generative model codebases—adding tests, improving wrappers, and instrumenting code for observability and debugging.
+* Demonstrated success raising engineering quality in a research setting: taking exploratory code and evolving it into a robust, production\\-friendly module.
+* Track record of mentoring teammates on software engineering best practices and proactively identifying long\\-term structural risks in fast\\-moving teams.
+* Passion for building ML tooling that is not only functional, but also elegant, intuitive, and maintainable by others.
+
+
+Your base salary will be determined based on your location, experience, and the pay of employees in similar positions. The base salary range is 224,000 USD \\- 356,500 USD for Level 5, and 272,000 USD \\- 425,500 USD for Level 6\\.
+You will also be eligible for equity and benefits.
+
+
+Applications for this job will be accepted at least until November 22, 2025\\.
+NVIDIA is committed to fostering a diverse work environment and proud to be an equal opportunity employer. As we highly value diversity in our current and future employees, we do not discriminate (including in our hiring and promotion practices) on the basis of race, religion, color, national origin, gender, gender expression, sexual orientation, age, marital status, veteran status, disability status or any other characteristic protected by law.","","https://www.indeed.com/cmp/Nvidia","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/9cda2ebf26905efa812e1a5315c7a53d","http://www.nvidia.com","Santa Clara, CA","10,000+","$5B to $10B (USD)","Bringing superhuman capabilities to some of the world's toughest problems.","","","","","",""
+"in-23e41326506dae15","indeed","https://www.indeed.com/viewjob?jk=23e41326506dae15","https://careers.wipro.com/job/Salesforce-Senior-Developer-Onsite/105836-en_US","Salesforce Senior Developer-Onsite","Wipro","San Jose, CA, US","2025-11-17","","direct_data","yearly",60000.0,135000.0,"USD",False,"","","","","Job Description* 
+Job Title: Salesforce Senior Developer\\-Onsite
+Req Id: 105836
+City: San Jose
+State/Province: California
+Posting Start Date: 11/18/25
+Wipro Limited (NYSE: WIT, BSE: 507685, NSE: WIPRO) is a leading technology services and consulting company focused on building innovative solutions that address clients’ most complex digital transformation needs. Leveraging our holistic portfolio of capabilities in consulting, design, engineering, and operations, we help clients realize their boldest ambitions and build future\\-ready, sustainable businesses. With over 230,000 employees and business partners across 65 countries, we deliver on the promise of helping our customers, colleagues, and communities thrive in an ever\\-changing world. For additional information, visit us at www.wipro.com.
+Job Description:
+**Job Description**
+-------------------
+
+**Responsibilities** :
+
+
+* Design and develop technical solutions in Salesforce, extensive experience with customization on the Salesforce Lightning platform using declarative platform tools
+* Extensive experience in Salesforce development using Apex, SOQL, VisualForce, Aura components, and Lightning Web Components
+Ability to understand an existing architecture and deliver technical specifications on what the clients need while adhering to overall product architecture \\& organization standards  
+* 
+
+**Education and Required Experience:**
+
+* 5\\-8 years’ professional experience with supporting or developing applications with an object\\-oriented architecture; SaaS product or service preferred
+* Experience in SFDC configuration and mapping features to the business requirements, played an active role in functional and technical grooming
+* Play a hands\\-on role during all phases of the lifecycle including plan, coding, code reviews, testing and support
+* Experience developing within a declarative application platform preferred
+* Sales Coud, and CPQ Experience is required
+* Experience in working with CD/CI DevOps various tools GitHub, BitBuket, Jenkins, RLM, SonarCube, Artifactory etc
+* Good understanding of Salesforce technology, best practices of coding standards.
+* Apex, Visualforce, Java, HTML, JavaScript, REST, SOAP experience preferred
+* Working knowledge in SDLC process, Agile Scrum Methodology experience (Preferred)
+* Experience in ALM Quality Center and JIRA tools
+* Ability to collaborate with the partner teams, user community, business analysts and Tech management to contribute to innovative \\& best\\-in\\-class solutions for our business
+* Ability to work in team in diverse/ multiple stakeholder environment and has client interfacing skills
+* Strong oral and written communication skills
+* Preferred certifications: Salesforce Platform App Builder and Salesforce Platform Developer I/II
+Mandatory Skills: Salesforce Data Migration .  
+
+Experience: 5\\-8 Years .  
+
+The expected compensation for this role ranges from $60,000 to $135,000 .  
+
+Final compensation will depend on various factors, including your geographical location, minimum wage obligations, skills, and relevant experience. Based on the position, the role is also eligible for Wipro's standard benefits including a full range of medical and dental benefits options, disability insurance, paid time off (inclusive of sick leave), other paid and unpaid leave options.  
+
+Applicants are advised that employment in some roles may be conditioned on successful completion of a post\\-offer drug screening, subject to applicable state law.  
+
+Wipro provides equal employment opportunities to all employees and applicants for employment and prohibits discrimination and harassment of any type without regard to race, color, religion, age, sex, national origin, disability status, genetics, protected veteran status, sexual orientation, gender identity or expression, or any other characteristic protected by federal, state, or local laws. Applications from veterans and people with disabilities are explicitly welcome.  
+
+Reinvent your world. We are building a modern Wipro. We are an end\\-to\\-end digital transformation partner with the boldest ambitions. To realize them, we need people inspired by reinvention. Of yourself, your career, and your skills. We want to see the constant evolution of our business and our industry. It has always been in our DNA \\- as the world around us changes, so do we. Join a business powered by purpose and a place that empowers you to design your own reinvention.","","https://www.indeed.com/cmp/Wipro","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/8b2cd63e1e41ba18596880aca0e609bc","http://www.wipro.com","Bengaluru","10,000+","$5B to $10B (USD)","","","","","","",""
+"in-7ea3477f8e23ca19","indeed","https://www.indeed.com/viewjob?jk=7ea3477f8e23ca19","https://careers.brillio.com/job-details?job-id=20652","React Native Developer – R01558161","Brillio LLC","San Francisco, CA, US","2025-11-17","","direct_data","hourly",70.0,75.0,"USD",False,"","","","","**React Native Developer \\- R01558161**
+=======================================
+
+
+**About Brillio:**  
+
+Brillio is one of the fastest growing digital technology service providers and a partner of choice for many Fortune 1000 companies seeking to turn disruption into a competitive advantage through innovative digital adoption. Brillio, renowned for its world\\-class professionals, referred to as ""Brillians"", distinguishes itself through their capacity to seamlessly integrate cutting\\-edge digital and design thinking skills with an unwavering dedication to client satisfaction.
+Brillio takes pride in its status as an employer of choice, consistently attracting the most exceptional and talented individuals due to its unwavering emphasis on contemporary, groundbreaking technologies, and exclusive digital projects. Brillio's relentless commitment to providing an exceptional experience to its Brillians and nurturing their full potential consistently garners them the Great Place to Work® certification year after year.  
+
+React Native
+###### **Primary Skills**
+
+* CI/CD and DevOps, NodeJS, Docker, Agile Transformation Planning \\& Execution, DevOps \\- Docker, React Native
+
+###### **Job requirements**
+
+**Roles and Responsibilities:*** Develop, test, and maintain robust React Native applications for iOS and Android platforms
+* Collaborate with cross\\-functional teams to define, design, and ship new features
+* Ensure the performance, quality, and responsiveness of applications
+* Identify and fix bugs and performance bottlenecks
+* Integrate third\\-party APIs and native modules when necessary
+* Participate in code reviews and contribute to continuous improvement of code quality
+* Stay up\\-to\\-date with the latest trends in mobile development and React Native ecosystem
+
+ **Requirements**:* 4\\+ years of experience developing mobile applications using React Native
+* Strong understanding of JavaScript/TypeScript and mobile app architecture
+* Proven experience deploying apps to both App Store (iOS) and Google Play (Android)
+* Familiarity with native build tools (Xcode, Android Studio, Gradle, etc.)
+* Experience with RESTful APIs, third\\-party libraries, and version control systems (Git)
+* Understanding of mobile UI/UX best practices
+* Ability to debug performance issues and memory leaks on mobile devices
+* Excellent communication and problem\\-solving skills
+
+ **Preferred Qualifications:*** Experience with native development (Swift, Objective\\-C, Kotlin, or Java)
+* Familiarity with tools like Fastlane, Firebase, CodePush, etc.
+* Experience with app analytics, crash reporting, and monitoring tools
+* Previous work on apps with a large user base or complex architecture
+
+  
+
+Know more about Brillio : https://www.brillio.com/join\\-us/  
+
+PPE: https://www.brillio.com/platform\\-and\\-product\\-engineering/  
+
+Equal Employment Opportunity Declaration
+Brillio is an equal opportunity employer to all, regardless of age, ancestry, colour, disability (mental and physical), exercising the right to family care and medical leave, gender, gender expression, gender identity, genetic information, marital status, medical condition, military or veteran status, national origin, political affiliation, race, religious creed, sex (includes pregnancy, childbirth, breastfeeding, and related medical conditions), and sexual orientation.  
+
+\\#LI\\-PS1  
+
+
+Know what it’s like to work and grow at Brillio: Click here  
+
+**Salary: 70\\-75 USD per\\-hour\\-wage**","Consulting And Business Services","https://www.indeed.com/cmp/Brillio-LLC","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/3cc68cea876232ac8a6829881ecafa81","https://www.brillio.com/","5201 Great America Parkway Suite 100 Santa Clara, CA 95054","1,001 to 5,000","$100M to $500M (USD)","A global technology company developing disruptive solutions to drive digital transformation for our customers.","","","","","",""
+"in-52f4110b84134897","indeed","https://www.indeed.com/viewjob?jk=52f4110b84134897","https://apply.workable.com/j/5716BA7778","IOS Developer","TWO95 International, Inc","Sunnyvale, CA, US","2025-09-29","contract","","","","","",False,"","","","naveen.ramalingam@two95intl.com","**Title:** IOS Developer
+  
+**Location:** Sunnyvale, CA
+  
+**Job Type:** 12\\+ Months contract
+  
+Rate ($Open)
+  
+  
+
+**Requirements:**  
+
+**Responsibilities:**  
+
+Design and implement sophisticated features in iOS applications
+  
+  
+
+Work closely with product and design teams to optimize the experience for the iOS platform
+  
+  
+
+Analyze and optimize iOS applications
+  
+  
+
+Experiment with new technologies and features and build quick prototypes
+  
+  
+
+**Benefits:**  
+
+**Note:** If interested please send your updated resume to naveen.ramalingam@two95intl.com and include your rate requirement along with your contact details with a suitable time when we can reach you. If you know of anyone in your sphere of contacts, who would be a perfect match for this job then, we would appreciate if you can forward this posting to them with a copy to us.
+  
+We look forward to hearing from you at the earliest!","","https://www.indeed.com/cmp/Two95-International,-Inc","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/781c458c91908f607b878d4b0596721d","https://www.two95intl.com","Cherry Hill","11 to 50","$1M to $5M (USD)","","","","","","",""
+"in-f21186c974a406c6","indeed","https://www.indeed.com/viewjob?jk=f21186c974a406c6","https://apply.workable.com/j/15CAB504E2","UI Developer","TWO95 International, Inc","San Francisco, CA, US","2025-09-29","contract","","","","","",False,"","","","joseph.prabakar@two95intl.com","**Title:** UI Developer
+  
+**Location:** San Francisco, CA
+  
+**Job Type:** Long Term Contract
+  
+**Pay Rate:** $Open/hr.
+  
+  
+
+**Requirements:**  
+
+Key Qualifications
+  
+* Strong Experience on react.js, FTL and Advance JS.
+* You have at least 8\\+ years of professional software development experience with front\\-end web development (JavaScript, HTML5, CSS3, and AJAX and Node.js).
+* You understand source version control software and package managers (SVN, Git, and NPM).
+* You are well versed in fundamental visual and interactive design discipline.
+* You strive to use web standards to build solutions using semantic markup, templates (Handlebars), and Sass.
+* You understand all major browsers and the special considerations required.
+* You are a competent JavaScript programmer who doesn't need to rely on libraries to accomplish innovative interactions.
+* You understand the interplay between JavaScript, HTML, and CSS, and you can dynamically build, modify, and style elements on a page with ease.
+* You are knowledgeable about front\\-end build tools such as gulp, webpack, and Sass. Experience with WebGL is a plus.
+* You are comfortable working within tight deadlines to solve critical issues.
+* You are a strong oral and written communicator with good interpersonal skills who can use varying levels of technical knowledge to forge trusting relationships in a diverse team and across organizations.
+* You are willing to take the initiative to solve problems.
+* You have shown experience building responsive or mobile\\-first sites.
+* You have experience with localization.
+* Contribute to existing JavaScript libraries used on a wide scale.
+
+
+**Benefits:**  
+
+**Note:** If interested please send your updated resume to joseph.prabakar@two95intl.com and include your salary requirement along with your contact details with a suitable time when we can reach you. If you know of anyone in your sphere of contacts, who would be a perfect match for this job then, we would appreciate if you can forward this posting to them with a copy to us.
+  
+We look forward to hearing from you at the earliest!","","https://www.indeed.com/cmp/Two95-International,-Inc","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/781c458c91908f607b878d4b0596721d","https://www.two95intl.com","Cherry Hill","11 to 50","$1M to $5M (USD)","","","","","","",""
+"in-adfde7d47d9df5f3","indeed","https://www.indeed.com/viewjob?jk=adfde7d47d9df5f3","https://apply.workable.com/j/AFC5DC3DFA","java, atg","TWO95 International, Inc","Sunnyvale, CA, US","2025-09-29","fulltime","","","","","",False,"","","","","**Title:** Java, ATG
+  
+**Location:** Sunnyvale (CA)
+  
+**Duration:** Full Time
+  
+**Salary:** $OPEN (MARKET)
+  
+  
+
+**Requirements:**  
+
+**Requirements:**  
+
+ATG developer will leverage latest ATG ecommerce technologies to lead enterprise level ecommerce initiatives by designing and developing a ATG commerce platform through database design, application development, and J2EE apps.
+  
+  
+
+**Preferred Qualifications:**  
+
+Bachelor’s degree or equivalent in Computer Science, Engineering (Any) or related field.
+  
+5 years of experience building scalable ecommerce applications.
+  
+  
+
+**Skills required:**  
+
+Experience programming in Java / JEE.
+  
+Experience with ATG web commerce, Spring framework, Hibernate or any ORM framework.
+  
+Experience with Design patterns.
+  
+**Experience with the following:** Servlets, JSP, JDBC, Web Services (REST), JPA, JMS.
+  
+Experience with Kafka and NoSQL databases.
+  
+Experience in design \\& development of multi\\-tier system.
+  
+Knowledge of cloud technologies like Docker, Kubernetes, GCP and Azure is a plus.
+  
+  
+
+**Benefits:**  
+
+**Note:** If interested please send your updated resume and include your Salary requirement along with your contact details with a suitable time when we can reach you. If you know of anyone in your sphere of contacts, who would be a perfect match for this job then, we would appreciate if you can forward this posting to them with a copy to us.
+  
+  
+
+We look forward to hearing from you at the earliest!","","https://www.indeed.com/cmp/Two95-International,-Inc","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/781c458c91908f607b878d4b0596721d","https://www.two95intl.com","Cherry Hill","11 to 50","$1M to $5M (USD)","","","","","","",""
+"in-8194184887bb0af9","indeed","https://www.indeed.com/viewjob?jk=8194184887bb0af9","https://apply.workable.com/j/F40114AB19","Sr. Web Developer","TWO95 International, Inc","Sunnyvale, CA, US","2025-09-29","contract","","","","","",False,"","","","","**Title:** Sr. Web Developer
+  
+**Location:** Sunnyvale, CA
+  
+**Duration:** 6\\+ months
+  
+  
+
+**Must haves:**  
+
+* 5\\+ years of professional or open\\-source experience developing responsive, mobile\\-first web applications in object\\-oriented JavaScript, HTML, and CSS
+* Strong front\\-end development skill and hands\\-on experience in the development of a web application.
+* Well\\-architected, performant, and responsive sites using HTML, CSS, Javascript, Angular, or other related languages
+* Strong expertise and experience in developing complex web applications with mobile\\-first and responsive design techniques
+* Hands on experience developing Java web applications.
+* Ability to look into website usage data and make data\\-driven decision
+* BS/MS in computer science, or equivalent work experience
+* Experience with integrating with RESTful or GraphQL\\-based APIs","","https://www.indeed.com/cmp/Two95-International,-Inc","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/781c458c91908f607b878d4b0596721d","https://www.two95intl.com","Cherry Hill","11 to 50","$1M to $5M (USD)","","","","","","",""
+"in-4467b51d268d0de0","indeed","https://www.indeed.com/viewjob?jk=4467b51d268d0de0","https://apply.workable.com/j/B12245E82D","Web developer (Senior) - SFO, CA","TWO95 International, Inc","San Francisco, CA, US","2025-09-29","contract","","","","","",False,"","","","","Roles \\& Responsibilities
+  
+  
+
+Provide the core job responsibilities involved in the position and context for the role. •Learn and become deeply familiar with StubHub’s customer service and business operations. •Collaborate with business stakeholders, PMO, product management, UX designers QA, and release management to enhance and implement new Customer Service applications. •Design and develop web front\\-ends which are intuitive and responsive for global users. •Test your code using Test Driven Development, writing both unit and functional tests •Participate in the full Software Development Life Cycle (Agile/Scrum), iterative development, estimations and design sessions •Rapidly deploy, learn and iterate on new features •Recommend and implement modifications to increase application performance, availability and scalability.
+  
+  
+
+**Requirements:**  
+
+What skills and experience are required for this position – (Functional, Technical \\& Behavioral) please refer to Success Factors if required •Expert knowledge of Java, spring boot, spring, hibernate, sql •Experience with current JavaScript libraries, such as Backbone, NodeJS, AngularJS, etc a plus •Experience in responsive design •Disciplined approach to testing and quality assurance, YAML a plus •Experience with REST and service\\-based architectures. •Strong foundation of object\\-oriented programming. •Strong communication skills; attention to detail and discipline •Effectively work in an agile methodology within a scrum team •Ability to effectively communicate with business partners, team members and all levels of management.
+  
+  
+
+Job qualifications, skills \\& experience and language requirements;
+  
+Detail the minimum qualifications, skills \\& experience and languages required for this position. •7 years related experience. •5\\+ years of experience building web applications •Successful software development using Scrum or other Agile methodology. •Bachelor’s degree, preferably in Computer Science or a related field.","","https://www.indeed.com/cmp/Two95-International,-Inc","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/781c458c91908f607b878d4b0596721d","https://www.two95intl.com","Cherry Hill","11 to 50","$1M to $5M (USD)","","","","","","",""
+"in-5739855b60e97122","indeed","https://www.indeed.com/viewjob?jk=5739855b60e97122","https://apply.workable.com/j/E29B1035EC","Java Developer - Walnut Creek, CA - Rate Open","TWO95 International, Inc","Alamo, CA, US","2025-09-29","contract","","","","","",False,"","","","","**Job Title :** Java Developer
+  
+**Location :** Walnut Creek, CA
+  
+**Type :** 6 \\+ Months
+  
+**Rate :** $Open (Best Possible)
+  
+  
+
+**Job Responsibilities :** –
+  
+  
+
+* Drive the design, development and implementation of the core of our Java / J2EE technology platform and web services.
+* Debug issues across multiple layers of the application stack.
+* Drive code quality through unit testing and advocate test\\-driven development methodologies.
+* Refactor and improve code quality, maintainability and scalability.
+* Evaluate the adoption of new tools and technology.
+* Interface with clients to discover, troubleshoot and resolve integration issues.
+* Lead projects and exert technical influence with team members, increase productivity and effectiveness by sharing domain knowledge and experience.
+* Take ownership of all tasks assigned to you and tasks assigned to engineers working on your projects.
+
+
+**REQUIREMENTS :** \\-
+  
+  
+
+* 6\\+ years of software development experience in Java/Java EE
+* Extensive engineering experience and a proven track record in e\\-commerce, enterprise, high performance, large scale web technologies including cloud based APIs and protocols (REST, JSON).
+* Thought leader, hands\\-on contributor, and decision maker known for solving difficult software engineering problems.
+* Proficient in data structures, algorithms, design patterns and Object Oriented Programming.
+* Experience with one of the major relational databases (MSSQL, Oracle, Postgres)
+* Excellent Java and J2EE coding skills.
+* Experience in payments or high transactional systems.
+* Experience with Linux and other Unix\\-like operating systems.
+* Excellent team player with good analytical, strategic planning and interpersonal and communication skills. Highly motivated, enthusiastic and self\\-starter
+* Experience with Kafka, NoSQL database is a plus.
+* Exposure to JBoss Fuse, Apache Camel or MuleSoft highly desired.
+* Experience working with Amazon Web Services (AWS) tools Docker, ECS, S3 etc.
+* Experience building CI/CD pipeline with maven/jenkins/code pipeline.
+* Proficient with API design, Strong in Spring framework and understanding of Microservices.
+* Exposure to API Gateway (Apigee) is a huge plus.
+* BSCS or equivalent, MS preferred
+
+
+**Note:** If interested please send your updated resume and include your rate/salary requirement along with your contact details with a suitable time when we can reach you. If you know of anyone in your sphere of contacts, who would be a perfect match for this job then, we would appreciate if you can forward this posting to them with a copy to us.
+  
+  
+
+We look forward to hearing from you at the earliest!","","https://www.indeed.com/cmp/Two95-International,-Inc","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/781c458c91908f607b878d4b0596721d","https://www.two95intl.com","Cherry Hill","11 to 50","$1M to $5M (USD)","","","","","","",""
+"in-74c568f06aa6edd8","indeed","https://www.indeed.com/viewjob?jk=74c568f06aa6edd8","https://apply.workable.com/j/6436A94C1D","Embedded (Python/Connectivity)","TWO95 International, Inc","Mountain View, CA, US","2025-09-29","contract","","","","","",False,"","","","mukesh.kumar@two95intl.com","**Position:** Embedded (Python/Connectivity)
+  
+**Location :** Mountain view, CA
+  
+**Duration:** 6\\+ Months Contract
+  
+  
+
+**Required Skills:**  
+
+* BA/BS in Computer Science or engineering, or equivalent practical experience
+* Test automation skills and experience writing code in Python.
+* Experience with device automation
+* Good understanding of software development and testing processes
+* Familiarity with WiFi 802\\.11 a/b/g/n/ac protocols
+* Familiarity with BLE
+
+
+**Key skill to focus is:**  
+
+* WiFi / BLE
+* Python
+
+
+**Note:** If interested please send your updated resume to mukesh.kumar@two95intl.com and include your rate requirement along with your contact details with a suitable time when we can reach you. If you know of anyone in your sphere of contacts, who would be a perfect match for this job then, we would appreciate if you can forward this posting to them with a copy to us.
+  
+  
+
+We look forward to hearing from you at the earliest!","","https://www.indeed.com/cmp/Two95-International,-Inc","https://d2q79iu7y748jz.cloudfront.net/s/_squarelogo/256x256/781c458c91908f607b878d4b0596721d","https://www.two95intl.com","Cherry Hill","11 to 50","$1M to $5M (USD)","","","","","","",""
+"li-4336404153","linkedin","https://www.linkedin.com/jobs/view/4336404153","","Software Engineer II","The Walt Disney Company","San Francisco, CA","2025-11-17","","","","","","",False,"","","","","","","https://www.linkedin.com/company/the-walt-disney-company","","","","","","","","","","","",""
+"li-4336732744","linkedin","https://www.linkedin.com/jobs/view/4336732744","","Full Stack Software Engineer","Alex AI","San Francisco, CA","2025-11-17","","","","","","",False,"","","","","","","https://www.linkedin.com/company/hire-alex","","","","","","","","","","","",""
+"li-4336603079","linkedin","https://www.linkedin.com/jobs/view/4336603079","","Software Engineer (Frontend), AI Platform","Collective","San Francisco, CA","2025-11-17","","","","","","",False,"","","","","","","https://www.linkedin.com/company/collective","","","","","","","","","","","",""
+"li-4098166100","linkedin","https://www.linkedin.com/jobs/view/4098166100","","Software Engineer, Frontend (All Levels)","Zip","San Francisco, CA","2025-11-16","","","","","","",False,"","","","","","","https://www.linkedin.com/company/theziphq","","","","","","","","","","","",""
+"li-4223669951","linkedin","https://www.linkedin.com/jobs/view/4223669951","","Software Engineer I- Ad Demand","Twitch","San Francisco, CA","2025-11-16","","","","","","",False,"","","","","","","https://www.linkedin.com/company/twitch-tv","","","","","","","","","","","",""
+"li-4276814807","linkedin","https://www.linkedin.com/jobs/view/4276814807","","Software Engineer, Frontend, All Levels","Ramp","San Francisco, CA","2025-11-16","","","","","","",False,"","","","","","","https://www.linkedin.com/company/ramp","","","","","","","","","","","",""
+"li-4102824034","linkedin","https://www.linkedin.com/jobs/view/4102824034","","Software Engineer, Map ML Platform","Nuro","Mountain View, CA","2025-11-16","","","","","","",False,"","","","","","","https://www.linkedin.com/company/nuro-inc.","","","","","","","","","","","",""
+"li-4323111383","linkedin","https://www.linkedin.com/jobs/view/4323111383","","Software Engineer I","Twitch","San Francisco, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/twitch-tv","","","","","","","","","","","",""
+"li-4336831560","linkedin","https://www.linkedin.com/jobs/view/4336831560","","Software Engineering, Frontend (Slack - Multiple levels)","Slack","San Francisco, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/tiny-spec-inc","","","","","","","","","","","",""
+"li-4336626809","linkedin","https://www.linkedin.com/jobs/view/4336626809","","Software Engineer - Intern","Maxima","San Mateo, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/maximaai","","","","","","","","","","","",""
+"li-4336961917","linkedin","https://www.linkedin.com/jobs/view/4336961917","","Software Engineer I, Frontend","Lensa","San Francisco, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/lensa","","","","","","","","","","","",""
+"li-4341124829","linkedin","https://www.linkedin.com/jobs/view/4341124829","","Associate Software Engineer","Cabana","San Francisco, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/cabanarecruits","","","","","","","","","","","",""
+"li-4336706104","linkedin","https://www.linkedin.com/jobs/view/4336706104","","Full-Stack Engineer","FORE Enterprise","San Francisco, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/fore-enterprise","","","","","","","","","","","",""
+"li-4341165239","linkedin","https://www.linkedin.com/jobs/view/4341165239","","Software Engineer I (entry)","Jerry","Palo Alto, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/jerryinc","","","","","","","","","","","",""
+"li-4336842249","linkedin","https://www.linkedin.com/jobs/view/4336842249","","Software Engineer I - Frontend","Lensa","San Francisco, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/lensa","","","","","","","","","","","",""
+"li-4336792410","linkedin","https://www.linkedin.com/jobs/view/4336792410","","Software Engineer - Early Career","Lensa","Mountain View, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/lensa","","","","","","","","","","","",""
+"li-4336830869","linkedin","https://www.linkedin.com/jobs/view/4336830869","","Senior Software Engineer","Uber","San Francisco, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/uber-com","","","","","","","","","","","",""
+"li-4184536076","linkedin","https://www.linkedin.com/jobs/view/4184536076","","Software Engineer, Full-Stack","Grammarly","","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/grammarly","","","","","","","","","","","",""
+"li-4322881736","linkedin","https://www.linkedin.com/jobs/view/4322881736","","Software Engineer","Tresle AI","Redwood City, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/tresle-ai","","","","","","","","","","","",""
+"li-4341139193","linkedin","https://www.linkedin.com/jobs/view/4341139193","","Entry Level Web Developer","IBM","San Jose, CA","","","","","","","",False,"","","","","","","https://www.linkedin.com/company/ibm","","","","","","","","","","","",""

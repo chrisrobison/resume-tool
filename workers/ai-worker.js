@@ -1494,39 +1494,72 @@ Provide honest, constructive analysis that will help the candidate understand th
     async callServerAPI(apiType, apiKey, prompt, requestId, metadata = {}, model) {
         const startTime = Date.now();
         this.postProgress(`Connecting to ${apiType} via server...`, requestId);
-        
+
         try {
-            // Try different server endpoints
+            // Determine the API action based on operation
+            let apiAction = 'tailor'; // default
+            if (metadata.operation === 'generate_cover_letter') {
+                apiAction = 'letter';
+            } else if (metadata.operation === 'tailor_resume') {
+                apiAction = 'tailor';
+            } else if (metadata.operation === 'analyze_match') {
+                apiAction = 'tailor'; // Use tailor endpoint for analysis
+            }
+
+            // Try different server endpoints - prioritize api.php
             const endpoints = [
-                '/job-tool/ai-proxy.php',
-                '/api/tailor-resume',  // Direct proxy (if configured)
-                'http://localhost:3000/api/tailor-resume',  // Local server
-                'https://cdr2.com:3000/api/tailor-resume'   // Remote server
+                `/job-tool/api.php?x=${apiAction}`,        // NEW: Central PHP API (PRIMARY)
+                '/job-tool/ai-proxy.php',                  // Legacy PHP proxy
+                '/api/tailor-resume',                      // Direct proxy (if configured)
+                'http://localhost:3000/api/tailor-resume', // Local Node server
+                'https://cdr2.com:3000/api/tailor-resume'  // Remote Node server
             ];
-            
+
             let response;
             let lastError;
-            
+
             for (const endpoint of endpoints) {
                 try {
+                    // Prepare request body based on endpoint type
+                    let requestBody;
+
+                    if (endpoint.includes('api.php')) {
+                        // New central API format
+                        requestBody = {
+                            provider: apiType,
+                            apiKey,
+                            model,
+                            resume: metadata.resume,
+                            jobDescription: metadata.jobDescription || prompt,
+                            includeAnalysis: metadata.includeAnalysis || false
+                        };
+
+                        // Add job info for cover letters
+                        if (apiAction === 'letter') {
+                            requestBody.jobInfo = metadata.jobInfo || {};
+                        }
+                    } else {
+                        // Legacy format for other endpoints
+                        requestBody = {
+                            prompt,
+                            apiType,
+                            apiKey,
+                            model,
+                            resume: metadata.resume,
+                            operation: metadata.operation,
+                            targetUrl: metadata.targetUrl || null,
+                            instructions: metadata.instructions || null,
+                            jobFilters: metadata.jobFilters || null
+                        };
+                    }
+
                     response = await fetch(endpoint, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                // Include optional metadata such as resume, operation and targetUrl
-                body: JSON.stringify({
-                    prompt,
-                    apiType,
-                    apiKey,
-                    model,
-                    resume: metadata.resume,
-                    operation: metadata.operation,
-                    targetUrl: metadata.targetUrl || null,
-                    instructions: metadata.instructions || null,
-                    jobFilters: metadata.jobFilters || null
-                })
-            });
+                        body: JSON.stringify(requestBody)
+                    });
                     
                     // If we get here without error, break out of the loop
                     break;
@@ -1559,6 +1592,15 @@ Provide honest, constructive analysis that will help the candidate understand th
             console.log('Worker callServerAPI - Raw response from server:', data);
 
             // Handle different response formats from server
+
+            // NEW: api.php format - returns structured response with tailoredResume, coverLetter, or analysis
+            if (data.tailoredResume || data.coverLetter) {
+                console.log('Worker callServerAPI - api.php structured response detected');
+                // Convert to the format expected by parseAIResponse
+                return JSON.stringify(data);
+            }
+
+            // Legacy formats
             if (typeof data === 'string') {
                 return data;
             } else if (data.result) {
