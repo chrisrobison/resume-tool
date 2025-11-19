@@ -226,7 +226,7 @@ class SettingsManager extends ComponentBase {
             apiProviders: {
                 claude: {
                     apiKey: '',
-                    model: 'claude-3-5-sonnet-20241022',
+                    model: 'claude-3-7-sonnet-20250219',
                     route: 'auto',
                     enabled: false
                 },
@@ -364,7 +364,7 @@ class SettingsManager extends ComponentBase {
                     <p>Configure your AI service providers for resume tailoring, cover letter generation, and match analysis.</p>
 
                     ${this.renderApiProvider('claude', 'Claude (Anthropic)', providers.claude)}
-                    ${this.renderApiProvider('openai', 'OpenAI (GPT-5)', providers.openai)}
+                    ${this.renderApiProvider('openai', 'OpenAI (GPT-4o/o1)', providers.openai)}
                     ${this.renderApiProvider('browser', 'Browser LLM (Local)', providers.browser)}
                 </div>
 
@@ -478,19 +478,18 @@ class SettingsManager extends ComponentBase {
     renderModelOptions(provider, selectedModel) {
         const models = {
             claude: [
-                { value: 'claude-opus-4-20250514', label: 'Claude 4 Opus (Preview)' },
-                { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (Latest)' },
-                { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku (Latest)' },
-                { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
-                { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet' },
-                { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' }
+                { value: 'claude-3-7-sonnet-20250219', label: 'Claude 3.7 Sonnet (Latest - Feb 2025)' },
+                { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (Oct 2024)' },
+                { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku (Oct 2024)' },
+                { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus (Feb 2024)' },
+                { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet (Feb 2024)' },
+                { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Mar 2024)' }
             ],
             openai: [
-                { value: 'gpt-5', label: 'GPT-5 (Latest)' },
-                { value: 'gpt-4o', label: 'GPT-4o' },
-                { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-                { value: 'o1-preview', label: 'o1 Preview' },
-                { value: 'o1-mini', label: 'o1 Mini' },
+                { value: 'o1', label: 'o1 (Latest Reasoning Model)' },
+                { value: 'o1-mini', label: 'o1 Mini (Fast Reasoning)' },
+                { value: 'gpt-4o', label: 'GPT-4o (Most Capable)' },
+                { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Fast & Efficient)' },
                 { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
                 { value: 'gpt-4', label: 'GPT-4' },
                 { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }

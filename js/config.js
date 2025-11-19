@@ -48,7 +48,7 @@ export const config = {
         services: {
             claude: {
                 name: "Claude",
-                model: "claude-opus-4-20250514",
+                model: "claude-3-7-sonnet-20250219",
                 maxTokens: 4000
             },
             chatgpt: {
