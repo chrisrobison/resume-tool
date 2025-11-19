@@ -314,7 +314,7 @@ Requirements:
  */
 function callClaudeAPI($apiKey, $prompt, $model = null) {
     $url = 'https://api.anthropic.com/v1/messages';
-    $model = $model ?: 'claude-3-7-sonnet-20250219';
+    $model = $model ?: 'claude-sonnet-4-5-20250929';
 
     $payload = [
         'model' => $model,

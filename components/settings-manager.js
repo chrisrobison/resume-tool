@@ -226,7 +226,7 @@ class SettingsManager extends ComponentBase {
             apiProviders: {
                 claude: {
                     apiKey: '',
-                    model: 'claude-3-7-sonnet-20250219',
+                    model: 'claude-sonnet-4-5-20250929',
                     route: 'auto',
                     enabled: false
                 },
@@ -478,7 +478,8 @@ class SettingsManager extends ComponentBase {
     renderModelOptions(provider, selectedModel) {
         const models = {
             claude: [
-                { value: 'claude-3-7-sonnet-20250219', label: 'Claude 3.7 Sonnet (Latest - Feb 2025)' },
+                { value: 'claude-sonnet-4-5-20250929', label: 'Claude Sonnet 4.5 (Latest)' },
+                { value: 'claude-3-7-sonnet-20250219', label: 'Claude 3.7 Sonnet (Feb 2025)' },
                 { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (Oct 2024)' },
                 { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku (Oct 2024)' },
                 { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus (Feb 2024)' },

@@ -153,7 +153,7 @@ function post_json($url, $headers, $body) {
 }
 
 if ($apiType === 'claude') {
-    $model = $requestedModel ?: ($_ENV['CLAUDE_MODEL'] ?? 'claude-3-7-sonnet-20250219');
+    $model = $requestedModel ?: ($_ENV['CLAUDE_MODEL'] ?? 'claude-sonnet-4-5-20250929');
     $url = 'https://api.anthropic.com/v1/messages';
     $headers = [
         'Content-Type: application/json',
