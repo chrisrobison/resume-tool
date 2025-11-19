@@ -486,7 +486,8 @@ class SettingsManager extends ComponentBase {
                 { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Mar 2024)' }
             ],
             openai: [
-                { value: 'gpt-5', label: 'GPT-5 (Latest & Most Capable)' },
+                { value: 'gpt-5.1', label: 'GPT-5.1 (Latest & Most Capable)' },
+                { value: 'gpt-5', label: 'GPT-5' },
                 { value: 'o1', label: 'o1 (Reasoning Model)' },
                 { value: 'o1-mini', label: 'o1 Mini (Fast Reasoning)' },
                 { value: 'gpt-4o', label: 'GPT-4o' },
