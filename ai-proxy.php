@@ -172,7 +172,7 @@ if ($apiType === 'claude') {
     if ($operation) $body['system'] = $operation;
 } elseif ($apiType === 'openai') {
     $model = $requestedModel ?: ($_ENV['OPENAI_MODEL'] ?? 'gpt-4o');
-    $useResponses = stripos($model, 'o1') === 0;
+    $useResponses = stripos($model, 'gpt-5') === 0 || stripos($model, 'o1') === 0;
     $url = $useResponses ? 'https://api.openai.com/v1/responses' : 'https://api.openai.com/v1/chat/completions';
     $headers = [
         'Content-Type: application/json',

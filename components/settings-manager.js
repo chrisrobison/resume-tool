@@ -364,7 +364,7 @@ class SettingsManager extends ComponentBase {
                     <p>Configure your AI service providers for resume tailoring, cover letter generation, and match analysis.</p>
 
                     ${this.renderApiProvider('claude', 'Claude (Anthropic)', providers.claude)}
-                    ${this.renderApiProvider('openai', 'OpenAI (GPT-4o/o1)', providers.openai)}
+                    ${this.renderApiProvider('openai', 'OpenAI (GPT-5/o1)', providers.openai)}
                     ${this.renderApiProvider('browser', 'Browser LLM (Local)', providers.browser)}
                 </div>
 
@@ -486,10 +486,11 @@ class SettingsManager extends ComponentBase {
                 { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Mar 2024)' }
             ],
             openai: [
-                { value: 'o1', label: 'o1 (Latest Reasoning Model)' },
+                { value: 'gpt-5', label: 'GPT-5 (Latest & Most Capable)' },
+                { value: 'o1', label: 'o1 (Reasoning Model)' },
                 { value: 'o1-mini', label: 'o1 Mini (Fast Reasoning)' },
-                { value: 'gpt-4o', label: 'GPT-4o (Most Capable)' },
-                { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Fast & Efficient)' },
+                { value: 'gpt-4o', label: 'GPT-4o' },
+                { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
                 { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
                 { value: 'gpt-4', label: 'GPT-4' },
                 { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
