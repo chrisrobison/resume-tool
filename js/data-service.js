@@ -539,5 +539,15 @@ class DataService {
 // Create singleton instance
 const dataService = new DataService();
 
+// Export getter function for consistency with other services
+export async function getDataService() {
+    // Wait for initialization if not ready
+    if (!dataService.isReady && dataService.worker) {
+        // Give it a moment to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return dataService;
+}
+
 // Export both the class and singleton instance
 export { DataService, dataService as default };
