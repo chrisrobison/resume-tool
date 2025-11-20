@@ -21,7 +21,7 @@ class DataService {
 
         try {
             const cacheBuster = `v=${Date.now()}`;
-            this.worker = new Worker(`./workers/data-worker.js?${cacheBuster}`);
+            this.worker = new Worker(`../workers/data-worker.js?${cacheBuster}`);
         } catch (e) {
             console.warn('DataService: Worker not available, skipping IndexedDB init.', e);
             return Promise.resolve(false);
