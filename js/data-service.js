@@ -14,9 +14,8 @@ class DataService {
 
     initWorker() {
         try {
-            // Cache-bust the worker to avoid stale code
-            const cacheBuster = `v=${Date.now()}`;
-            this.worker = new Worker(`../workers/db-worker.js?${cacheBuster}`);
+            // Use a simple version for cache control (change when updating worker)
+            this.worker = new Worker(`../workers/db-worker.js?v=1`);
 
             this.worker.onmessage = (event) => {
                 this.handleWorkerMessage(event.data);

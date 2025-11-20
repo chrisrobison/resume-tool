@@ -20,8 +20,8 @@ class DataService {
         this.dbVersion = options.dbVersion || DEFAULT_DB_VERSION;
 
         try {
-            const cacheBuster = `v=${Date.now()}`;
-            this.worker = new Worker(`../workers/data-worker.js?${cacheBuster}`);
+            // Use a simple version for cache control (change when updating worker)
+            this.worker = new Worker(`../workers/data-worker.js?v=1`);
         } catch (e) {
             console.warn('DataService: Worker not available, skipping IndexedDB init.', e);
             return Promise.resolve(false);
