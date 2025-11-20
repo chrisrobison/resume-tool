@@ -17,7 +17,7 @@ class AIService {
         try {
             // Cache-bust the worker to avoid stale code in browsers
             const cacheBuster = `v=${Date.now()}`;
-            this.worker = new Worker(`./workers/ai-worker.js?${cacheBuster}`);
+            this.worker = new Worker(`../workers/ai-worker.js?${cacheBuster}`);
             
             this.worker.onmessage = (event) => {
                 this.handleWorkerMessage(event.data);

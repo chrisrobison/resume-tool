@@ -16,7 +16,7 @@ class DataService {
         try {
             // Cache-bust the worker to avoid stale code
             const cacheBuster = `v=${Date.now()}`;
-            this.worker = new Worker(`./workers/db-worker.js?${cacheBuster}`);
+            this.worker = new Worker(`../workers/db-worker.js?${cacheBuster}`);
 
             this.worker.onmessage = (event) => {
                 this.handleWorkerMessage(event.data);
