@@ -36,6 +36,10 @@
                     <i class="fas fa-search"></i>
                     <span>Job Search</span>
                 </a>
+                <a href="#" class="nav-item" data-section="scraper">
+                    <i class="fas fa-download"></i>
+                    <span>Job Scraper</span>
+                </a>
                 <a href="#" class="nav-item" data-section="ai-assistant">
                     <i class="fas fa-magic"></i>
                     <span>AI Assistant</span>
@@ -119,6 +123,11 @@
                 <!-- AI Assistant Panel -->
                 <div id="ai-assistant-panel" class="ai-assistant-panel" style="display:none; width:100%;">
                     <ai-assistant-worker></ai-assistant-worker>
+                </div>
+
+                <!-- Job Scraper Panel -->
+                <div id="scraper-panel" class="scraper-panel" style="display:none; width:100%;">
+                    <job-scraper></job-scraper>
                 </div>
 
                 <!-- Resumes Panel (placeholder for legacy selector) -->
@@ -520,6 +529,7 @@
     <script type="module" src="./components/settings-manager.js"></script>
     <script type="module" src="./components/ai-assistant-worker.js"></script>
     <script type="module" src="./components/job-search.js"></script>
+    <script type="module" src="./components/job-scraper.js"></script>
     <script type="module" src="./js/ai-service.js"></script>
     <script type="module" src="./js/store.js"></script>
     <script type="module" src="./js/job-feeds.js"></script>

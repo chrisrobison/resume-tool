@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Scraper Demo - Job Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .demo-header {
+            max-width: 1200px;
+            margin: 0 auto 24px;
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .demo-header h1 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .demo-header p {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+
+        .demo-status {
+            max-width: 1200px;
+            margin: 0 auto 24px;
+            background: #e8f4fd;
+            border-left: 4px solid #3498db;
+            padding: 16px 24px;
+            border-radius: 4px;
+        }
+
+        .demo-status h3 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .demo-status ul {
+            margin-left: 20px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .demo-status code {
+            background: rgba(0,0,0,0.05);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 16px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <a href="app.html" class="back-link">← Back to App</a>
+        <h1>Job Board Scraper</h1>
+        <p>
+            Scrape job listings from supported job boards and import them directly into your job tracker.
+            Currently supports <strong>hiring.cafe</strong> with more sources coming soon.
+        </p>
+    </div>
+
+    <div class="demo-status">
+        <h3>📋 How to Use:</h3>
+        <ul>
+            <li>Go to <code>hiring.cafe</code> and perform your job search</li>
+            <li>Copy the full URL from your browser (includes search parameters)</li>
+            <li>Paste the URL below and configure scraping options</li>
+            <li>Click "Start Scraping" to fetch job listings</li>
+            <li>Review results and select jobs to import</li>
+            <li>Imported jobs will be saved locally and synced to the server</li>
+        </ul>
+    </div>
+
+    <!-- Job Scraper Component -->
+    <job-scraper></job-scraper>
+
+    <!-- Import component as module -->
+    <script type="module">
+        // Import the scraper component
+        import './components/job-scraper.js';
+
+        // Listen for import events
+        const scraper = document.querySelector('job-scraper');
+
+        scraper.addEventListener('jobs-imported', (event) => {
+            const { imported, skipped, errors } = event.detail;
+            console.log('Jobs imported:', { imported, skipped, errors });
+
+            // Show success message
+            alert(`Successfully imported ${imported.length} jobs!\n${
+                skipped.length > 0 ? `Skipped ${skipped.length} duplicates\n` : ''
+            }${
+                errors.length > 0 ? `Failed ${errors.length} jobs` : ''
+            }`);
+        });
+    </script>
+</body>
+</html>

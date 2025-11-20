@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraper Integration Test - Job Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .test-header {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .test-header h1 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .test-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .test-results {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .test-results h2 {
+            color: #2c3e50;
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+
+        .test-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .test-item.pending {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .test-item.running {
+            background: #e8f4fd;
+            color: #2c3e50;
+        }
+
+        .test-item.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .test-item.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .test-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .test-message {
+            flex: 1;
+        }
+
+        .test-details {
+            font-size: 12px;
+            color: #666;
+            margin-left: 32px;
+            padding: 8px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            margin-top: 4px;
+            white-space: pre-wrap;
+        }
+
+        .summary {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 4px;
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .component-demo {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .component-demo h2 {
+            color: #2c3e50;
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🧪 Scraper Integration Test Suite</h1>
+            <p>Comprehensive testing of the job scraper API and UI components</p>
+
+            <div class="test-controls">
+                <button class="btn btn-primary" id="runTestsBtn">▶ Run All Tests</button>
+                <button class="btn btn-success" id="runQuickTestBtn">⚡ Quick Test</button>
+                <button class="btn btn-danger" id="clearBtn">🗑️ Clear Results</button>
+            </div>
+        </div>
+
+        <div class="test-results" id="testResults">
+            <h2>Test Results</h2>
+            <div id="testList">
+                <p style="color: #999;">Click "Run All Tests" to begin testing</p>
+            </div>
+            <div class="summary" id="summary" style="display: none;">
+                <div class="summary-item">
+                    <div class="summary-value" id="totalTests">0</div>
+                    <div class="summary-label">Total</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" style="color: #27ae60;" id="passedTests">0</div>
+                    <div class="summary-label">Passed</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" style="color: #e74c3c;" id="failedTests">0</div>
+                    <div class="summary-label">Failed</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" style="color: #3498db;" id="duration">0s</div>
+                    <div class="summary-label">Duration</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="component-demo">
+            <h2>Component Demo</h2>
+            <job-scraper id="testScraper"></job-scraper>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getScraperService } from '../js/scraper-service.js';
+        import '../components/job-scraper.js';
+
+        class TestRunner {
+            constructor() {
+                this.tests = [];
+                this.results = [];
+                this.startTime = null;
+                this.scraperService = null;
+            }
+
+            async init() {
+                this.scraperService = await getScraperService();
+            }
+
+            addTest(name, fn) {
+                this.tests.push({ name, fn });
+            }
+
+            async runTests(quick = false) {
+                this.results = [];
+                this.startTime = Date.now();
+
+                const testList = document.getElementById('testList');
+                const summary = document.getElementById('summary');
+                testList.innerHTML = '';
+                summary.style.display = 'none';
+
+                const testsToRun = quick ? this.tests.slice(0, 3) : this.tests;
+
+                for (const test of testsToRun) {
+                    const testItem = this.createTestItem(test.name);
+                    testList.appendChild(testItem);
+
+                    try {
+                        this.updateTestItem(testItem, 'running', '⏳', test.name);
+                        const result = await test.fn();
+
+                        this.updateTestItem(testItem, 'success', '✓', test.name, result);
+                        this.results.push({ name: test.name, passed: true });
+                    } catch (error) {
+                        this.updateTestItem(testItem, 'error', '✗', test.name, error.message);
+                        this.results.push({ name: test.name, passed: false, error: error.message });
+                    }
+
+                    // Small delay between tests
+                    await this.sleep(500);
+                }
+
+                this.showSummary();
+            }
+
+            createTestItem(name) {
+                const item = document.createElement('div');
+                item.className = 'test-item pending';
+                item.innerHTML = `
+                    <span class="test-icon">⏸</span>
+                    <span class="test-message">${name}</span>
+                `;
+                return item;
+            }
+
+            updateTestItem(item, status, icon, message, details = null) {
+                item.className = `test-item ${status}`;
+                item.innerHTML = `
+                    <span class="test-icon">${icon}</span>
+                    <span class="test-message">${message}</span>
+                `;
+
+                if (details) {
+                    const detailsDiv = document.createElement('div');
+                    detailsDiv.className = 'test-details';
+                    detailsDiv.textContent = typeof details === 'object' ? JSON.stringify(details, null, 2) : details;
+                    item.appendChild(detailsDiv);
+                }
+            }
+
+            showSummary() {
+                const duration = ((Date.now() - this.startTime) / 1000).toFixed(1);
+                const passed = this.results.filter(r => r.passed).length;
+                const failed = this.results.filter(r => !r.passed).length;
+
+                document.getElementById('totalTests').textContent = this.results.length;
+                document.getElementById('passedTests').textContent = passed;
+                document.getElementById('failedTests').textContent = failed;
+                document.getElementById('duration').textContent = `${duration}s`;
+                document.getElementById('summary').style.display = 'flex';
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize test runner
+        const runner = new TestRunner();
+        await runner.init();
+
+        // Define tests
+        runner.addTest('1. ScraperService initializes correctly', async () => {
+            if (!runner.scraperService) {
+                throw new Error('ScraperService not initialized');
+            }
+            return 'ScraperService initialized';
+        });
+
+        runner.addTest('2. Get available sources', async () => {
+            const sources = await runner.scraperService.getSources();
+            if (!Array.isArray(sources) || sources.length === 0) {
+                throw new Error('No sources available');
+            }
+            return `Found ${sources.length} sources: ${sources.map(s => s.id).join(', ')}`;
+        });
+
+        runner.addTest('3. Start scraping job', async () => {
+            const testUrl = 'https://hiring.cafe/?searchState=%7B%22query%22%3A%22software%22%7D';
+            const result = await runner.scraperService.startScraping('hiring.cafe', testUrl, {
+                waitTime: 2000,
+                maxScrolls: 1
+            });
+
+            if (!result.jobId) {
+                throw new Error('No jobId returned');
+            }
+
+            return `Started job: ${result.jobId}`;
+        });
+
+        runner.addTest('4. Poll for scraping status', async () => {
+            // Get active jobs
+            const activeJobs = await runner.scraperService.getActiveJobs();
+
+            if (activeJobs.length === 0) {
+                throw new Error('No active jobs found');
+            }
+
+            const jobId = activeJobs[0].jobId;
+            let attempts = 0;
+            let status = 'queued';
+
+            while (attempts < 30 && status !== 'completed' && status !== 'failed') {
+                await runner.sleep(2000);
+                attempts++;
+
+                const statusResult = await runner.scraperService.getStatus(jobId);
+                status = statusResult.status;
+
+                if (statusResult.error) {
+                    throw new Error(`Scraping failed: ${statusResult.error}`);
+                }
+            }
+
+            if (status !== 'completed') {
+                throw new Error(`Scraping timeout (status: ${status})`);
+            }
+
+            return `Completed after ${attempts} checks`;
+        });
+
+        runner.addTest('5. Retrieve scraping results', async () => {
+            const activeJobs = await runner.scraperService.getActiveJobs();
+
+            if (activeJobs.length === 0) {
+                throw new Error('No completed jobs found');
+            }
+
+            const jobId = activeJobs[0].jobId;
+            const results = await runner.scraperService.getResults(jobId);
+
+            if (!results.jobs || !Array.isArray(results.jobs)) {
+                throw new Error('Invalid results format');
+            }
+
+            return `Retrieved ${results.jobs.length} jobs in ${results.stats?.duration}ms`;
+        });
+
+        runner.addTest('6. Test duplicate detection', async () => {
+            const activeJobs = await runner.scraperService.getActiveJobs();
+
+            if (activeJobs.length === 0) {
+                throw new Error('No jobs to test');
+            }
+
+            const jobId = activeJobs[0].jobId;
+            const results = await runner.scraperService.getResults(jobId);
+
+            if (results.jobs.length === 0) {
+                return 'No jobs to test duplicates';
+            }
+
+            // Import first 2 jobs
+            const jobsToImport = results.jobs.slice(0, 2);
+            const importResult = await runner.scraperService.importJobs(jobId, jobsToImport);
+
+            return `Imported: ${importResult.imported.length}, Skipped: ${importResult.skipped.length}`;
+        });
+
+        runner.addTest('7. Test job component events', async () => {
+            const scraper = document.getElementById('testScraper');
+
+            if (!scraper) {
+                throw new Error('Scraper component not found');
+            }
+
+            let eventFired = false;
+            scraper.addEventListener('jobs-imported', () => {
+                eventFired = true;
+            }, { once: true });
+
+            // Simulate import event
+            scraper.dispatchEvent(new CustomEvent('jobs-imported', {
+                detail: { imported: [], skipped: [], errors: [] }
+            }));
+
+            if (!eventFired) {
+                throw new Error('Event not fired');
+            }
+
+            return 'Event handling works correctly';
+        });
+
+        runner.addTest('8. Cleanup scraping jobs', async () => {
+            const activeJobs = await runner.scraperService.getActiveJobs();
+            let cleanedCount = 0;
+
+            for (const job of activeJobs) {
+                try {
+                    await runner.scraperService.cleanup(job.jobId);
+                    cleanedCount++;
+                } catch (error) {
+                    console.warn(`Failed to cleanup ${job.jobId}:`, error);
+                }
+            }
+
+            return `Cleaned up ${cleanedCount} jobs`;
+        });
+
+        // Event handlers
+        document.getElementById('runTestsBtn').addEventListener('click', () => {
+            runner.runTests(false);
+        });
+
+        document.getElementById('runQuickTestBtn').addEventListener('click', () => {
+            runner.runTests(true);
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('testList').innerHTML = '<p style="color: #999;">Click "Run All Tests" to begin testing</p>';
+            document.getElementById('summary').style.display = 'none';
+        });
+
+        console.log('✓ Test suite loaded and ready');
+        console.log('✓ ScraperService initialized');
+        console.log('ℹ Click "Run All Tests" to begin');
+    </script>
+</body>
+</html>

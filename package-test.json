@@ -4,8 +4,14 @@
   "description": "Tests for resume tool demo.html",
   "main": "test-demo.js",
   "scripts": {
-    "test": "node test-demo.js",
-    "test-verify": "echo 'Open verify-demo.html in browser to run tests'"
+    "test": "node tests/test-demo.js",
+    "test-verify": "echo 'Open verify-demo.html in browser to run tests'",
+    "test:scraper": "node scrapers/test-scraper.js",
+    "test:scraper-api": "node scrapers/test-scraper-api.js",
+    "test:integration": "echo 'Open tests/test-scraper-integration.html in browser'",
+    "scrape:hiring-cafe": "node scrapers/scrape-hiring-cafe.js",
+    "scrape:help": "node scrapers/scrape-hiring-cafe.js --help",
+    "import:jobs": "node scrapers/import-jobs.js"
   },
   "devDependencies": {
     "puppeteer": "^21.0.0"

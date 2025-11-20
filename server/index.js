@@ -10,9 +10,27 @@ const { tailorResumeWithClaude } = require('./claudeService');
 const { tailorResumeWithChatGPT } = require('./chatgptService');
 const jobFeedService = require('./job-feed-service');
 
+// Import new sync and auth routes
+const syncRoutes = require('./routes/sync');
+const authRoutes = require('./routes/auth');
+const scraperRoutes = require('./routes/scraper');
+const { getInstance: getDbInstance } = require('./services/db-service');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
+
+// Initialize database on startup
+(async () => {
+  try {
+    const db = getDbInstance();
+    await db.initialize();
+    console.log('✅ Database initialized successfully');
+  } catch (error) {
+    console.error('❌ Failed to initialize database:', error);
+    process.exit(1);
+  }
+})();
 
 // Rate limiter for catch-all route serving index.html
 const indexRateLimiter = rateLimit({
@@ -60,6 +78,11 @@ app.use((req, res, next) => {
   
   next();
 });
+
+// Mount sync and auth routes
+app.use('/api/sync', syncRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/scraper', scraperRoutes);
 
 // API endpoints
 app.post('/api/tailor-resume', async (req, res) => {
