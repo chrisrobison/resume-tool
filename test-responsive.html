@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Design Test - Job Hunt Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="jobs-responsive.css">
+    <style>
+        .test-container {
+            padding: var(--space-6);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: var(--white);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+        }
+        .test-section h2 {
+            margin-bottom: var(--space-4);
+            color: var(--primary-color);
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-4);
+        }
+        .viewport-indicator {
+            position: fixed;
+            bottom: var(--space-4);
+            right: var(--space-4);
+            background: var(--secondary-color);
+            color: var(--white);
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-full);
+            font-size: var(--text-sm);
+            font-weight: 600;
+            z-index: var(--z-toast);
+            box-shadow: var(--shadow-lg);
+        }
+        .color-swatch {
+            width: 100%;
+            height: 60px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+        }
+        .spacing-demo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-2);
+        }
+        .spacing-box {
+            background: var(--primary-color);
+            color: var(--white);
+            padding: var(--space-2);
+            border-radius: var(--radius);
+            font-size: var(--text-sm);
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <button class="hamburger-menu" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <h1>
+            Responsive Test
+        </h1>
+    </div>
+
+    <!-- Menu Backdrop -->
+    <div class="menu-backdrop"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Test Navigation</h1>
+            <div class="subtitle">Responsive Design Demo</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#colors" class="nav-item active">
+                <i class="fas fa-palette"></i>
+                <span>Colors</span>
+            </a>
+            <a href="#typography" class="nav-item">
+                <i class="fas fa-font"></i>
+                <span>Typography</span>
+            </a>
+            <a href="#buttons" class="nav-item">
+                <i class="fas fa-mouse-pointer"></i>
+                <span>Buttons</span>
+            </a>
+            <a href="#forms" class="nav-item">
+                <i class="fas fa-keyboard"></i>
+                <span>Forms</span>
+            </a>
+            <a href="#components" class="nav-item">
+                <i class="fas fa-puzzle-piece"></i>
+                <span>Components</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="test-container">
+        <h1 style="margin-bottom: var(--space-6);">📱 Responsive Design Test Suite</h1>
+
+        <!-- Color Palette -->
+        <div class="test-section" id="colors">
+            <h2><i class="fas fa-palette"></i> Color Palette</h2>
+            <div class="test-grid">
+                <div>
+                    <div class="color-swatch" style="background: var(--primary-color);">Primary</div>
+                    <code>--primary-color</code>
+                </div>
+                <div>
+                    <div class="color-swatch" style="background: var(--success-color);">Success</div>
+                    <code>--success-color</code>
+                </div>
+                <div>
+                    <div class="color-swatch" style="background: var(--danger-color);">Danger</div>
+                    <code>--danger-color</code>
+                </div>
+                <div>
+                    <div class="color-swatch" style="background: var(--warning-color);">Warning</div>
+                    <code>--warning-color</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typography -->
+        <div class="test-section" id="typography">
+            <h2><i class="fas fa-font"></i> Typography Scale</h2>
+            <div style="font-size: var(--text-4xl); margin-bottom: var(--space-2);">Heading 1 (2.25rem)</div>
+            <div style="font-size: var(--text-3xl); margin-bottom: var(--space-2);">Heading 2 (1.875rem)</div>
+            <div style="font-size: var(--text-2xl); margin-bottom: var(--space-2);">Heading 3 (1.5rem)</div>
+            <div style="font-size: var(--text-xl); margin-bottom: var(--space-2);">Heading 4 (1.25rem)</div>
+            <div style="font-size: var(--text-lg); margin-bottom: var(--space-2);">Large Text (1.125rem)</div>
+            <div style="font-size: var(--text-base); margin-bottom: var(--space-2);">Base Text (1rem)</div>
+            <div style="font-size: var(--text-sm); margin-bottom: var(--space-2);">Small Text (0.875rem)</div>
+            <div style="font-size: var(--text-xs);">Extra Small (0.75rem)</div>
+        </div>
+
+        <!-- Spacing -->
+        <div class="test-section">
+            <h2><i class="fas fa-arrows-alt"></i> Spacing Scale</h2>
+            <div class="spacing-demo">
+                <div class="spacing-box" style="width: var(--space-1);">1</div>
+                <div class="spacing-box" style="width: var(--space-2);">2</div>
+                <div class="spacing-box" style="width: var(--space-3);">3</div>
+                <div class="spacing-box" style="width: var(--space-4);">4</div>
+                <div class="spacing-box" style="width: var(--space-5);">5</div>
+                <div class="spacing-box" style="width: var(--space-6);">6</div>
+                <div class="spacing-box" style="width: var(--space-8);">8</div>
+                <div class="spacing-box" style="width: var(--space-10);">10</div>
+            </div>
+            <p style="color: var(--text-muted); font-size: var(--text-sm);">
+                Spacing units: 1=4px, 2=8px, 3=12px, 4=16px, 5=20px, 6=24px, 8=32px, 10=40px
+            </p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="test-section" id="buttons">
+            <h2><i class="fas fa-mouse-pointer"></i> Button Styles</h2>
+            <div style="display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-4);">
+                <button class="btn btn-primary">
+                    <i class="fas fa-check"></i> Primary
+                </button>
+                <button class="btn btn-success">
+                    <i class="fas fa-plus"></i> Success
+                </button>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-cog"></i> Secondary
+                </button>
+                <button class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Danger
+                </button>
+                <button class="btn btn-outline">
+                    <i class="fas fa-download"></i> Outline
+                </button>
+            </div>
+            <div style="display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-4);">
+                <button class="btn btn-primary btn-sm">Small Button</button>
+                <button class="btn btn-primary">Regular Button</button>
+                <button class="btn btn-primary btn-lg">Large Button</button>
+            </div>
+            <p style="color: var(--text-muted); font-size: var(--text-sm);">
+                All buttons meet 44px minimum touch target on mobile
+            </p>
+        </div>
+
+        <!-- Forms -->
+        <div class="test-section" id="forms">
+            <h2><i class="fas fa-keyboard"></i> Form Elements</h2>
+            <div class="form-group">
+                <label class="form-label required">Text Input</label>
+                <input type="text" class="form-input" placeholder="Enter text...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Input</label>
+                <input type="email" class="form-input" placeholder="email@example.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Select Dropdown</label>
+                <select class="form-select">
+                    <option>Option 1</option>
+                    <option>Option 2</option>
+                    <option>Option 3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Textarea</label>
+                <textarea class="form-input form-textarea" placeholder="Enter multiple lines..."></textarea>
+                <span class="form-help">This is helpful hint text</span>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary">Cancel</button>
+                <button class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+
+        <!-- Item Cards -->
+        <div class="test-section" id="components">
+            <h2><i class="fas fa-th-large"></i> Item Cards</h2>
+            <div style="max-width: 400px;">
+                <div class="item-card">
+                    <div class="item-title">Software Engineer</div>
+                    <div class="item-subtitle">Tech Company Inc.</div>
+                    <div class="item-meta">
+                        <span>San Francisco, CA</span>
+                        <span class="status-badge status-applied">Applied</span>
+                    </div>
+                </div>
+                <div class="item-card active">
+                    <div class="item-title">Product Manager</div>
+                    <div class="item-subtitle">Startup Co.</div>
+                    <div class="item-meta">
+                        <span>Remote</span>
+                        <span class="status-badge status-interviewing">Interviewing</span>
+                    </div>
+                </div>
+                <div class="item-card">
+                    <div class="item-title">UX Designer</div>
+                    <div class="item-subtitle">Design Agency</div>
+                    <div class="item-meta">
+                        <span>New York, NY</span>
+                        <span class="status-badge status-saved">Saved</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Badges -->
+        <div class="test-section">
+            <h2><i class="fas fa-tags"></i> Status Badges</h2>
+            <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
+                <span class="status-badge status-saved">Saved</span>
+                <span class="status-badge status-applied">Applied</span>
+                <span class="status-badge status-interviewing">Interviewing</span>
+                <span class="status-badge status-offered">Offered</span>
+                <span class="status-badge status-accepted">Accepted</span>
+                <span class="status-badge status-rejected">Rejected</span>
+            </div>
+        </div>
+
+        <!-- Test Modal Button -->
+        <div class="test-section">
+            <h2><i class="fas fa-window-maximize"></i> Modal Test</h2>
+            <button class="btn btn-primary" onclick="showTestModal()">
+                <i class="fas fa-expand"></i> Open Test Modal
+            </button>
+        </div>
+
+        <!-- Toast Test -->
+        <div class="test-section">
+            <h2><i class="fas fa-bell"></i> Toast Notifications</h2>
+            <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
+                <button class="btn btn-success" onclick="showToast('success')">Success Toast</button>
+                <button class="btn btn-danger" onclick="showToast('error')">Error Toast</button>
+                <button class="btn btn-primary" onclick="showToast('info')">Info Toast</button>
+                <button class="btn btn-secondary" onclick="showToast('warning')">Warning Toast</button>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="test-section">
+            <h2><i class="fas fa-info-circle"></i> Testing Instructions</h2>
+            <ol style="line-height: 1.8;">
+                <li><strong>Resize your browser</strong> to test different breakpoints</li>
+                <li><strong>On mobile</strong>: Tap the hamburger menu (☰) to open navigation</li>
+                <li><strong>Test touch targets</strong>: All buttons should be easy to tap</li>
+                <li><strong>Try swiping</strong>: Swipe menu left to close, swipe from left edge to open</li>
+                <li><strong>Open DevTools</strong>: Toggle device toolbar to test different devices</li>
+                <li><strong>Test keyboard</strong>: Tab through elements, press Escape to close menu</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Viewport Indicator -->
+    <div class="viewport-indicator" id="viewport-indicator">
+        <i class="fas fa-mobile-alt"></i> <span id="viewport-size">Loading...</span>
+    </div>
+
+    <!-- Test Modal -->
+    <div class="modal-backdrop hidden" id="test-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Test Modal</h3>
+                <button class="modal-close" onclick="closeTestModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>This is a test modal to demonstrate responsive modal behavior.</p>
+                <p><strong>Mobile:</strong> Modal slides up from bottom, you can swipe down to close.</p>
+                <p><strong>Desktop:</strong> Modal appears in center, click backdrop to close.</p>
+                <div class="form-group">
+                    <label class="form-label">Test Input</label>
+                    <input type="text" class="form-input" placeholder="Test form in modal">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeTestModal()">Close</button>
+                <button class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Mobile Navigation Script -->
+    <script type="module" src="./js/mobile-navigation.js"></script>
+
+    <script>
+        // Update viewport indicator
+        function updateViewport() {
+            const width = window.innerWidth;
+            const indicator = document.getElementById('viewport-size');
+            const icon = indicator.previousElementSibling;
+
+            let size, iconClass;
+            if (width < 768) {
+                size = 'Mobile';
+                iconClass = 'fa-mobile-alt';
+            } else if (width < 1024) {
+                size = 'Tablet';
+                iconClass = 'fa-tablet-alt';
+            } else if (width < 1440) {
+                size = 'Desktop';
+                iconClass = 'fa-desktop';
+            } else {
+                size = 'Large Desktop';
+                iconClass = 'fa-tv';
+            }
+
+            indicator.textContent = `${size} (${width}px)`;
+            icon.className = `fas ${iconClass}`;
+        }
+
+        // Show test modal
+        function showTestModal() {
+            document.getElementById('test-modal').classList.remove('hidden');
+        }
+
+        // Close test modal
+        function closeTestModal() {
+            document.getElementById('test-modal').classList.add('hidden');
+        }
+
+        // Show toast notification
+        function showToast(type) {
+            const toast = document.createElement('div');
+            toast.className = `toast show ${type}`;
+
+            const icons = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                warning: 'exclamation-triangle',
+                info: 'info-circle'
+            };
+
+            const messages = {
+                success: 'Success! Operation completed.',
+                error: 'Error! Something went wrong.',
+                warning: 'Warning! Please be careful.',
+                info: 'Info: This is an informational message.'
+            };
+
+            toast.innerHTML = `
+                <i class="fas fa-${icons[type]}"></i>
+                ${messages[type]}
+            `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Modal backdrop click
+        document.getElementById('test-modal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-backdrop')) {
+                closeTestModal();
+            }
+        });
+
+        // Update viewport on load and resize
+        window.addEventListener('load', updateViewport);
+        window.addEventListener('resize', updateViewport);
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

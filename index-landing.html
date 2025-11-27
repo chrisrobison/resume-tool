@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Privacy-first job search manager with AI-powered resume tailoring. Track applications, manage resumes, and land your dream job faster.">
+    <meta name="keywords" content="job search, resume builder, job tracker, career management, AI resume, privacy-first">
+    <title>Job Hunt Manager - Your Privacy-First Job Search Companion</title>
+
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="jobs-responsive.css">
+
+    <style>
+        /* Landing Page Specific Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 24px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero {
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-hero-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .btn-hero-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-hero-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Trust Badges */
+        .trust-badges {
+            background: #f8f9fa;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .trust-badges h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6c757d;
+            margin-bottom: 24px;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .badge-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .badge-icon {
+            font-size: 2rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .features-header h2 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+
+        .features-header p {
+            font-size: 1.2rem;
+            color: #6c757d;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 40px 24px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        /* Screenshot Section */
+        .screenshot-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .screenshot-section h2 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            margin-bottom: 20px;
+        }
+
+        .screenshot-section p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .screenshot-container {
+            max-width: 900px;
+            margin: 0 auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .screenshot-container img {
+            width: 100%;
+            display: block;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 80px 20px;
+            background: #f8f9fa;
+        }
+
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .pricing-header h2 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+
+        .pricing-header p {
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px 30px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card.popular {
+            border-color: #667eea;
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .pricing-card.popular:hover {
+            transform: scale(1.05) translateY(-8px);
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .plan-price small {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: 400;
+        }
+
+        .plan-description {
+            color: #6c757d;
+            margin-bottom: 24px;
+            min-height: 40px;
+        }
+
+        .plan-features {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .plan-features li {
+            padding: 8px 0;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .plan-features li i {
+            color: #27ae60;
+            font-size: 1.1rem;
+        }
+
+        .plan-cta {
+            width: 100%;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .plan-cta.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .plan-cta.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .plan-cta.secondary {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .plan-cta.secondary:hover {
+            background: #dee2e6;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 80px 20px;
+            background: white;
+        }
+
+        .testimonials-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .testimonials-header h2 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .testimonial-content {
+            font-style: italic;
+            color: #495057;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .author-info h4 {
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .author-info p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .cta-section h2 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            margin-bottom: 20px;
+        }
+
+        .cta-section p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        .footer-social {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .footer-social a {
+            color: white;
+            font-size: 1.5rem;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-social a:hover {
+            opacity: 1;
+        }
+
+        .footer-copyright {
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Land Your Dream Job with Privacy & AI</h1>
+            <p>The only job search manager that keeps YOUR data private while using AI to tailor resumes and track applications.</p>
+            <div class="hero-cta">
+                <a href="app-responsive.html" class="btn-hero btn-hero-primary">
+                    <i class="fas fa-rocket"></i> Start Free
+                </a>
+                <a href="#features" class="btn-hero btn-hero-secondary">
+                    <i class="fas fa-play-circle"></i> Watch Demo
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Badges -->
+    <section class="trust-badges">
+        <h3>Trusted by Job Seekers Who Value Privacy</h3>
+        <div class="badges">
+            <div class="badge-item">
+                <div class="badge-icon">🔒</div>
+                <div>100% Private</div>
+            </div>
+            <div class="badge-item">
+                <div class="badge-icon">🤖</div>
+                <div>AI-Powered</div>
+            </div>
+            <div class="badge-item">
+                <div class="badge-icon">📱</div>
+                <div>Works Everywhere</div>
+            </div>
+            <div class="badge-item">
+                <div class="badge-icon">💰</div>
+                <div>No Hidden Fees</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="features-header">
+            <h2>Everything You Need to Land Your Next Role</h2>
+            <p>A complete job search system in one privacy-first application</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <h3>Job-Centric Tracking</h3>
+                <p>Organize every opportunity, from discovery to offer. Track status, contacts, and progress all in one place.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <h3>AI Resume Tailoring</h3>
+                <p>Automatically customize your resume for each job using AI. Stand out with targeted applications.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Privacy-First Design</h3>
+                <p>Your data never leaves your device. No tracking, no harvesting, no selling your information.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>Multiple Resumes</h3>
+                <p>Create and manage different resume versions for different roles. Always have the right resume ready.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h3>Cover Letter Generator</h3>
+                <p>Generate personalized cover letters with AI or create your own. Save templates for quick reuse.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Success Analytics</h3>
+                <p>Track your application success rate, response times, and identify what's working.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshot Section -->
+    <section class="screenshot-section">
+        <h2>Beautiful, Intuitive Interface</h2>
+        <p>Designed for focus and productivity on any device</p>
+        <div class="screenshot-container">
+            <!-- Placeholder for screenshot - replace with actual screenshot -->
+            <div style="background: white; padding: 40px; text-align: center; color: #6c757d;">
+                <i class="fas fa-image" style="font-size: 4rem; opacity: 0.3; margin-bottom: 20px;"></i>
+                <p>App Screenshot Goes Here<br>
+                <small>(Capture from app-responsive.html)</small></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="pricing-header">
+            <h2>Simple, Transparent Pricing</h2>
+            <p>Choose the plan that fits your job search needs</p>
+        </div>
+
+        <div class="pricing-grid">
+            <!-- Free Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Starter</div>
+                <div class="plan-price">
+                    Free
+                </div>
+                <div class="plan-description">Perfect for getting started</div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> Track up to 10 jobs</li>
+                    <li><i class="fas fa-check"></i> Basic resume editor</li>
+                    <li><i class="fas fa-check"></i> Manual data entry</li>
+                    <li><i class="fas fa-check"></i> All privacy features</li>
+                </ul>
+                <button class="plan-cta secondary" onclick="window.location.href='app-responsive.html'">
+                    Get Started Free
+                </button>
+            </div>
+
+            <!-- Premium Plan -->
+            <div class="pricing-card popular">
+                <div class="popular-badge">Most Popular</div>
+                <div class="plan-name">Premium</div>
+                <div class="plan-price">
+                    $15<small>/month</small>
+                </div>
+                <div class="plan-description">For serious job seekers</div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> Unlimited jobs</li>
+                    <li><i class="fas fa-check"></i> AI resume tailoring</li>
+                    <li><i class="fas fa-check"></i> Cover letter generator</li>
+                    <li><i class="fas fa-check"></i> Match analysis</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                </ul>
+                <button class="plan-cta primary" onclick="window.location.href='app-responsive.html'">
+                    Start Premium Trial
+                </button>
+            </div>
+
+            <!-- Lifetime Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Lifetime</div>
+                <div class="plan-price">
+                    $199<small> once</small>
+                </div>
+                <div class="plan-description">Pay once, own forever</div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> All Premium features</li>
+                    <li><i class="fas fa-check"></i> Lifetime updates</li>
+                    <li><i class="fas fa-check"></i> Never pay again</li>
+                    <li><i class="fas fa-check"></i> Support development</li>
+                    <li><i class="fas fa-check"></i> Early access</li>
+                </ul>
+                <button class="plan-cta secondary" onclick="window.location.href='app-responsive.html'">
+                    Buy Lifetime Access
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="testimonials-header">
+            <h2>Loved by Job Seekers</h2>
+        </div>
+
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    "Finally, a job tracker that doesn't feel like it's spying on me. The AI features are incredible and the privacy-first approach is exactly what I needed."
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-avatar">SK</div>
+                    <div class="author-info">
+                        <h4>Sarah K.</h4>
+                        <p>Software Engineer</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    "I've tried Teal and Huntr, but this is better. The job-centric workflow makes so much more sense, and I'm not paying $40/month for features I don't need."
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-avatar">MR</div>
+                    <div class="author-info">
+                        <h4>Michael R.</h4>
+                        <p>Product Manager</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="testimonial-content">
+                    "The AI resume tailoring saved me hours. I landed 3 interviews in my first week using tailored resumes. Worth every penny of the lifetime plan!"
+                </div>
+                <div class="testimonial-author">
+                    <div class="author-avatar">JL</div>
+                    <div class="author-info">
+                        <h4>Jennifer L.</h4>
+                        <p>UX Designer</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="cta-section">
+        <h2>Ready to Transform Your Job Search?</h2>
+        <p>Join thousands of job seekers who've taken control of their career journey</p>
+        <div class="hero-cta">
+            <a href="app-responsive.html" class="btn-hero btn-hero-primary">
+                <i class="fas fa-rocket"></i> Start Free Today
+            </a>
+        </div>
+        <p style="margin-top: 20px; font-size: 0.9rem; opacity: 0.8;">
+            No credit card required • Cancel anytime • 30-day money-back guarantee
+        </p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="RESPONSIVE-DESIGN.md">Documentation</a>
+            <a href="APP-STORE-ASSETS.md#privacy-policy">Privacy</a>
+            <a href="APP-STORE-ASSETS.md#terms-of-service">Terms</a>
+            <a href="#contact">Contact</a>
+        </div>
+        <div class="footer-social">
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+            <a href="#" aria-label="Product Hunt"><i class="fab fa-product-hunt"></i></a>
+        </div>
+        <div class="footer-copyright">
+            © 2025 Job Hunt Manager. Your data stays yours.
+        </div>
+    </footer>
+
+    <!-- Mobile Navigation Script -->
+    <script type="module" src="./js/mobile-navigation.js"></script>
+</body>
+</html>

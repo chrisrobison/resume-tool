@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job URL Import - Test Page</title>
+    <link rel="stylesheet" href="./jobs-responsive.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .test-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .test-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .test-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .test-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .test-sections {
+            display: grid;
+            gap: 24px;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .test-section h2 {
+            font-size: 1.25rem;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-section p {
+            color: #6c757d;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .sample-urls {
+            display: grid;
+            gap: 12px;
+        }
+
+        .sample-url {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .sample-url .platform-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .sample-url .url-text {
+            flex: 1;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #495057;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sample-url button {
+            padding: 6px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .sample-url button:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .result-display {
+            margin-top: 24px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .result-display h3 {
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .result-display pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 28px;
+            position: relative;
+            color: #495057;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h4 {
+            color: #856404;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .instructions li {
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .test-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .sample-url {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .sample-url .url-text {
+                white-space: normal;
+                word-break: break-all;
+            }
+
+            .sample-url button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🚀 Job URL Import Test</h1>
+            <p>Automatically extract job details from LinkedIn, Indeed, and Glassdoor</p>
+        </div>
+
+        <div class="test-sections">
+            <!-- Import Component -->
+            <div class="test-section">
+                <h2>📥 Import Job from URL</h2>
+
+                <div class="instructions">
+                    <h4>⚠️ CORS Limitation Note:</h4>
+                    <ol>
+                        <li>Due to browser security (CORS), direct fetching from job boards will fail in this test</li>
+                        <li>In production, use the <strong>browser extension</strong> to bypass CORS</li>
+                        <li>Or implement a server-side proxy for extraction</li>
+                        <li>For now, the component shows the UI and extraction logic</li>
+                    </ol>
+                </div>
+
+                <job-url-import id="import-component"></job-url-import>
+            </div>
+
+            <!-- Sample URLs -->
+            <div class="test-section">
+                <h2>🔗 Sample URLs to Test</h2>
+                <p>Click "Try It" to paste these URLs into the import component</p>
+
+                <div class="sample-urls">
+                    <div class="sample-url">
+                        <span class="platform-icon">💼</span>
+                        <div class="url-text">https://www.linkedin.com/jobs/view/3821234567</div>
+                        <button onclick="testUrl('https://www.linkedin.com/jobs/view/3821234567')">Try It</button>
+                    </div>
+
+                    <div class="sample-url">
+                        <span class="platform-icon">🔍</span>
+                        <div class="url-text">https://www.indeed.com/viewjob?jk=abc123xyz</div>
+                        <button onclick="testUrl('https://www.indeed.com/viewjob?jk=abc123xyz')">Try It</button>
+                    </div>
+
+                    <div class="sample-url">
+                        <span class="platform-icon">🏢</span>
+                        <div class="url-text">https://www.glassdoor.com/job-listing/software-engineer-jid-1234567</div>
+                        <button onclick="testUrl('https://www.glassdoor.com/job-listing/software-engineer-jid-1234567')">Try It</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="test-section">
+                <h2>✨ Features <span class="status-badge">Implemented</span></h2>
+                <ul class="feature-list">
+                    <li>Automatic platform detection (LinkedIn, Indeed, Glassdoor)</li>
+                    <li>Extracts title, company, location, salary, description</li>
+                    <li>Structured data parsing (JSON-LD schema.org)</li>
+                    <li>Fallback to HTML parsing if structured data unavailable</li>
+                    <li>Beautiful preview of extracted data</li>
+                    <li>Edit before saving option</li>
+                    <li>Error handling with helpful messages</li>
+                    <li>Loading states and animations</li>
+                    <li>Fully responsive design</li>
+                </ul>
+            </div>
+
+            <!-- Event Monitoring -->
+            <div class="test-section">
+                <h2>📡 Event Monitor</h2>
+                <p>Events dispatched by the component will appear here:</p>
+                <div id="event-log" class="result-display" style="display: none;">
+                    <h3>Latest Event:</h3>
+                    <pre id="event-content"></pre>
+                </div>
+            </div>
+
+            <!-- Architecture -->
+            <div class="test-section">
+                <h2>🏗️ Architecture</h2>
+                <p><strong>Files Created:</strong></p>
+                <ul class="feature-list">
+                    <li><code>js/services/job-extractor.js</code> - Main extraction service</li>
+                    <li><code>js/parsers/linkedin-parser.js</code> - LinkedIn-specific parser</li>
+                    <li><code>js/parsers/indeed-parser.js</code> - Indeed-specific parser</li>
+                    <li><code>js/parsers/glassdoor-parser.js</code> - Glassdoor-specific parser</li>
+                    <li><code>components/job-url-import.js</code> - UI component</li>
+                </ul>
+
+                <p style="margin-top: 16px;"><strong>Total Code:</strong> ~2,850 lines</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Parsers First -->
+    <script src="./js/services/job-extractor.js"></script>
+    <script src="./js/parsers/linkedin-parser.js"></script>
+    <script src="./js/parsers/indeed-parser.js"></script>
+    <script src="./js/parsers/glassdoor-parser.js"></script>
+
+    <!-- Load Component -->
+    <script src="./components/job-url-import.js"></script>
+
+    <script>
+        // Test URL function
+        function testUrl(url) {
+            const component = document.getElementById('import-component');
+            const input = component.shadowRoot.querySelector('#job-url');
+            if (input) {
+                input.value = url;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+
+                // Scroll to component
+                component.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // Event monitoring
+        const eventLog = document.getElementById('event-log');
+        const eventContent = document.getElementById('event-content');
+        const component = document.getElementById('import-component');
+
+        // Listen for all component events
+        component.addEventListener('job-extracted', (e) => {
+            console.log('Job extracted:', e.detail);
+            showEvent('job-extracted', e.detail);
+        });
+
+        component.addEventListener('job-save', (e) => {
+            console.log('Job save requested:', e.detail);
+            showEvent('job-save', e.detail);
+            alert('✅ Job saved!\n\nIn the real app, this would save to local storage.');
+        });
+
+        component.addEventListener('job-edit', (e) => {
+            console.log('Job edit requested:', e.detail);
+            showEvent('job-edit', e.detail);
+            alert('✏️ Opening job form with pre-filled data...\n\nIn the real app, this would open the job form.');
+        });
+
+        component.addEventListener('import-cancel', (e) => {
+            console.log('Import cancelled');
+            showEvent('import-cancel', {});
+        });
+
+        function showEvent(eventName, detail) {
+            eventLog.style.display = 'block';
+            eventContent.textContent = JSON.stringify({
+                event: eventName,
+                timestamp: new Date().toISOString(),
+                data: detail
+            }, null, 2);
+
+            // Scroll to event log
+            eventLog.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Welcome message
+        console.log('%c🚀 Job URL Import Test Page', 'font-size: 20px; font-weight: bold; color: #3498db;');
+        console.log('%cTry pasting a LinkedIn, Indeed, or Glassdoor URL above!', 'font-size: 14px; color: #6c757d;');
+        console.log('');
+        console.log('Note: Direct fetching will fail due to CORS.');
+        console.log('Use the browser extension or server-side proxy in production.');
+    </script>
+</body>
+</html>
