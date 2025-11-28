@@ -164,6 +164,29 @@ class GlobalStore extends ComponentBase {
      */
     async initializeState() {
         try {
+            // Initialize IndexedDB first
+            if (window.indexedDBService) {
+                await window.indexedDBService.init();
+                console.log('GlobalStore: IndexedDB initialized');
+
+                // Check if migration is needed
+                if (window.storageMigration) {
+                    const needsMigration = await window.storageMigration.needsMigration();
+                    if (needsMigration) {
+                        console.log('GlobalStore: Migration needed, starting...');
+                        try {
+                            const migrationResult = await window.storageMigration.migrate({
+                                clearLocalStorageAfter: false, // Keep localStorage as backup
+                                backupLocalStorage: true
+                            });
+                            console.log('GlobalStore: Migration completed', migrationResult);
+                        } catch (migrationError) {
+                            console.error('GlobalStore: Migration failed, continuing with localStorage', migrationError);
+                        }
+                    }
+                }
+            }
+
             // Set up default state structure
             const defaultState = {
                 currentJob: null,
@@ -196,18 +219,18 @@ class GlobalStore extends ComponentBase {
                 logs: []
             };
 
-            // Load persisted state from localStorage if available
+            // Load persisted state from IndexedDB (with localStorage fallback)
             const persistedState = await this.loadFromStorage();
-            
+
             // Merge default state with persisted state
             const mergedState = this._deepMerge(defaultState, persistedState || {});
-            
+
             // Set the data using ComponentBase method
             this.setData(mergedState, 'initialization');
-            
+
         } catch (error) {
             this.handleError(error, 'Failed to initialize state');
-            
+
             // Fallback to default state only
             this.setData(this.getDefaultState(), 'fallback');
         }
@@ -510,29 +533,58 @@ class GlobalStore extends ComponentBase {
         }
     }
 
-    // Storage methods
-    saveToStorage() {
+    // Storage methods (using IndexedDB with localStorage fallback)
+    async saveToStorage() {
         try {
             const state = this.getData();
             if (!state) return;
-            
+
             // Avoid accidentally wiping non-empty settings with an empty object
             let settingsSafe = state.settings || {};
             if (settingsSafe && typeof settingsSafe === 'object' && Object.keys(settingsSafe).length === 0) {
                 try {
-                    const existing = localStorage.getItem('global-store-state');
-                    if (existing) {
-                        const parsed = JSON.parse(existing);
-                        if (parsed?.settings && Object.keys(parsed.settings).length > 0) {
-                            settingsSafe = parsed.settings;
-                            console.warn('GlobalStore: Prevented overwrite of settings with empty object; preserved existing saved settings.');
-                        }
+                    const existing = await this.getSetting('settings');
+                    if (existing && Object.keys(existing).length > 0) {
+                        settingsSafe = existing;
+                        console.warn('GlobalStore: Prevented overwrite of settings with empty object; preserved existing saved settings.');
                     }
                 } catch (e) {
                     // ignore
                 }
             }
 
+            // Use IndexedDB if available
+            if (window.indexedDBService && window.indexedDBService.isInitialized) {
+                try {
+                    // Save jobs to IndexedDB
+                    const jobs = state.jobs || [];
+                    for (const job of jobs) {
+                        await window.indexedDBService.saveJob(job);
+                    }
+
+                    // Save resumes to IndexedDB
+                    const resumes = state.resumes || [];
+                    for (const resume of resumes) {
+                        await window.indexedDBService.saveResume(resume);
+                    }
+
+                    // Save cover letters to IndexedDB
+                    const letters = state.coverLetters || [];
+                    for (const letter of letters) {
+                        await window.indexedDBService.saveLetter(letter);
+                    }
+
+                    // Save settings
+                    await window.indexedDBService.saveSetting('globalStore', settingsSafe);
+
+                    console.log('GlobalStore: Saved to IndexedDB');
+                    return;
+                } catch (idbError) {
+                    console.error('Failed to save to IndexedDB, falling back to localStorage:', idbError);
+                }
+            }
+
+            // Fallback to localStorage
             const stateToSave = {
                 jobs: state.jobs || [],
                 resumes: state.resumes || [],
@@ -540,22 +592,49 @@ class GlobalStore extends ComponentBase {
                 settings: settingsSafe,
                 logs: state.logs || []
             };
-            
+
             localStorage.setItem('global-store-state', JSON.stringify(stateToSave));
-            
+            console.log('GlobalStore: Saved to localStorage (fallback)');
+
         } catch (error) {
-            this.handleError(error, 'Failed to save state to localStorage');
+            this.handleError(error, 'Failed to save state to storage');
         }
     }
 
     async loadFromStorage() {
         try {
+            // Try IndexedDB first
+            if (window.indexedDBService && window.indexedDBService.isInitialized) {
+                try {
+                    const jobs = await window.indexedDBService.getJobs();
+                    const resumes = await window.indexedDBService.getResumes();
+                    const coverLetters = await window.indexedDBService.getLetters();
+                    const settings = await window.indexedDBService.getSetting('globalStore', {});
+
+                    // Only return IndexedDB data if we have some data
+                    if (jobs.length > 0 || resumes.length > 0 || coverLetters.length > 0) {
+                        console.log('GlobalStore: Loaded from IndexedDB');
+                        return {
+                            jobs,
+                            resumes,
+                            coverLetters,
+                            settings
+                        };
+                    }
+                } catch (idbError) {
+                    console.error('Failed to load from IndexedDB, falling back to localStorage:', idbError);
+                }
+            }
+
+            // Fallback to localStorage
             const saved = localStorage.getItem('global-store-state');
             if (saved) {
                 const parsedState = JSON.parse(saved);
+                console.log('GlobalStore: Loaded from localStorage');
                 return parsedState;
             }
-            // Fallback: migrate from legacy standalone settings if present
+
+            // Legacy fallback: migrate from old standalone settings
             try {
                 const legacySettings = localStorage.getItem('resumeEditorSettings');
                 if (legacySettings) {
@@ -563,10 +642,11 @@ class GlobalStore extends ComponentBase {
                     return { settings: parsed };
                 }
             } catch (e) { /* ignore */ }
+
             return null;
-            
+
         } catch (error) {
-            this.handleError(error, 'Failed to load state from localStorage');
+            this.handleError(error, 'Failed to load state from storage');
             return null;
         }
     }
