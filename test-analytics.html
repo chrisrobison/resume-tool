@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - Test Page</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+
+        .test-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .test-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .test-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .test-controls {
+            max-width: 1400px;
+            margin: 24px auto;
+            padding: 0 24px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .test-controls button {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #3498db;
+            color: #3498db;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .test-controls button:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .dashboard-wrapper {
+            min-height: calc(100vh - 300px);
+        }
+
+        .info-section {
+            max-width: 1400px;
+            margin: 24px auto;
+            padding: 24px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-section h2 {
+            color: #2c3e50;
+            margin-bottom: 16px;
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-section li {
+            padding: 8px 0;
+            padding-left: 28px;
+            position: relative;
+            color: #495057;
+        }
+
+        .info-section li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>📊 Analytics Dashboard Test</h1>
+        <p>Comprehensive job search analytics and insights</p>
+    </div>
+
+    <div class="test-controls">
+        <button onclick="loadSampleData('small')">
+            <i class="fas fa-database"></i> Load Small Dataset (10 jobs)
+        </button>
+        <button onclick="loadSampleData('medium')">
+            <i class="fas fa-database"></i> Load Medium Dataset (50 jobs)
+        </button>
+        <button onclick="loadSampleData('large')">
+            <i class="fas fa-database"></i> Load Large Dataset (100 jobs)
+        </button>
+        <button onclick="clearData()">
+            <i class="fas fa-trash"></i> Clear Data
+        </button>
+    </div>
+
+    <div class="dashboard-wrapper">
+        <analytics-dashboard id="dashboard"></analytics-dashboard>
+    </div>
+
+    <div class="info-section">
+        <h2>✨ Features</h2>
+        <ul>
+            <li>Real-time metrics calculation from job data</li>
+            <li>8 key performance indicators (KPIs)</li>
+            <li>5 interactive charts (status, timeline, companies, funnel, activity)</li>
+            <li>Smart recommendations based on your data</li>
+            <li>Export to JSON or CSV</li>
+            <li>Responsive design for all screen sizes</li>
+            <li>Auto-refreshes when data changes</li>
+        </ul>
+    </div>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+
+    <!-- Load Services and Components -->
+    <script src="./js/services/analytics-service.js"></script>
+    <script src="./js/charts/chart-config.js"></script>
+    <script src="./components/analytics-dashboard.js"></script>
+
+    <script>
+        /**
+         * Generate sample job data
+         */
+        function generateSampleJobs(count) {
+            const statuses = ['applied', 'interviewing', 'offered', 'rejected', 'accepted', 'wishlist'];
+            const companies = [
+                'Tech Corp', 'StartupXYZ', 'Big Company Inc', 'Innovation Labs',
+                'Digital Solutions', 'Cloud Systems', 'Data Analytics Co', 'AI Research',
+                'Software House', 'Web Services Inc'
+            ];
+            const locations = [
+                'San Francisco, CA', 'New York, NY', 'Austin, TX', 'Seattle, WA',
+                'Boston, MA', 'Remote', 'Los Angeles, CA', 'Chicago, IL'
+            ];
+            const titles = [
+                'Software Engineer', 'Senior Developer', 'Full Stack Engineer',
+                'Frontend Developer', 'Backend Engineer', 'DevOps Engineer',
+                'Product Manager', 'Data Scientist', 'UX Designer', 'QA Engineer'
+            ];
+
+            const jobs = [];
+            const today = new Date();
+
+            for (let i = 0; i < count; i++) {
+                // Random date within last 90 days
+                const daysAgo = Math.floor(Math.random() * 90);
+                const date = new Date(today);
+                date.setDate(date.getDate() - daysAgo);
+
+                // Bias towards earlier statuses for more realistic data
+                let status;
+                const rand = Math.random();
+                if (rand < 0.4) status = 'applied';
+                else if (rand < 0.6) status = 'interviewing';
+                else if (rand < 0.7) status = 'rejected';
+                else if (rand < 0.85) status = 'wishlist';
+                else if (rand < 0.95) status = 'offered';
+                else status = 'accepted';
+
+                const job = {
+                    id: `job-${i}`,
+                    title: titles[Math.floor(Math.random() * titles.length)],
+                    company: companies[Math.floor(Math.random() * companies.length)],
+                    location: locations[Math.floor(Math.random() * locations.length)],
+                    status: status,
+                    salary: `$${Math.floor(Math.random() * 100 + 80)}k - $${Math.floor(Math.random() * 150 + 120)}k`,
+                    dateApplied: date.toISOString(),
+                    createdAt: date.toISOString(),
+                    url: `https://example.com/job-${i}`,
+                    description: 'Sample job description',
+                    statusHistory: []
+                };
+
+                // Add status history for interviewing/offered/rejected/accepted
+                if (status !== 'wishlist' && status !== 'applied') {
+                    const appliedDate = new Date(date);
+                    job.statusHistory.push({
+                        status: 'applied',
+                        date: appliedDate.toISOString()
+                    });
+
+                    if (status === 'interviewing' || status === 'offered' || status === 'accepted' || status === 'rejected') {
+                        const interviewDate = new Date(appliedDate);
+                        interviewDate.setDate(interviewDate.getDate() + Math.floor(Math.random() * 14 + 3));
+                        job.statusHistory.push({
+                            status: 'interviewing',
+                            date: interviewDate.toISOString()
+                        });
+                    }
+
+                    if (status === 'offered' || status === 'accepted') {
+                        const offerDate = new Date(date);
+                        offerDate.setDate(offerDate.getDate() + Math.floor(Math.random() * 21 + 7));
+                        job.statusHistory.push({
+                            status: 'offered',
+                            date: offerDate.toISOString()
+                        });
+                    }
+
+                    job.statusHistory.push({
+                        status: status,
+                        date: date.toISOString()
+                    });
+                }
+
+                jobs.push(job);
+            }
+
+            return jobs;
+        }
+
+        /**
+         * Load sample data
+         */
+        function loadSampleData(size) {
+            const counts = {
+                small: 10,
+                medium: 50,
+                large: 100
+            };
+
+            const count = counts[size] || 50;
+            const jobs = generateSampleJobs(count);
+
+            // Store in localStorage
+            localStorage.setItem('jobs', JSON.stringify(jobs));
+
+            console.log(`✅ Generated ${count} sample jobs`);
+            alert(`Generated ${count} sample jobs. Refreshing dashboard...`);
+
+            // Refresh dashboard
+            const dashboard = document.getElementById('dashboard');
+            if (dashboard && dashboard.refresh) {
+                dashboard.refresh();
+            }
+        }
+
+        /**
+         * Clear data
+         */
+        function clearData() {
+            localStorage.removeItem('jobs');
+            localStorage.removeItem('resumes');
+            localStorage.removeItem('letters');
+
+            console.log('✅ Cleared all data');
+            alert('All data cleared. Refreshing dashboard...');
+
+            // Refresh dashboard
+            const dashboard = document.getElementById('dashboard');
+            if (dashboard && dashboard.refresh) {
+                dashboard.refresh();
+            }
+        }
+
+        // Welcome message
+        console.log('%c📊 Analytics Dashboard Test Page', 'font-size: 20px; font-weight: bold; color: #3498db;');
+        console.log('%cLoad sample data to see analytics in action!', 'font-size: 14px; color: #6c757d;');
+        console.log('');
+        console.log('Available functions:');
+        console.log('  loadSampleData("small")  - 10 jobs');
+        console.log('  loadSampleData("medium") - 50 jobs');
+        console.log('  loadSampleData("large")  - 100 jobs');
+        console.log('  clearData()              - Clear all data');
+
+        // Check if data exists
+        const existingJobs = localStorage.getItem('jobs');
+        if (!existingJobs) {
+            console.log('');
+            console.log('💡 Tip: Click "Load Medium Dataset" to see the dashboard with data!');
+        }
+    </script>
+</body>
+</html>

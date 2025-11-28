@@ -1,0 +1,88 @@
+{
+  "manifest_version": 3,
+  "name": "Job Hunt Manager - Job Saver",
+  "version": "1.0.0",
+  "description": "Save job listings from LinkedIn, Indeed, and Glassdoor with one click",
+  "author": "Job Hunt Manager",
+  "homepage_url": "https://jobhuntmanager.com",
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "contextMenus"
+  ],
+
+  "host_permissions": [
+    "https://www.linkedin.com/*",
+    "https://www.indeed.com/*",
+    "https://www.glassdoor.com/*",
+    "https://www.glassdoor.ca/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/jobs/*",
+        "https://www.linkedin.com/*/jobs/*"
+      ],
+      "js": ["parsers/job-extractor.js", "parsers/linkedin-parser.js", "content-script.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.indeed.com/viewjob*",
+        "https://www.indeed.com/*/viewjob*"
+      ],
+      "js": ["parsers/job-extractor.js", "parsers/indeed-parser.js", "content-script.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.glassdoor.com/job-listing/*",
+        "https://www.glassdoor.com/*/job-listing/*",
+        "https://www.glassdoor.ca/job-listing/*"
+      ],
+      "js": ["parsers/job-extractor.js", "parsers/glassdoor-parser.js", "content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Save Job"
+  },
+
+  "commands": {
+    "save-job": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Save current job posting"
+    }
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["parsers/*.js"],
+      "matches": ["https://*/*"]
+    }
+  ]
+}
