@@ -78,7 +78,12 @@
             // Parse job data
             const jobData = await parser.parse(html, url);
 
+            console.log('Raw extracted data:', jobData);
+            console.log('Title:', jobData?.title);
+            console.log('Company:', jobData?.company);
+
             if (!jobData || !jobData.title || !jobData.company) {
+                console.error('Validation failed - missing required fields');
                 throw new Error('Failed to extract job details');
             }
 
