@@ -275,11 +275,67 @@
         }
     });
 
+    /**
+     * Listen for messages from web app (via window.postMessage)
+     */
+    window.addEventListener('message', async (event) => {
+        // Only process messages from same origin (for security)
+        if (event.origin !== window.location.origin) {
+            return;
+        }
+
+        const message = event.data;
+
+        switch (message.type) {
+            case 'JHM_EXTENSION_PING':
+                // Respond to ping from web app
+                window.postMessage({
+                    type: 'JHM_EXTENSION_PONG',
+                    version: chrome.runtime.getManifest().version
+                }, '*');
+                break;
+
+            case 'JHM_GET_JOBS':
+                // Send jobs from extension storage to web app
+                try {
+                    chrome.runtime.sendMessage({ action: 'getJobs' }, (response) => {
+                        if (response && response.success) {
+                            window.postMessage({
+                                type: 'JHM_EXTENSION_DATA',
+                                jobs: response.jobs
+                            }, '*');
+                        }
+                    });
+                } catch (error) {
+                    console.error('Failed to get jobs from extension:', error);
+                }
+                break;
+        }
+    });
+
+    /**
+     * Notify web app when job is saved
+     * @param {Object} job - Saved job data
+     */
+    function notifyWebApp(job) {
+        // Send message to any open web app tabs
+        window.postMessage({
+            type: 'JHM_JOB_SAVED',
+            job: job
+        }, '*');
+    }
+
     // Initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
+
+    // Add extension marker for detection
+    const marker = document.createElement('div');
+    marker.setAttribute('data-jhm-extension', 'installed');
+    marker.style.display = 'none';
+    document.documentElement.appendChild(marker);
 
 })();

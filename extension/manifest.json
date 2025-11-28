@@ -23,7 +23,8 @@
     "https://www.linkedin.com/*",
     "https://www.indeed.com/*",
     "https://www.glassdoor.com/*",
-    "https://www.glassdoor.ca/*"
+    "https://www.glassdoor.ca/*",
+    "http://localhost:3000/*"
   ],
 
   "background": {
@@ -54,6 +55,13 @@
         "https://www.glassdoor.ca/job-listing/*"
       ],
       "js": ["parsers/job-extractor.js", "parsers/glassdoor-parser.js", "content-script.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://localhost:3000/*"
+      ],
+      "js": ["bridge-script.js"],
       "run_at": "document_idle"
     }
   ],
