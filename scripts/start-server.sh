@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Start a simple Python HTTP server on port 8080 if one isn't already running.
+# Start a simple Python HTTP server on port 3000 if one isn't already running.
 # Writes its PID to `.server.pid` when it starts the server.
 
-PORT=8080
+PORT=3000
 PIDFILE=".server.pid"
 URL="http://127.0.0.1:${PORT}"
 

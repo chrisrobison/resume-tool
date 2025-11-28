@@ -11,7 +11,7 @@
     "test:firefox": "cypress run --browser firefox",
     "test:screenshots": "cypress run --spec '**/screenshots/**'",
     "test:visual": "cypress run --spec '**/visual-regression/**'",
-    "serve": "python -m http.server 8080",
+    "serve": "python -m http.server 3000",
     "serve:bg": "bash scripts/start-server.sh",
     "test:ci": "npm run serve:bg && sleep 2 && npm run test:headless",
     "test:report": "npm run test:headless && npm run report:merge && npm run report:generate && npm run report:open",
@@ -49,7 +49,7 @@
     "node": ">=14.0.0"
   },
   "cypress": {
-    "baseUrl": "http://localhost:8080",
+    "baseUrl": "http://localhost:3000",
     "viewportWidth": 1280,
     "viewportHeight": 720,
     "screenshotOnRunFailure": true,
