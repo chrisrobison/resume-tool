@@ -3,11 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Hunt Manager</title>
+    <title>NextRole - Find Your Next Role</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="apple-touch-icon" href="/extension/icons/icon128.png">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3498db">
+    <meta name="description" content="NextRole - Professional career management platform. Find your next role with advanced job tracking and AI-powered resume optimization.">
+
+    <!-- iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="NextRole">
+
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Mobile-First Responsive CSS -->
     <link rel="stylesheet" href="jobs-responsive.css">
+
     <!-- HTML2PDF.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
@@ -20,8 +37,8 @@
             <span></span>
         </button>
         <h1>
-            <img src="logo.svg" alt="Job Hunt Manager Logo">
-            Job Hunt Manager
+            <img src="logo.svg" alt="NextRole Logo">
+            NextRole
         </h1>
     </div>
 
@@ -237,11 +254,67 @@
     </div>
 
     <script>
+        // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/job-tool/service-worker.js').then(reg => {
-                console.log('Service worker registered:', reg.scope);
-            }).catch(err => console.warn('Service worker registration failed:', err));
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => {
+                        console.log('[PWA] Service worker registered:', reg.scope);
+
+                        // Check for updates
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('[PWA] New version available! Reload to update.');
+                                    // TODO: Show update notification to user
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => console.warn('[PWA] Service worker registration failed:', err));
+            });
         }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('[PWA] Install prompt available');
+
+            // Show install button (if you add one to your UI)
+            const installBtn = document.getElementById('pwa-install-btn');
+            if (installBtn) {
+                installBtn.style.display = 'block';
+                installBtn.addEventListener('click', async () => {
+                    if (!deferredPrompt) return;
+
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`[PWA] User ${outcome} the install prompt`);
+
+                    if (outcome === 'accepted') {
+                        console.log('[PWA] App installed!');
+                    }
+
+                    deferredPrompt = null;
+                    installBtn.style.display = 'none';
+                });
+            }
+        });
+
+        // Detect if app is running in standalone mode (installed)
+        window.addEventListener('DOMContentLoaded', () => {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                              || window.navigator.standalone
+                              || document.referrer.includes('android-app://');
+
+            if (isStandalone) {
+                console.log('[PWA] Running as installed app');
+                document.body.classList.add('pwa-installed');
+            }
+        });
     </script>
 
     <!-- Generic Form Modal -->
@@ -592,15 +665,21 @@
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 console.log('Initializing Job Hunt Manager...');
-                
+
                 // Initialize modal manager
                 initModalManager();
-                
+
                 // Initialize app manager
                 await appManager.init();
-                
+
+                // Initialize extension sync (if available)
+                if (window.extensionSync) {
+                    console.log('Initializing Extension Sync...');
+                    await window.extensionSync.init();
+                }
+
                 console.log('Job Hunt Manager initialized successfully!');
-                
+
             } catch (error) {
                 console.error('Failed to initialize Job Hunt Manager:', error);
             }

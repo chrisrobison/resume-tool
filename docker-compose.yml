@@ -1,0 +1,182 @@
+# docker-compose.yml - Complete stack for local development and production
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: jobtool-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-jobtool}
+      MYSQL_USER: ${MYSQL_USER:-jobtool}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./server/db/mysql-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    networks:
+      - jobtool-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD:-changeme}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (optional, for session storage and caching)
+  redis:
+    image: redis:7-alpine
+    container_name: jobtool-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - jobtool-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Application Server
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobtool-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # App Configuration
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      APP_NAME: ${APP_NAME:-Job Hunt Manager}
+      USE_MONETIZATION: ${USE_MONETIZATION:-true}
+
+      # MySQL Configuration
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-jobtool}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-jobtool}
+
+      # Redis Configuration (optional)
+      REDIS_URL: redis://redis:6379
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+
+      # Stripe
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PRICE_PRO_MONTHLY: ${STRIPE_PRICE_PRO_MONTHLY}
+      STRIPE_PRICE_PRO_YEARLY: ${STRIPE_PRICE_PRO_YEARLY}
+      STRIPE_PRICE_ENTERPRISE_MONTHLY: ${STRIPE_PRICE_ENTERPRISE_MONTHLY}
+      STRIPE_PRICE_ENTERPRISE_YEARLY: ${STRIPE_PRICE_ENTERPRISE_YEARLY}
+
+      # OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:3000/api/oauth/google/callback}
+
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL:-http://localhost:3000/api/oauth/github/callback}
+
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET}
+      LINKEDIN_CALLBACK_URL: ${LINKEDIN_CALLBACK_URL:-http://localhost:3000/api/oauth/linkedin/callback}
+
+      OAUTH_SUCCESS_REDIRECT: ${OAUTH_SUCCESS_REDIRECT:-http://localhost:3000/dashboard}
+
+      # Email
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-smtp}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@jobtool.app}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+
+      # Admin
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+
+      # Monitoring (optional)
+      SENTRY_DSN: ${SENTRY_DSN}
+
+    volumes:
+      - ./data:/app/data  # Persistent data directory
+      - ./logs:/app/logs  # Application logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - jobtool-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {r.statusCode === 200 ? process.exit(0) : process.exit(1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Marketing Site (Next.js)
+  marketing:
+    build:
+      context: ./marketing-site
+      dockerfile: Dockerfile
+    container_name: jobtool-marketing
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+    networks:
+      - jobtool-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy (optional, for production)
+  nginx:
+    image: nginx:alpine
+    container_name: jobtool-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+    depends_on:
+      - app
+      - marketing
+    networks:
+      - jobtool-network
+    profiles:
+      - production
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  jobtool-network:
+    driver: bridge

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Encryption Test - Zero-Knowledge Privacy</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+        .info-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .warning-box {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .success {
+            background: #27ae60;
+        }
+        .success:hover {
+            background: #229954;
+        }
+        .danger {
+            background: #e74c3c;
+        }
+        .danger:hover {
+            background: #c0392b;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .status {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .status.success { background: #d5f4e6; color: #27ae60; }
+        .status.error { background: #fadbd8; color: #e74c3c; }
+        .status.info { background: #d6eaf8; color: #2980b9; }
+        .step {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #3498db;
+            border-radius: 4px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Zero-Knowledge Encryption Test</h1>
+        <p class="subtitle">Test client-side encryption - Server never sees your data!</p>
+
+        <div class="info-box">
+            <strong>🛡️ How It Works:</strong><br>
+            1. You set a passphrase (never sent to server)<br>
+            2. Data is encrypted in your browser using AES-256<br>
+            3. Only encrypted data is sent to server<br>
+            4. Server cannot read your data without your passphrase<br>
+            5. True end-to-end encryption!
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Set Your Encryption Passphrase</h3>
+            <div class="input-group">
+                <label for="passphrase">Encryption Passphrase:</label>
+                <input type="password" id="passphrase" placeholder="Enter a strong passphrase...">
+                <small style="color: #7f8c8d; display: block; margin-top: 5px;">
+                    💡 Use a strong, memorable passphrase. You'll need it to decrypt your data!
+                </small>
+            </div>
+            <button onclick="initializeEncryption()" class="success">🔑 Initialize Encryption</button>
+            <div id="init-status"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Encrypt Sample Data</h3>
+            <div class="input-group">
+                <label for="plaintext">Data to Encrypt (JSON):</label>
+                <textarea id="plaintext" rows="6">{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "resume": {
+    "skills": ["JavaScript", "Python", "Encryption"],
+    "experience": "10 years"
+  }
+}</textarea>
+            </div>
+            <button onclick="encryptData()" id="encrypt-btn" disabled>🔒 Encrypt Data</button>
+            <div id="encrypted-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Decrypt Data</h3>
+            <p>This simulates what happens when you pull data from the server:</p>
+            <button onclick="decryptData()" id="decrypt-btn" disabled class="success">🔓 Decrypt Data</button>
+            <div id="decrypted-result"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Test Full Sync Encryption</h3>
+            <button onclick="testSyncEncryption()" id="sync-btn" disabled>🔄 Test Sync Encryption</button>
+            <div id="sync-result"></div>
+        </div>
+
+        <div class="warning-box">
+            <strong>⚠️ Important:</strong><br>
+            • Your passphrase is NEVER sent to the server<br>
+            • If you lose your passphrase, your encrypted data cannot be recovered<br>
+            • Keep your passphrase secure and backed up!
+        </div>
+    </div>
+
+    <script type="module">
+        import encryptionService from './js/services/encryption-service.js';
+
+        let encryptedCache = null;
+
+        window.initializeEncryption = async function() {
+            const passphrase = document.getElementById('passphrase').value;
+            const status = document.getElementById('init-status');
+
+            if (!passphrase || passphrase.length < 8) {
+                status.innerHTML = '<div class="status error">❌ Passphrase must be at least 8 characters</div>';
+                return;
+            }
+
+            try {
+                status.innerHTML = '<div class="status info">⏳ Initializing encryption...</div>';
+
+                const result = await encryptionService.initialize(passphrase);
+
+                status.innerHTML = `
+                    <div class="status success">
+                        ✅ Encryption initialized!<br>
+                        <small>Salt (save this if you want to use the same key later): ${result.salt}</small>
+                    </div>
+                `;
+
+                // Enable next buttons
+                document.getElementById('encrypt-btn').disabled = false;
+                document.getElementById('sync-btn').disabled = false;
+
+                // Run automatic test
+                const testPassed = await encryptionService.test();
+                if (testPassed) {
+                    status.innerHTML += '<div class="status success">✅ Encryption test passed!</div>';
+                }
+
+            } catch (error) {
+                status.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+            }
+        };
+
+        window.encryptData = async function() {
+            const plaintext = document.getElementById('plaintext').value;
+            const result = document.getElementById('encrypted-result');
+
+            try {
+                const data = JSON.parse(plaintext);
+                result.innerHTML = '<div class="status info">⏳ Encrypting...</div>';
+
+                const encrypted = await encryptionService.encrypt(data);
+                encryptedCache = encrypted;
+
+                result.innerHTML = `
+                    <div class="status success">✅ Data encrypted!</div>
+                    <div class="result">
+                        <strong>Encrypted Data (what server sees):</strong><br>
+                        ${JSON.stringify(encrypted, null, 2)}
+                    </div>
+                    <div class="status info">
+                        💡 Notice: The server only sees random encrypted bytes, not your actual data!
+                    </div>
+                `;
+
+                document.getElementById('decrypt-btn').disabled = false;
+
+            } catch (error) {
+                result.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+            }
+        };
+
+        window.decryptData = async function() {
+            const result = document.getElementById('decrypted-result');
+
+            if (!encryptedCache) {
+                result.innerHTML = '<div class="status error">❌ No encrypted data. Encrypt something first!</div>';
+                return;
+            }
+
+            try {
+                result.innerHTML = '<div class="status info">⏳ Decrypting...</div>';
+
+                const decrypted = await encryptionService.decrypt(
+                    encryptedCache.encryptedData,
+                    encryptedCache.iv
+                );
+
+                result.innerHTML = `
+                    <div class="status success">✅ Data decrypted!</div>
+                    <div class="result">
+                        <strong>Decrypted Data (original data restored):</strong><br>
+                        ${JSON.stringify(decrypted, null, 2)}
+                    </div>
+                    <div class="status success">
+                        ✅ Your data was successfully encrypted, stored, and decrypted!
+                    </div>
+                `;
+
+            } catch (error) {
+                result.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+            }
+        };
+
+        window.testSyncEncryption = async function() {
+            const result = document.getElementById('sync-result');
+
+            try {
+                result.innerHTML = '<div class="status info">⏳ Testing sync encryption...</div>';
+
+                // Simulate a sync payload
+                const syncPayload = {
+                    jobs: [
+                        { id: '1', title: 'Software Engineer', company: 'Acme Inc' },
+                        { id: '2', title: 'Senior Developer', company: 'Tech Corp' }
+                    ],
+                    resumes: [
+                        { id: 'r1', name: 'Main Resume', data: { basics: { name: 'John Doe' } } }
+                    ],
+                    settings: {
+                        theme: 'dark',
+                        notifications: true
+                    }
+                };
+
+                // Encrypt entire payload
+                const encrypted = await encryptionService.encryptSyncPayload(syncPayload);
+                console.log('Encrypted payload:', encrypted);
+
+                // Decrypt entire payload
+                const decrypted = await encryptionService.decryptSyncPayload(encrypted);
+                console.log('Decrypted payload:', decrypted);
+
+                const match = JSON.stringify(syncPayload) === JSON.stringify(decrypted);
+
+                result.innerHTML = `
+                    <div class="status ${match ? 'success' : 'error'}">
+                        ${match ? '✅' : '❌'} Sync encryption test ${match ? 'PASSED' : 'FAILED'}!
+                    </div>
+                    <div class="result">
+                        <strong>Original Sync Data:</strong><br>
+                        ${JSON.stringify(syncPayload, null, 2)}
+                    </div>
+                    <div class="result">
+                        <strong>Encrypted (what server stores):</strong><br>
+                        ${JSON.stringify(encrypted, null, 2)}
+                    </div>
+                    <div class="result">
+                        <strong>Decrypted (restored):</strong><br>
+                        ${JSON.stringify(decrypted, null, 2)}
+                    </div>
+                `;
+
+            } catch (error) {
+                result.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+            }
+        };
+
+        // Make encryptionService globally available for console testing
+        window.encryptionService = encryptionService;
+    </script>
+</body>
+</html>

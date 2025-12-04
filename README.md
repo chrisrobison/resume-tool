@@ -1,6 +1,6 @@
-# 🎯 Job-Centric Career Management Tool
+# 🎯 NextRole - Find Your Next Role
 
-**A comprehensive job search workflow system that puts jobs first!** This tool has evolved from a simple resume editor into a complete career management platform with **professional modular architecture** and advanced AI integration.
+**A comprehensive career management platform that puts jobs first!** NextRole has evolved from a simple resume editor into a complete job search workflow system with **professional modular architecture** and advanced AI integration.
 
 ## 🎉 **Latest: Major Architecture Update (January 2025)**
 
@@ -14,7 +14,7 @@
 **Production Interface:** `app.html` (modular architecture)  
 **Legacy Interface:** `jobs.html` (maintained for compatibility)
 
-![Job-Centric Career Management](https://via.placeholder.com/800x450.png?text=Job-Centric+Career+Management+Tool)
+![NextRole - Find Your Next Role](https://via.placeholder.com/800x450.png?text=NextRole+-+Find+Your+Next+Role)
 
 ## 🌟 **What Makes This Different?**
 
@@ -208,7 +208,7 @@ No compilation, bundling, or build steps required!
 
 ### **Project Structure**
 ```
-job-tool/
+nextrole/
 ├── jobs.html              # 🏠 Main application
 ├── components/             # 🧩 Web Components
 ├── js/                     # 📁 Core modules
@@ -302,7 +302,7 @@ This project is intended for educational and personal use. See LICENSE file for 
 
 ### **Get Started:**
 1. **Production Experience**: Open `app.html` for the full modular architecture
-2. **Live Demo**: Visit https://cdr2.com/job-tool/app.html
+2. **Live Demo**: Visit https://cdr2.com/nextrole/app.html
 3. **Legacy Support**: Use `jobs.html` for compatibility if needed
 
 ### **Key Benefits:**

@@ -1,146 +1,109 @@
-// bridge-script.js - Extension Content Script Bridge
-// Injects bridge code into page context where it can access both chrome.storage and window objects
+// bridge-script.js - Extension Content Script Bridge (CSP-Safe Version)
+// Syncs jobs from chrome.storage to web app's IndexedDB without inline scripts
 
 (function() {
     'use strict';
 
-    console.log('JHM Extension: Bridge content script loaded');
+    console.log('JHM Bridge: Content script loaded');
 
-    // Inject the actual bridge code into the page context
-    const script = document.createElement('script');
-    script.textContent = `
-        (async function() {
-            console.log('JHM Bridge: Injected into page context');
-
-            // Wait for IndexedDB service
-            let attempts = 0;
-            while (!window.indexedDBService && attempts < 50) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                attempts++;
-            }
-
-            if (!window.indexedDBService) {
-                console.log('JHM Bridge: IndexedDB service not available');
-                return;
-            }
-
-            console.log('JHM Bridge: IndexedDB service found');
-
-            // Request sync from extension content script
-            function requestSync() {
-                window.postMessage({ type: 'JHM_REQUEST_SYNC' }, '*');
-            }
-
-            // Listen for sync data from content script
-            window.addEventListener('message', async (event) => {
-                if (event.source !== window) return;
-
-                if (event.data.type === 'JHM_SYNC_DATA') {
-                    const extensionJobs = event.data.jobs || [];
-
-                    if (extensionJobs.length === 0) {
-                        console.log('JHM Bridge: No jobs in extension');
-                        return;
-                    }
-
-                    console.log(\`JHM Bridge: Received \${extensionJobs.length} jobs from extension\`);
-
-                    // Get existing jobs
-                    const idbJobs = await window.indexedDBService.getJobs();
-
-                    // Find new jobs
-                    const newJobs = extensionJobs.filter(extJob => {
-                        return !idbJobs.some(idbJob =>
-                            idbJob.id === extJob.id ||
-                            (extJob.url && idbJob.url === extJob.url) ||
-                            (idbJob.title === extJob.title && idbJob.company === extJob.company)
-                        );
-                    });
-
-                    if (newJobs.length === 0) {
-                        console.log('JHM Bridge: No new jobs to sync');
-                        return;
-                    }
-
-                    console.log(\`JHM Bridge: Syncing \${newJobs.length} new jobs\`);
-
-                    // Save new jobs
-                    let synced = 0;
-                    for (const job of newJobs) {
-                        try {
-                            job.source = 'extension';
-                            job.syncedAt = new Date().toISOString();
-                            await window.indexedDBService.saveJob(job);
-                            synced++;
-                        } catch (error) {
-                            console.error('JHM Bridge: Failed to sync job:', error);
-                        }
-                    }
-
-                    console.log(\`JHM Bridge: Synced \${synced} jobs\`);
-
-                    // Trigger refresh
-                    if (window.globalStore && synced > 0) {
-                        window.dispatchEvent(new CustomEvent('jhm-data-updated', {
-                            detail: { source: 'extension-sync', count: synced }
-                        }));
-                    }
-                }
-            });
-
-            // Initial sync
-            requestSync();
-
-            // Periodic sync every 30 seconds
-            setInterval(requestSync, 30000);
-
-            // Add marker
-            const marker = document.createElement('div');
-            marker.setAttribute('data-jhm-bridge', 'active');
-            marker.style.display = 'none';
-            document.documentElement.appendChild(marker);
-
-            console.log('JHM Bridge: Initialized');
-        })();
-    `;
-
-    (document.head || document.documentElement).appendChild(script);
-    script.remove(); // Clean up
-
-    // Listen for sync requests from page context
+    // Listen for messages from page (web app)
     window.addEventListener('message', async (event) => {
+        // Only process messages from same window
         if (event.source !== window) return;
 
-        if (event.data.type === 'JHM_REQUEST_SYNC') {
-            try {
-                // Get jobs from extension storage
-                const result = await chrome.storage.local.get(['jobs']);
+        const message = event.data;
 
-                // Send back to page context
+        switch (message.type) {
+            case 'JHM_EXTENSION_PING':
+                // Respond to ping
+                console.log('JHM Bridge: Received ping, sending pong');
                 window.postMessage({
-                    type: 'JHM_SYNC_DATA',
-                    jobs: result.jobs || []
+                    type: 'JHM_EXTENSION_PONG',
+                    version: chrome.runtime.getManifest().version
                 }, '*');
-            } catch (error) {
-                console.error('JHM Bridge: Failed to get extension data:', error);
-            }
+                break;
+
+            case 'JHM_GET_JOBS':
+            case 'JHM_REQUEST_SYNC':
+                // Get jobs from extension storage and send to web app
+                console.log('JHM Bridge: Sync requested');
+                try {
+                    const result = await chrome.storage.local.get(['jobs']);
+                    const jobs = result.jobs || [];
+                    console.log(`JHM Bridge: Sending ${jobs.length} jobs to web app`);
+
+                    window.postMessage({
+                        type: 'JHM_EXTENSION_DATA',
+                        jobs: jobs
+                    }, '*');
+                } catch (error) {
+                    console.error('JHM Bridge: Failed to get jobs:', error);
+                }
+                break;
         }
     });
 
-    // Listen for storage changes
+    // Listen for storage changes in extension
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local' && changes.jobs) {
-            console.log('JHM Bridge: Storage changed, triggering sync');
-            // Trigger sync by sending current data
+            console.log('JHM Bridge: Extension storage changed, syncing...');
+
+            // Get updated jobs and notify web app
             chrome.storage.local.get(['jobs'], (result) => {
+                const jobs = result.jobs || [];
+                console.log(`JHM Bridge: Sending ${jobs.length} updated jobs to web app`);
+
                 window.postMessage({
-                    type: 'JHM_SYNC_DATA',
-                    jobs: result.jobs || []
+                    type: 'JHM_EXTENSION_DATA',
+                    jobs: jobs
                 }, '*');
             });
         }
     });
 
-    console.log('JHM Extension: Bridge ready');
+    // Add extension marker for detection
+    const marker = document.createElement('div');
+    marker.setAttribute('data-jhm-bridge', 'active');
+    marker.setAttribute('data-jhm-bridge-version', '2.0');
+    marker.style.display = 'none';
+    document.documentElement.appendChild(marker);
 
+    // Initial sync on load
+    setTimeout(async () => {
+        try {
+            const result = await chrome.storage.local.get(['jobs']);
+            const jobs = result.jobs || [];
+            console.log(`JHM Bridge: Initial sync - ${jobs.length} jobs available`);
+
+            if (jobs.length > 0) {
+                window.postMessage({
+                    type: 'JHM_EXTENSION_DATA',
+                    jobs: jobs
+                }, '*');
+            }
+        } catch (error) {
+            console.error('JHM Bridge: Initial sync failed:', error);
+        }
+    }, 1000);
+
+    // Periodic sync every 30 seconds
+    setInterval(async () => {
+        try {
+            const result = await chrome.storage.local.get(['jobs']);
+            const jobs = result.jobs || [];
+
+            // Only send if there are jobs
+            if (jobs.length > 0) {
+                console.log(`JHM Bridge: Periodic sync - ${jobs.length} jobs`);
+                window.postMessage({
+                    type: 'JHM_EXTENSION_DATA',
+                    jobs: jobs
+                }, '*');
+            }
+        } catch (error) {
+            console.error('JHM Bridge: Periodic sync failed:', error);
+        }
+    }, 30000);
+
+    console.log('JHM Bridge: Ready (CSP-safe mode)');
 })();

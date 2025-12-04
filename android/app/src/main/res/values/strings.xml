@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Job Hunt Manager</string>
+    <string name="title_activity_main">Job Hunt Manager</string>
+    <string name="package_name">com.jobhuntmanager.app</string>
+    <string name="custom_url_scheme">com.jobhuntmanager.app</string>
+</resources>

@@ -72,18 +72,24 @@ export class ComponentBase extends HTMLElement {
      * Wait for dependencies to be ready (app manager, global store)
      */
     async waitForDependencies() {
+        // If component doesn't need dependencies, skip the check
+        if (this._skipDependencyCheck) {
+            console.log(`ComponentBase: ${this._componentName} skipping dependency check`);
+            return Promise.resolve();
+        }
+
         const maxAttempts = 50; // 5 seconds max wait
         let attempts = 0;
-        
+
         return new Promise((resolve) => {
             const checkDependencies = () => {
                 // Check for app manager
                 this._appManager = window.appManager || null;
-                
+
                 // Check for global store
                 const state = getState();
                 const storeReady = state && typeof state === 'object';
-                
+
                 if (this._appManager && storeReady) {
                     console.log(`ComponentBase: ${this._componentName} dependencies ready`);
                     resolve();
@@ -91,10 +97,10 @@ export class ComponentBase extends HTMLElement {
                 }
                 return false;
             };
-            
+
             // Check immediately
             if (checkDependencies()) return;
-            
+
             // Keep checking every 100ms
             const interval = setInterval(() => {
                 attempts++;

@@ -1,0 +1,78 @@
+# .dockerignore - Files to exclude from Docker build context
+
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Test files
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+coverage/
+
+# Build artifacts
+dist/
+build/
+.next/
+out/
+
+# Logs
+logs/
+*.log
+
+# Database files (local development)
+*.sqlite
+*.sqlite3
+*.db
+
+# Marketing site (built separately)
+marketing-site/node_modules
+marketing-site/.next
+marketing-site/out
+marketing-site/build
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Docker files
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+# Misc
+tmp/
+temp/
+.cache/

@@ -21,11 +21,16 @@ class AppManager {
         // Application state
         this.currentSection = 'jobs';
         this.currentItem = null;
-        this.data = this.loadData();
-        
+        this.data = {
+            jobs: [],
+            resumes: [],
+            letters: [],
+            ai: []
+        };
+
         // Component registry
         this.components = new Map();
-        
+
         // Bind methods
         this.init = this.init.bind(this);
         this.handleSectionSwitch = this.handleSectionSwitch.bind(this);
@@ -37,10 +42,16 @@ class AppManager {
      */
     async init() {
         console.log('AppManager: Initializing application...');
-        
+
         try {
             this.setupEventListeners();
-            await this.syncWithGlobalStore();
+
+            // Wait for GlobalStore to be ready
+            await this.waitForGlobalStore();
+
+            // Load initial data from GlobalStore
+            await this.reloadFromStore();
+
             // Initialize background data layer (IndexedDB) without blocking UI
             try {
                 const dbReady = await db.init();
@@ -49,11 +60,14 @@ class AppManager {
                     const mig = await db.migrateFromLocalStorage();
                     if (mig?.migrated) {
                         console.log('AppManager: Migrated localStorage snapshot to IndexedDB', mig.counts || {});
+                        // Reload data after migration
+                        await this.reloadFromStore();
                     }
                 }
             } catch (dbErr) {
                 console.warn('AppManager: Data service init skipped', dbErr);
             }
+
             // Listen for global store changes to sync resume components directly
             document.addEventListener('global-state-changed', async (e) => {
                 try {
@@ -85,13 +99,33 @@ class AppManager {
                     console.warn('AppManager: Error syncing resume components from global state change', err);
                 }
             });
+
             this.switchSection('jobs');
-            
+
             console.log('AppManager: Application initialized successfully');
         } catch (error) {
             console.error('AppManager: Failed to initialize application:', error);
             this.handleError(error, 'Failed to initialize application');
         }
+    }
+
+    /**
+     * Wait for GlobalStore to be ready
+     */
+    async waitForGlobalStore() {
+        return new Promise((resolve) => {
+            const checkStore = () => {
+                const state = getState();
+                if (state !== null && state !== undefined) {
+                    console.log('AppManager: GlobalStore is ready');
+                    resolve();
+                } else {
+                    console.log('AppManager: Waiting for GlobalStore...');
+                    setTimeout(checkStore, 100);
+                }
+            };
+            checkStore();
+        });
     }
 
     /**
@@ -115,19 +149,58 @@ class AppManager {
     }
 
     /**
-     * Save data to localStorage and sync with global store
+     * Reload data from global store (IndexedDB)
+     */
+    async reloadFromStore() {
+        try {
+            console.log('AppManager.reloadFromStore: Starting reload...');
+            console.log('AppManager.reloadFromStore: Current section =', this.currentSection);
+            console.log('AppManager.reloadFromStore: Current data.jobs.length =', this.data.jobs?.length || 0);
+
+            const state = getState();
+            console.log('AppManager.reloadFromStore: getState() returned:', state);
+
+            if (state) {
+                console.log('AppManager.reloadFromStore: State has jobs:', state.jobs?.length || 0);
+                console.log('AppManager.reloadFromStore: State has resumes:', state.resumes?.length || 0);
+                console.log('AppManager.reloadFromStore: State has coverLetters:', state.coverLetters?.length || 0);
+
+                // Update local data from state
+                this.data.jobs = state.jobs || [];
+                this.data.resumes = state.resumes || [];
+                this.data.letters = state.coverLetters || [];
+
+                console.log('AppManager.reloadFromStore: Updated this.data.jobs.length =', this.data.jobs.length);
+
+                // Refresh UI
+                console.log('AppManager.reloadFromStore: Calling renderItemsList()...');
+                this.renderItemsList();
+
+                console.log(`AppManager.reloadFromStore: Complete - ${this.data.jobs.length} jobs, ${this.data.resumes.length} resumes`);
+            } else {
+                console.warn('AppManager.reloadFromStore: getState() returned null/undefined');
+            }
+        } catch (error) {
+            console.error('AppManager: Failed to reload from store:', error);
+        }
+    }
+
+    /**
+     * Save data to global store (which persists to IndexedDB)
      */
     saveData() {
         try {
-            localStorage.setItem('jobHuntData', JSON.stringify(this.data));
-            
-            // Sync with global store
+            console.log('AppManager: Saving data to GlobalStore...');
+
+            // Save to global store (which will persist to IndexedDB)
             setState({
                 jobs: this.data.jobs || [],
                 resumes: this.data.resumes || [],
                 coverLetters: this.data.letters || []
             }, 'app-manager-save-sync');
-            
+
+            console.log('AppManager: Data saved successfully');
+
         } catch (error) {
             console.error('AppManager: Failed to save data:', error);
             this.handleError(error, 'Failed to save data');
@@ -187,7 +260,17 @@ class AppManager {
 
             // Modal close events
             modalManager.setupModalEventListeners();
-            
+
+            // Listen for extension sync data updates
+            window.addEventListener('jhm-data-updated', async (event) => {
+                console.log('AppManager: Received jhm-data-updated event:', event.detail);
+
+                if (event.detail?.source === 'extension-sync') {
+                    console.log('AppManager: Extension sync completed, reloading data...');
+                    await this.reloadFromStore();
+                }
+            });
+
             console.log('AppManager: Event listeners setup complete');
         } catch (error) {
             console.error('AppManager: Failed to setup event listeners:', error);
@@ -226,12 +309,22 @@ class AppManager {
      */
     renderItemsList() {
         try {
+            console.log('AppManager.renderItemsList: Starting render...');
+            console.log('AppManager.renderItemsList: Current section =', this.currentSection);
+
             const container = document.getElementById('items-list');
-            if (!container) return;
+            if (!container) {
+                console.warn('AppManager.renderItemsList: items-list container not found!');
+                return;
+            }
 
             const items = this.data[this.currentSection] || [];
+            console.log('AppManager.renderItemsList: Items to render =', items.length);
+            console.log('AppManager.renderItemsList: First few items:', items.slice(0, 3));
+
             cardRenderer.renderItemsList(container, items, this.currentSection, this.handleItemSelection);
-            
+
+            console.log('AppManager.renderItemsList: Render complete');
         } catch (error) {
             console.error('AppManager: Failed to render items list:', error);
         }
@@ -363,14 +456,17 @@ class AppManager {
 
     /**
      * Save item (create or update)
+     * @param {Object} itemData - The item data to save
+     * @param {boolean} isEdit - Whether this is an edit operation
+     * @param {boolean} skipSelection - Skip selecting the item after save (useful for imports)
      */
-    saveItem(itemData, isEdit = false) {
+    saveItem(itemData, isEdit = false, skipSelection = false) {
         try {
             if (!itemData.id) {
                 itemData.id = this.generateId();
                 itemData.dateCreated = new Date().toISOString();
             }
-            
+
             itemData.dateModified = new Date().toISOString();
 
             // Find existing item index
@@ -387,12 +483,14 @@ class AppManager {
 
             this.saveData();
             this.renderItemsList();
-            
-            // Select the saved item
-            this.handleItemSelection(itemData);
-            
+
+            // Select the saved item (unless skipped for imports)
+            if (!skipSelection) {
+                this.handleItemSelection(itemData);
+            }
+
             console.log(`AppManager: ${isEdit ? 'Updated' : 'Created'} ${this.currentSection} item:`, itemData.id);
-            
+
         } catch (error) {
             console.error('AppManager: Failed to save item:', error);
             this.handleError(error, 'Failed to save item');

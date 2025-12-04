@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Jobs in IndexedDB</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .job-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .job-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .job-company {
+            font-size: 16px;
+            color: #3498db;
+            margin-bottom: 12px;
+        }
+        .job-meta {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .job-source {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #3498db;
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        #status {
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>📊 Jobs in IndexedDB</h1>
+
+    <div id="status">Loading...</div>
+
+    <button onclick="loadJobs()">🔄 Refresh Jobs</button>
+    <button onclick="window.location.href='/app-responsive.html'">➡️ Go to Main App</button>
+
+    <div id="jobs-container"></div>
+
+    <script src="js/services/indexeddb-service.js"></script>
+
+    <script>
+        async function loadJobs() {
+            const status = document.getElementById('status');
+            const container = document.getElementById('jobs-container');
+
+            try {
+                // Initialize IndexedDB
+                await window.indexedDBService.init();
+
+                // Get all jobs
+                const jobs = await window.indexedDBService.getJobs();
+
+                status.innerHTML = `✅ Found ${jobs.length} jobs in IndexedDB`;
+                status.style.background = '#d5f4e6';
+                status.style.color = '#27ae60';
+
+                if (jobs.length === 0) {
+                    container.innerHTML = '<p style="color: #7f8c8d; padding: 40px; text-align: center;">No jobs found. Try saving a job with the extension first.</p>';
+                    return;
+                }
+
+                // Render jobs
+                container.innerHTML = '';
+                jobs.forEach(job => {
+                    const card = document.createElement('div');
+                    card.className = 'job-card';
+
+                    card.innerHTML = `
+                        <div class="job-title">${job.title || 'Unknown Title'}</div>
+                        <div class="job-company">${job.company || 'Unknown Company'}</div>
+                        <div class="job-meta">
+                            ${job.location ? `📍 ${job.location}` : ''}
+                            ${job.salary ? `💰 ${job.salary}` : ''}
+                            ${job.status ? `📌 Status: ${job.status}` : ''}
+                        </div>
+                        <div class="job-meta" style="margin-top: 8px; font-size: 12px;">
+                            ID: ${job.id || 'N/A'}<br>
+                            Created: ${job.createdAt ? new Date(job.createdAt).toLocaleString() : 'N/A'}<br>
+                            ${job.syncedAt ? `Synced: ${new Date(job.syncedAt).toLocaleString()}` : ''}
+                        </div>
+                        ${job.source ? `<span class="job-source">${job.source}</span>` : ''}
+                        ${job.url ? `<div style="margin-top: 12px;"><a href="${job.url}" target="_blank" style="color: #3498db; text-decoration: none;">🔗 View Original</a></div>` : ''}
+                    `;
+
+                    container.appendChild(card);
+                });
+
+                console.log('Jobs loaded:', jobs);
+
+            } catch (error) {
+                status.innerHTML = `❌ Error: ${error.message}`;
+                status.style.background = '#fadbd8';
+                status.style.color: '#e74c3c';
+                console.error('Error loading jobs:', error);
+            }
+        }
+
+        // Load on page load
+        window.addEventListener('load', loadJobs);
+    </script>
+</body>
+</html>

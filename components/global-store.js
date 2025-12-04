@@ -6,20 +6,23 @@ import { ComponentBase } from '../js/component-base.js';
 class GlobalStore extends ComponentBase {
     constructor() {
         super();
-        
+
         // Make this component invisible (it's a service component)
         this.style.display = 'none';
-        
+
+        // GlobalStore doesn't need to wait for dependencies - it IS the dependency
+        this._skipDependencyCheck = true;
+
         // Component-specific properties
         this._stateSubscribers = new Set();
         this._subscriberFilters = new Map();
-        
+
         // Bind public methods for external access
         this.setState = this.setState.bind(this);
         this.getState = this.getState.bind(this);
         this.subscribe = this.subscribe.bind(this);
         this.unsubscribe = this.unsubscribe.bind(this);
-        
+
         // Bind helper methods
         this.setCurrentJob = this.setCurrentJob.bind(this);
         this.setCurrentResume = this.setCurrentResume.bind(this);
@@ -41,18 +44,44 @@ class GlobalStore extends ComponentBase {
      */
     async onInitialize() {
         console.log('GlobalStore: Initializing global state store');
-        
+
+        // Request persistent storage to protect data from eviction
+        await this.requestPersistentStorage();
+
         // Initialize the default state structure
         await this.initializeState();
-        
+
         // Make store globally accessible for backward compatibility
         window.globalStore = this;
-        
+
         // Emit initialization event
         this.emitEvent('global-store-ready', {
             stateKeys: Object.keys(this.getData()),
             timestamp: new Date().toISOString()
         });
+    }
+
+    /**
+     * Request persistent storage to protect data from browser eviction
+     */
+    async requestPersistentStorage() {
+        try {
+            if (navigator.storage && navigator.storage.persist) {
+                const isPersisted = await navigator.storage.persist();
+                if (isPersisted) {
+                    console.log('✅ GlobalStore: Persistent storage granted - data protected from eviction');
+                } else {
+                    console.warn('⚠️ GlobalStore: Persistent storage denied - data may be evicted under storage pressure');
+                }
+                return isPersisted;
+            } else {
+                console.log('ℹ️ GlobalStore: Persistent storage API not available in this browser');
+                return false;
+            }
+        } catch (error) {
+            console.error('GlobalStore: Failed to request persistent storage:', error);
+            return false;
+        }
     }
 
     /**

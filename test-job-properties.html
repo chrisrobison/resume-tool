@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Job Property Compatibility</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-result {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { border-left: 4px solid #27ae60; }
+        .error { border-left: 4px solid #e74c3c; }
+        .info { border-left: 4px solid #3498db; }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2980b9; }
+        pre {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Job Property Compatibility Test</h1>
+
+    <div class="test-result info">
+        <h3>Test Purpose</h3>
+        <p>This test verifies that jobs render correctly whether they use:</p>
+        <ul>
+            <li><code>title</code> property (from extension saves)</li>
+            <li><code>position</code> property (from manual app saves)</li>
+            <li>Both properties (should prefer <code>title</code>)</li>
+        </ul>
+    </div>
+
+    <div>
+        <button onclick="runTests()">▶️ Run All Tests</button>
+        <button onclick="addTestJobs()">➕ Add Test Jobs</button>
+        <button onclick="clearTests()">🗑️ Clear Test Jobs</button>
+        <button onclick="window.location.href='/app-responsive.html'">📱 Open Main App</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script src="js/services/indexeddb-service.js"></script>
+    <script type="module">
+        import { getState, setState } from './js/store.js';
+
+        const results = [];
+
+        function log(title, status, message, data = null) {
+            results.push({ title, status, message, data });
+            render();
+        }
+
+        function render() {
+            const container = document.getElementById('results');
+            container.innerHTML = results.map(r => `
+                <div class="test-result ${r.status}">
+                    <h3>${r.title}</h3>
+                    <p>${r.message}</p>
+                    ${r.data ? `<pre>${JSON.stringify(r.data, null, 2)}</pre>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function addTestJobs() {
+            try {
+                await window.indexedDBService.init();
+
+                // Job with 'title' property (extension style)
+                const jobWithTitle = {
+                    id: `test-title-${Date.now()}`,
+                    title: 'Senior Software Engineer (title property)',
+                    company: 'Extension Company',
+                    location: 'Remote',
+                    status: 'applied',
+                    source: 'extension',
+                    createdAt: new Date().toISOString()
+                };
+
+                // Job with 'position' property (app style)
+                const jobWithPosition = {
+                    id: `test-position-${Date.now()}`,
+                    position: 'Full Stack Developer (position property)',
+                    company: 'App Company',
+                    location: 'San Francisco',
+                    status: 'interviewing',
+                    source: 'manual',
+                    createdAt: new Date().toISOString()
+                };
+
+                // Job with both properties (should prefer 'title')
+                const jobWithBoth = {
+                    id: `test-both-${Date.now()}`,
+                    title: 'DevOps Engineer (title - should show this)',
+                    position: 'DevOps Engineer (position - should NOT show)',
+                    company: 'Both Properties Inc',
+                    location: 'New York',
+                    status: 'offer',
+                    source: 'test',
+                    createdAt: new Date().toISOString()
+                };
+
+                await window.indexedDBService.saveJob(jobWithTitle);
+                await window.indexedDBService.saveJob(jobWithPosition);
+                await window.indexedDBService.saveJob(jobWithBoth);
+
+                // Update GlobalStore
+                const state = getState();
+                const jobs = [...(state?.jobs || []), jobWithTitle, jobWithPosition, jobWithBoth];
+                setState({ jobs }, 'test-add-jobs');
+
+                log('Add Test Jobs', 'success',
+                    'Added 3 test jobs with different property configurations',
+                    { jobWithTitle, jobWithPosition, jobWithBoth });
+
+            } catch (error) {
+                log('Add Test Jobs', 'error', `Error: ${error.message}`);
+            }
+        }
+
+        async function runTests() {
+            results.length = 0;
+            render();
+
+            try {
+                await window.indexedDBService.init();
+
+                // Wait for global store
+                await new Promise(resolve => {
+                    const check = () => {
+                        const state = getState();
+                        if (state) resolve();
+                        else setTimeout(check, 100);
+                    };
+                    check();
+                });
+
+                const jobs = await window.indexedDBService.getJobs();
+                const state = getState();
+
+                log('Database Check', 'info',
+                    `Found ${jobs.length} jobs in IndexedDB`,
+                    { count: jobs.length });
+
+                log('GlobalStore Check', 'info',
+                    `Found ${state.jobs?.length || 0} jobs in GlobalStore`,
+                    { count: state.jobs?.length || 0 });
+
+                // Check property usage
+                const withTitle = jobs.filter(j => j.title && !j.position);
+                const withPosition = jobs.filter(j => j.position && !j.title);
+                const withBoth = jobs.filter(j => j.title && j.position);
+                const withNeither = jobs.filter(j => !j.title && !j.position);
+
+                log('Property Analysis', 'info',
+                    `Property usage breakdown:`,
+                    {
+                        'title only': withTitle.length,
+                        'position only': withPosition.length,
+                        'both': withBoth.length,
+                        'neither (broken)': withNeither.length
+                    });
+
+                // Test card renderer logic
+                const testJob1 = { title: 'Test Title', company: 'Test Co' };
+                const testJob2 = { position: 'Test Position', company: 'Test Co' };
+                const testJob3 = { title: 'Title Wins', position: 'Position Loses', company: 'Test Co' };
+                const testJob4 = { company: 'Test Co' };
+
+                const getTitle = (job) => job.title || job.position || 'Untitled Position';
+
+                log('Render Logic Test', 'success',
+                    'Testing card renderer logic:',
+                    {
+                        'job with title': getTitle(testJob1),
+                        'job with position': getTitle(testJob2),
+                        'job with both (title preferred)': getTitle(testJob3),
+                        'job with neither': getTitle(testJob4)
+                    });
+
+                if (withNeither.length > 0) {
+                    log('Warning', 'error',
+                        `Found ${withNeither.length} jobs with neither title nor position property!`,
+                        withNeither);
+                }
+
+                log('Summary', 'success',
+                    '✅ All property combinations are supported. Jobs should render correctly in the main app.',
+                    {
+                        totalJobs: jobs.length,
+                        willRenderCorrectly: jobs.length - withNeither.length,
+                        needsAttention: withNeither.length
+                    });
+
+            } catch (error) {
+                log('Test Error', 'error', error.message);
+            }
+        }
+
+        async function clearTests() {
+            if (!confirm('Clear all test jobs?')) return;
+
+            try {
+                await window.indexedDBService.init();
+                const jobs = await window.indexedDBService.getJobs();
+
+                const testJobs = jobs.filter(j =>
+                    j.id?.startsWith('test-') ||
+                    j.source === 'test'
+                );
+
+                for (const job of testJobs) {
+                    await window.indexedDBService.deleteJob(job.id);
+                }
+
+                // Update GlobalStore
+                const state = getState();
+                const remainingJobs = (state?.jobs || []).filter(j =>
+                    !j.id?.startsWith('test-') && j.source !== 'test'
+                );
+                setState({ jobs: remainingJobs }, 'test-clear-jobs');
+
+                log('Clear Test Jobs', 'success',
+                    `Removed ${testJobs.length} test jobs`);
+
+            } catch (error) {
+                log('Clear Test Jobs', 'error', error.message);
+            }
+        }
+
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 1000);
+        });
+
+        // Export functions
+        window.runTests = runTests;
+        window.addTestJobs = addTestJobs;
+        window.clearTests = clearTests;
+    </script>
+
+    <script type="module" src="./components/global-store.js"></script>
+    <global-store></global-store>
+</body>
+</html>

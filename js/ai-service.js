@@ -15,8 +15,8 @@ class AIService {
 
     initWorker() {
         try {
-            // Use absolute path from job-tool root
-            this.worker = new Worker(`/job-tool/workers/ai-worker.js?v=1`);
+            // Use absolute path from root
+            this.worker = new Worker(`/workers/ai-worker.js?v=1`);
             
             this.worker.onmessage = (event) => {
                 this.handleWorkerMessage(event.data);

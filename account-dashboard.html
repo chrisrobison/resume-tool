@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Dashboard - NextRole</title>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/subscription-widget.css">
+    <link rel="stylesheet" href="css/billing-history.css">
+    <link rel="stylesheet" href="css/upgrade-prompt.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 36px;
+            color: #212529;
+            margin-bottom: 12px;
+        }
+
+        .dashboard-header p {
+            font-size: 18px;
+            color: #6c757d;
+        }
+
+        .dashboard-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #6c757d;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: #f8f9fa;
+            color: #212529;
+        }
+
+        .tab-btn.active {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .demo-actions {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-actions h3 {
+            margin-bottom: 16px;
+            color: #212529;
+        }
+
+        .demo-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .demo-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #0d6efd;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .demo-btn:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+        }
+
+        .demo-btn.secondary {
+            background: #6c757d;
+        }
+
+        .demo-btn.secondary:hover {
+            background: #5c636a;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-header h1 {
+                font-size: 28px;
+            }
+
+            .dashboard-tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>💼 Account Dashboard</h1>
+            <p>Manage your subscription, billing, and account settings</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="dashboard-tabs">
+            <button class="tab-btn active" data-tab="subscription">
+                ⭐ Subscription
+            </button>
+            <button class="tab-btn" data-tab="billing">
+                💳 Billing History
+            </button>
+            <button class="tab-btn" data-tab="demo">
+                🧪 Demo Actions
+            </button>
+        </div>
+
+        <!-- Subscription Tab -->
+        <div id="tab-subscription" class="tab-content active">
+            <div id="subscription-widget"></div>
+        </div>
+
+        <!-- Billing Tab -->
+        <div id="tab-billing" class="tab-content">
+            <div id="billing-history"></div>
+        </div>
+
+        <!-- Demo Tab -->
+        <div id="tab-demo" class="tab-content">
+            <div class="demo-actions">
+                <h3>🧪 Test Tier Enforcement</h3>
+                <p style="margin-bottom: 16px; color: #6c757d;">
+                    Click these buttons to test the tier enforcement and upgrade prompts.
+                </p>
+                <div class="demo-actions-grid">
+                    <button class="demo-btn" onclick="testAddJob()">
+                        Try Add Job
+                    </button>
+                    <button class="demo-btn" onclick="testAddResume()">
+                        Try Add Resume
+                    </button>
+                    <button class="demo-btn secondary" onclick="testCloudSync()">
+                        Try Cloud Sync
+                    </button>
+                    <button class="demo-btn secondary" onclick="testEncryption()">
+                        Try Encryption
+                    </button>
+                    <button class="demo-btn secondary" onclick="testAI()">
+                        Try AI Assistant
+                    </button>
+                    <button class="demo-btn secondary" onclick="testAPI()">
+                        Try API Access
+                    </button>
+                </div>
+            </div>
+
+            <div class="demo-actions">
+                <h3>🔄 Component Actions</h3>
+                <div class="demo-actions-grid">
+                    <button class="demo-btn" onclick="refreshAll()">
+                        🔄 Refresh All
+                    </button>
+                    <button class="demo-btn secondary" onclick="showCurrentTier()">
+                        📊 Show Current Tier
+                    </button>
+                    <button class="demo-btn secondary" onclick="showUsageStats()">
+                        📈 Show Usage Stats
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>NextRole • Account Dashboard</p>
+        <p style="margin-top: 8px; font-size: 14px;">
+            <a href="index.html" style="color: #0d6efd; text-decoration: none;">← Back to App</a>
+        </p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/components/subscription-widget.js"></script>
+    <script src="js/components/billing-history.js"></script>
+    <script src="js/components/tier-enforcement.js"></script>
+    <script src="js/monetization-ui.js"></script>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.getAttribute('data-tab');
+
+                // Update active tab button
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Update active tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`tab-${tab}`).classList.add('active');
+            });
+        });
+
+        // Demo functions
+        async function testAddJob() {
+            const allowed = await window.tierEnforcement.enforceLimit('addJob');
+            if (allowed) {
+                alert('✅ Job added successfully!');
+                window.tierEnforcement.updateUsage('jobs', 1);
+                refreshAll();
+            }
+        }
+
+        async function testAddResume() {
+            const allowed = await window.tierEnforcement.enforceLimit('addResume');
+            if (allowed) {
+                alert('✅ Resume added successfully!');
+                window.tierEnforcement.updateUsage('resumes', 1);
+                refreshAll();
+            }
+        }
+
+        async function testCloudSync() {
+            const allowed = await window.tierEnforcement.enforceLimit('cloudSync');
+            if (allowed) {
+                alert('✅ Cloud sync enabled!');
+            }
+        }
+
+        async function testEncryption() {
+            const allowed = await window.tierEnforcement.enforceLimit('encryption');
+            if (allowed) {
+                alert('✅ Encryption enabled!');
+            }
+        }
+
+        async function testAI() {
+            const allowed = await window.tierEnforcement.enforceLimit('aiAssistant');
+            if (allowed) {
+                alert('✅ AI Assistant enabled!');
+            }
+        }
+
+        async function testAPI() {
+            const allowed = await window.tierEnforcement.enforceLimit('apiAccess');
+            if (allowed) {
+                alert('✅ API access enabled!');
+            }
+        }
+
+        async function refreshAll() {
+            await window.monetizationUI.refreshAll();
+            alert('✅ All components refreshed!');
+        }
+
+        function showCurrentTier() {
+            const tier = window.monetizationUI.getCurrentTier();
+            alert(`Current tier: ${tier.toUpperCase()}`);
+        }
+
+        function showUsageStats() {
+            const stats = window.monetizationUI.getUsageStats();
+            if (stats) {
+                alert(`Usage Stats:\n\nJobs: ${stats.jobs_count} / ${stats.jobs_limit || '∞'}\nResumes: ${stats.resumes_count} / ${stats.resumes_limit || '∞'}`);
+            } else {
+                alert('Usage stats not available');
+            }
+        }
+
+        // Listen for monetization UI ready event
+        window.addEventListener('monetization-ui-ready', () => {
+            console.log('✅ Monetization UI is ready!');
+        });
+
+        // Handle Stripe redirect (check for success/cancel in URL)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success')) {
+            alert('✅ Subscription successful! Thank you for upgrading.');
+            window.monetizationUI.refreshAll();
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (urlParams.get('canceled')) {
+            alert('ℹ️ Subscription canceled. You can upgrade anytime.');
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
+</body>
+</html>

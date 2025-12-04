@@ -1,7 +1,7 @@
 {
-  "name": "job-hunt-manager",
+  "name": "nextrole",
   "version": "2.0.0",
-  "description": "Professional job-centric career management tool with modular architecture",
+  "description": "NextRole - Find Your Next Role. Professional career management platform with subscriptions.",
   "main": "app.html",
   "scripts": {
     "test": "cypress run",
@@ -22,7 +22,13 @@
     "pretest": "npm run serve:bg && sleep 2",
     "posttest": "bash scripts/stop-server.sh || true",
     "clean:reports": "rm -rf cypress/reports cypress/screenshots cypress/videos",
-    "test:verify": "echo 'Run: npm run serve:bg && npm run test:open' to verify tests manually"
+    "test:verify": "echo 'Run: npm run serve:bg && npm run test:open' to verify tests manually",
+    "cap:build": "bash scripts/build-capacitor.sh",
+    "cap:sync": "npm run cap:build && npx cap sync",
+    "cap:ios": "npx cap open ios",
+    "cap:android": "npx cap open android",
+    "cap:run:ios": "npm run cap:sync && npx cap run ios",
+    "cap:run:android": "npm run cap:sync && npx cap run android"
   },
   "devDependencies": {
     "cypress": "^13.6.2",
@@ -39,11 +45,11 @@
     "web-components",
     "modular-architecture"
   ],
-  "author": "Job Hunt Manager Team",
+  "author": "NextRole Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chrisrobison/job-tool.git"
+    "url": "https://github.com/chrisrobison/nextrole.git"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -61,5 +67,27 @@
     "pageLoadTimeout": 30000,
     "watchForFileChanges": false,
     "chromeWebSecurity": false
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/ios": "^7.4.4",
+    "puppeteer": "^24.31.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "mysql2": "^3.6.5",
+    "stripe": "^14.8.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-github2": "^0.1.12",
+    "passport-linkedin-oauth2": "^2.0.0",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.7"
   }
 }

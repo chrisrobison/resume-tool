@@ -675,11 +675,27 @@ async function fetchResumeFromURL(url) {
 async function addImportedJob(jobData) {
     try {
         const app = window.appManager;
-        if (app && typeof app.saveItem === 'function') {
-            const prev = app.currentSection;
-            app.currentSection = 'jobs';
-            app.saveItem({ ...jobData }, false);
-            app.currentSection = prev;
+        if (app && app.data) {
+            // Ensure job has an ID and timestamps
+            if (!jobData.id) {
+                jobData.id = app.generateId();
+            }
+            if (!jobData.dateCreated) {
+                jobData.dateCreated = new Date().toISOString();
+            }
+            jobData.dateModified = new Date().toISOString();
+
+            // Add directly to data array without switching sections
+            app.data.jobs.push(jobData);
+
+            // Save to GlobalStore
+            app.saveData();
+
+            // If currently on jobs section, refresh the list
+            if (app.currentSection === 'jobs') {
+                app.renderItemsList();
+            }
+
             console.log('ImportExportManager: Job added via app manager');
         } else {
             console.log('ImportExportManager: App manager not available; job not persisted');
@@ -693,8 +709,38 @@ async function addImportedJob(jobData) {
  * Add imported resume to data
  */
 async function addImportedResume(name, resumeData) {
-    // TODO: Integrate with app-manager to add resume
-    console.log('ImportExportManager: Adding imported resume:', name, resumeData);
+    try {
+        const app = window.appManager;
+        if (app && app.data) {
+            // Create resume object in the expected format
+            const resume = {
+                id: app.generateId(),
+                name: name,
+                content: resumeData, // Store the resume data
+                data: resumeData, // Also store as data for compatibility
+                dateCreated: new Date().toISOString(),
+                dateModified: new Date().toISOString()
+            };
+
+            // Add directly to data array without switching sections
+            app.data.resumes.push(resume);
+
+            // Save to GlobalStore
+            app.saveData();
+
+            // If currently on resumes section, refresh the list
+            if (app.currentSection === 'resumes') {
+                app.renderItemsList();
+            }
+
+            console.log('ImportExportManager: Resume added via app manager:', name);
+        } else {
+            console.log('ImportExportManager: App manager not available; resume not persisted');
+        }
+    } catch (e) {
+        console.error('ImportExportManager: Failed to add imported resume:', e);
+        throw e;
+    }
 }
 
 /**

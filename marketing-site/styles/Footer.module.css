@@ -1,0 +1,76 @@
+/* Footer Component Styles */
+.footer {
+  background: #2c3e50;
+  color: white;
+  padding: 60px 20px 30px;
+  margin-top: 80px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.footerColumn h3 {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  color: #3498db;
+}
+
+.footerColumn a {
+  display: block;
+  color: #bdc3c7;
+  margin-bottom: 10px;
+  transition: color 0.2s;
+}
+
+.footerColumn a:hover {
+  color: white;
+}
+
+.footerBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 30px;
+  border-top: 1px solid #34495e;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.copyright {
+  color: #95a5a6;
+  font-size: 0.9rem;
+}
+
+.social {
+  display: flex;
+  gap: 20px;
+}
+
+.social a {
+  color: #95a5a6;
+  transition: color 0.2s;
+}
+
+.social a:hover {
+  color: #3498db;
+}
+
+@media (max-width: 768px) {
+  .footerGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .footerBottom {
+    flex-direction: column;
+    text-align: center;
+  }
+}

@@ -102,14 +102,15 @@ function getCardData(item, section) {
 
     switch (section) {
         case 'jobs':
-            title = item.position || 'Untitled Position';
+            // Support both 'title' (from extension) and 'position' (legacy)
+            title = item.title || item.position || 'Untitled Position';
             subtitle = item.company || 'Unknown Company';
             meta = item.location || 'No location';
-            
+
             if (item.status) {
                 status = `<span class="status-badge status-${item.status}">${item.status}</span>`;
             }
-            
+
             // Add extra info for jobs
             if (item.dateApplied) {
                 extras.push(`Applied: ${new Date(item.dateApplied).toLocaleDateString()}`);

@@ -20,8 +20,8 @@ class DataService {
         this.dbVersion = options.dbVersion || DEFAULT_DB_VERSION;
 
         try {
-            // Use absolute path from job-tool root
-            this.worker = new Worker(`/job-tool/workers/data-worker.js?v=1`);
+            // Use absolute path from root
+            this.worker = new Worker(`/workers/data-worker.js?v=1`);
         } catch (e) {
             console.warn('DataService: Worker not available, skipping IndexedDB init.', e);
             return Promise.resolve(false);

@@ -1,0 +1,82 @@
+{
+  "name": "NextRole",
+  "short_name": "NextRole",
+  "description": "NextRole - Find Your Next Role. Professional career management platform with AI-powered resume optimization and job tracking.",
+  "start_url": "/app-responsive.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3498db",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "extension/icons/icon16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "extension/icons/icon32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "extension/icons/icon48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "extension/icons/icon128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "screenshots/mobile.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Job",
+      "short_name": "New Job",
+      "description": "Quickly add a new job application",
+      "url": "/app-responsive.html#jobs",
+      "icons": [
+        {
+          "src": "extension/icons/icon128.png",
+          "sizes": "128x128"
+        }
+      ]
+    },
+    {
+      "name": "Resumes",
+      "short_name": "Resumes",
+      "description": "Manage your resumes",
+      "url": "/app-responsive.html#resumes",
+      "icons": [
+        {
+          "src": "extension/icons/icon128.png",
+          "sizes": "128x128"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}

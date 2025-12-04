@@ -1,0 +1,87 @@
+/* Global Styles */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2c3e50;
+  --success-color: #27ae60;
+  --warning-color: #f39c12;
+  --danger-color: #e74c3c;
+  --light-gray: #f8f9fa;
+  --gray: #7f8c8d;
+  --dark-gray: #2c3e50;
+  --max-width: 1200px;
+  --border-radius: 8px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  color: var(--dark-gray);
+  background: white;
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--primary-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
+  margin-bottom: 0.5em;
+}
+
+p {
+  margin-bottom: 1em;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Utility Classes */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+.py-1 { padding: 0.5rem 0; }
+.py-2 { padding: 1rem 0; }
+.py-3 { padding: 1.5rem 0; }
+.py-4 { padding: 2rem 0; }

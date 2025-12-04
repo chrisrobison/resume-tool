@@ -1,0 +1,121 @@
+/* Header Component Styles */
+.header {
+  position: sticky;
+  top: 0;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 15px 0;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #2c3e50;
+  transition: color 0.2s;
+}
+
+.logo a:hover {
+  color: #3498db;
+}
+
+.logoIcon {
+  font-size: 1.5rem;
+}
+
+.nav {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.nav a {
+  color: #2c3e50;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav a:hover {
+  color: #3498db;
+}
+
+.actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.btnLogin {
+  color: #2c3e50;
+  font-weight: 500;
+  padding: 8px 20px;
+  transition: color 0.2s;
+}
+
+.btnLogin:hover {
+  color: #3498db;
+}
+
+.btnSignup {
+  background: #3498db;
+  color: white;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btnSignup:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+}
+
+.mobileMenuBtn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
+/* Mobile Menu */
+@media (max-width: 768px) {
+  .nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: white;
+    padding: 20px;
+    gap: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+  }
+
+  .nav.navOpen {
+    display: flex;
+  }
+
+  .actions {
+    display: none;
+  }
+
+  .mobileMenuBtn {
+    display: block;
+  }
+}

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Job Rendering Fix</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+        .status.error {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+        .status.info {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        pre {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Test Job Rendering Fix</h1>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Actions</h2>
+        <button onclick="runTests()">🔄 Run All Tests</button>
+        <button onclick="addTestJob()">➕ Add Test Job</button>
+        <button onclick="viewInApp()">📱 Open Main App</button>
+        <button onclick="clearAllData()">🗑️ Clear All Data</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Data Dump</h2>
+        <div id="data-dump"></div>
+    </div>
+
+    <!-- Load required services -->
+    <script src="js/services/indexeddb-service.js"></script>
+    <script type="module">
+        import { getState, setState } from './js/store.js';
+
+        window.getState = getState;
+        window.setState = setState;
+
+        let testResults = [];
+
+        function logResult(test, passed, message, data = null) {
+            const result = {
+                test,
+                passed,
+                message,
+                data,
+                timestamp: new Date().toISOString()
+            };
+            testResults.push(result);
+            updateUI();
+        }
+
+        function updateUI() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = testResults.map(r => `
+                <div class="status ${r.passed ? 'success' : 'error'}">
+                    <strong>${r.test}</strong>: ${r.message}
+                    ${r.data ? `<pre>${JSON.stringify(r.data, null, 2)}</pre>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function test1_IndexedDBHasJobs() {
+            try {
+                await window.indexedDBService.init();
+                const jobs = await window.indexedDBService.getJobs();
+                logResult('Test 1: IndexedDB', jobs.length > 0,
+                    `Found ${jobs.length} jobs in IndexedDB`,
+                    jobs.slice(0, 2));
+                return jobs.length > 0;
+            } catch (error) {
+                logResult('Test 1: IndexedDB', false, `Error: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function test2_GlobalStoreLoadsJobs() {
+            return new Promise((resolve) => {
+                // Wait for global store
+                const checkStore = () => {
+                    const state = window.getState();
+                    if (state !== null && state !== undefined) {
+                        const jobs = state.jobs || [];
+                        logResult('Test 2: GlobalStore', jobs.length > 0,
+                            `GlobalStore has ${jobs.length} jobs`,
+                            jobs.slice(0, 2));
+                        resolve(jobs.length > 0);
+                    } else {
+                        setTimeout(checkStore, 100);
+                    }
+                };
+                setTimeout(checkStore, 500); // Give store time to initialize
+            });
+        }
+
+        async function test3_AppManagerWillLoadJobs() {
+            const state = window.getState();
+            const jobs = state?.jobs || [];
+
+            logResult('Test 3: AppManager Data Source', jobs.length > 0,
+                `AppManager will load ${jobs.length} jobs from GlobalStore`,
+                { source: 'GlobalStore', jobCount: jobs.length });
+
+            return jobs.length > 0;
+        }
+
+        async function runTests() {
+            testResults = [];
+            updateUI();
+
+            const test1 = await test1_IndexedDBHasJobs();
+            const test2 = await test2_GlobalStoreLoadsJobs();
+            const test3 = await test3_AppManagerWillLoadJobs();
+
+            if (test1 && test2 && test3) {
+                logResult('Summary', true, '✅ All tests passed! Jobs should render correctly.');
+            } else {
+                logResult('Summary', false, '❌ Some tests failed. Check the results above.');
+            }
+
+            // Dump current data
+            await dumpData();
+        }
+
+        async function dumpData() {
+            const dataDumpDiv = document.getElementById('data-dump');
+
+            try {
+                await window.indexedDBService.init();
+                const jobs = await window.indexedDBService.getJobs();
+                const state = window.getState();
+
+                dataDumpDiv.innerHTML = `
+                    <h3>IndexedDB Jobs (${jobs.length})</h3>
+                    <pre>${JSON.stringify(jobs, null, 2)}</pre>
+
+                    <h3>GlobalStore State</h3>
+                    <pre>${JSON.stringify(state, null, 2)}</pre>
+                `;
+            } catch (error) {
+                dataDumpDiv.innerHTML = `<div class="status error">Error dumping data: ${error.message}</div>`;
+            }
+        }
+
+        async function addTestJob() {
+            try {
+                await window.indexedDBService.init();
+
+                const testJob = {
+                    id: `test-job-${Date.now()}`,
+                    title: 'Senior Software Engineer',
+                    company: 'Test Company Inc.',
+                    location: 'Remote',
+                    status: 'applied',
+                    salary: '$120k-$160k',
+                    source: 'test',
+                    createdAt: new Date().toISOString(),
+                    description: 'This is a test job created by the test script'
+                };
+
+                await window.indexedDBService.saveJob(testJob);
+
+                // Also update GlobalStore
+                const state = window.getState();
+                const jobs = [...(state?.jobs || []), testJob];
+                window.setState({ jobs }, 'test-script');
+
+                alert('✅ Test job added successfully! Refresh the page to see it.');
+
+            } catch (error) {
+                alert(`❌ Error adding test job: ${error.message}`);
+            }
+        }
+
+        function viewInApp() {
+            window.location.href = '/app-responsive.html';
+        }
+
+        async function clearAllData() {
+            if (!confirm('Are you sure you want to clear ALL data? This cannot be undone.')) {
+                return;
+            }
+
+            try {
+                await window.indexedDBService.init();
+                await window.indexedDBService.clearAll();
+
+                // Clear GlobalStore
+                window.setState({ jobs: [], resumes: [], coverLetters: [] }, 'test-script-clear');
+
+                // Clear localStorage
+                localStorage.clear();
+
+                alert('✅ All data cleared!');
+                location.reload();
+
+            } catch (error) {
+                alert(`❌ Error clearing data: ${error.message}`);
+            }
+        }
+
+        // Make functions globally available
+        window.runTests = runTests;
+        window.addTestJob = addTestJob;
+        window.viewInApp = viewInApp;
+        window.clearAllData = clearAllData;
+
+        // Auto-run tests on load
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 1000);
+        });
+    </script>
+
+    <!-- Global Store Component -->
+    <script type="module" src="./components/global-store.js"></script>
+    <global-store></global-store>
+</body>
+</html>

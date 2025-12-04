@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Service Worker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #c0392b;
+        }
+        .success {
+            background: #27ae60;
+        }
+        .success:hover {
+            background: #229954;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .info {
+            background: #d6eaf8;
+            color: #21618c;
+        }
+        .error {
+            background: #fadbd8;
+            color: #a93226;
+        }
+        .ok {
+            background: #d5f4e6;
+            color: #1e8449;
+        }
+        pre {
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Service Worker Fix</h1>
+        <p>If the app isn't loading, the service worker may be causing issues.</p>
+
+        <div id="status"></div>
+
+        <button onclick="checkServiceWorker()">🔍 Check Service Worker</button>
+        <button onclick="unregisterServiceWorker()">🗑️ Unregister Service Worker</button>
+        <button onclick="clearCaches()">🧹 Clear All Caches</button>
+        <button onclick="fullReset()" class="success">✨ Full Reset & Reload</button>
+
+        <hr style="margin: 30px 0;">
+
+        <button onclick="window.location.href='/app-responsive.html'" class="success">📱 Try Loading App</button>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            statusDiv.appendChild(div);
+        }
+
+        async function checkServiceWorker() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '';
+
+            if (!('serviceWorker' in navigator)) {
+                log('❌ Service Worker not supported in this browser', 'error');
+                return;
+            }
+
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                log(`✅ Found ${registrations.length} service worker(s)`, 'ok');
+
+                if (registrations.length === 0) {
+                    log('ℹ️ No service workers registered. App should load normally.', 'info');
+                } else {
+                    registrations.forEach((reg, i) => {
+                        log(`<strong>Service Worker ${i + 1}:</strong><br>
+                            Scope: <code>${reg.scope}</code><br>
+                            State: ${reg.active ? reg.active.state : 'none'}`, 'info');
+                    });
+                }
+
+                // Check caches
+                const cacheNames = await caches.keys();
+                log(`📦 Found ${cacheNames.length} cache(s): ${cacheNames.join(', ')}`, 'info');
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function unregisterServiceWorker() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '';
+
+            if (!('serviceWorker' in navigator)) {
+                log('❌ Service Worker not supported', 'error');
+                return;
+            }
+
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+
+                if (registrations.length === 0) {
+                    log('ℹ️ No service workers to unregister', 'info');
+                    return;
+                }
+
+                for (const reg of registrations) {
+                    await reg.unregister();
+                    log(`✅ Unregistered service worker: ${reg.scope}`, 'ok');
+                }
+
+                log('✨ All service workers unregistered! You can now reload the app.', 'ok');
+
+            } catch (error) {
+                log(`❌ Error unregistering: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearCaches() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '';
+
+            try {
+                const cacheNames = await caches.keys();
+
+                if (cacheNames.length === 0) {
+                    log('ℹ️ No caches to clear', 'info');
+                    return;
+                }
+
+                for (const cacheName of cacheNames) {
+                    await caches.delete(cacheName);
+                    log(`✅ Deleted cache: ${cacheName}`, 'ok');
+                }
+
+                log(`✨ Cleared ${cacheNames.length} cache(s)!`, 'ok');
+
+            } catch (error) {
+                log(`❌ Error clearing caches: ${error.message}`, 'error');
+            }
+        }
+
+        async function fullReset() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '';
+
+            try {
+                log('🔄 Starting full reset...', 'info');
+
+                // Unregister all service workers
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (const reg of registrations) {
+                    await reg.unregister();
+                }
+                log('✅ Service workers unregistered', 'ok');
+
+                // Clear all caches
+                const cacheNames = await caches.keys();
+                for (const cacheName of cacheNames) {
+                    await caches.delete(cacheName);
+                }
+                log('✅ Caches cleared', 'ok');
+
+                log('✨ Full reset complete! Reloading in 2 seconds...', 'ok');
+
+                setTimeout(() => {
+                    window.location.href = '/app-responsive.html';
+                }, 2000);
+
+            } catch (error) {
+                log(`❌ Error during reset: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', checkServiceWorker);
+    </script>
+</body>
+</html>

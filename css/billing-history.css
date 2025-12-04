@@ -1,0 +1,377 @@
+/**
+ * Billing History Styles
+ */
+
+.billing-history {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Loading State */
+.billing-history.loading {
+    text-align: center;
+    padding: 48px;
+}
+
+/* Header */
+.billing-header {
+    margin-bottom: 24px;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 16px;
+}
+
+.billing-header h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    color: #212529;
+}
+
+.billing-subtitle {
+    margin: 0;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* Transactions Table */
+.transactions-table-container {
+    overflow-x: auto;
+    margin-bottom: 24px;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.transactions-table thead th {
+    background: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+}
+
+.transactions-table tbody tr {
+    border-bottom: 1px solid #dee2e6;
+    transition: background 0.2s ease;
+}
+
+.transactions-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.transactions-table tbody td {
+    padding: 16px 12px;
+    vertical-align: middle;
+}
+
+/* Transaction Columns */
+.tx-date {
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.tx-description {
+    color: #212529;
+    font-weight: 500;
+}
+
+.tx-amount {
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.tx-amount.payment {
+    color: #198754;
+}
+
+.tx-amount.refund {
+    color: #dc3545;
+}
+
+/* Badges */
+.type-badge,
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.type-badge.payment {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.type-badge.refund {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.status-badge.success {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-badge.warning {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+.status-badge.error {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.status-badge.info {
+    background: #cfe2ff;
+    color: #084298;
+}
+
+/* Invoice Link */
+.invoice-link {
+    color: #0d6efd;
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.invoice-link:hover {
+    text-decoration: underline;
+}
+
+.no-invoice {
+    color: #adb5bd;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 64px 24px;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    color: #212529;
+}
+
+.empty-state p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #dee2e6;
+}
+
+.pagination-pages {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pagination-btn {
+    padding: 8px 16px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #495057;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-btn.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.pagination-btn.page {
+    min-width: 40px;
+}
+
+.pagination-ellipsis {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    color: #6c757d;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .billing-history {
+        padding: 16px;
+        border-radius: 8px;
+    }
+
+    .billing-header h2 {
+        font-size: 20px;
+    }
+
+    .transactions-table {
+        font-size: 13px;
+    }
+
+    .transactions-table thead th,
+    .transactions-table tbody td {
+        padding: 10px 8px;
+    }
+
+    /* Stack pagination on mobile */
+    .pagination {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .pagination-btn.prev,
+    .pagination-btn.next {
+        width: 100%;
+    }
+}
+
+/* Very small screens - horizontal scroll hint */
+@media (max-width: 640px) {
+    .transactions-table-container {
+        position: relative;
+    }
+
+    .transactions-table-container::after {
+        content: '→ Scroll';
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-size: 12px;
+        border-radius: 4px 0 0 4px;
+        pointer-events: none;
+        animation: fadeOut 3s forwards;
+    }
+
+    @keyframes fadeOut {
+        0%, 50% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0;
+        }
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .billing-history {
+        background: #1e1e1e;
+        color: #e0e0e0;
+    }
+
+    .billing-header h2 {
+        color: #e0e0e0;
+    }
+
+    .billing-header {
+        border-bottom-color: #333;
+    }
+
+    .billing-subtitle {
+        color: #a0a0a0;
+    }
+
+    .transactions-table thead th {
+        background: #2a2a2a;
+        color: #e0e0e0;
+        border-bottom-color: #333;
+    }
+
+    .transactions-table tbody tr {
+        border-bottom-color: #333;
+    }
+
+    .transactions-table tbody tr:hover {
+        background: #2a2a2a;
+    }
+
+    .tx-date {
+        color: #a0a0a0;
+    }
+
+    .tx-description {
+        color: #e0e0e0;
+    }
+
+    .pagination-btn {
+        background: #2a2a2a;
+        border-color: #333;
+        color: #e0e0e0;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+        background: #333;
+        border-color: #444;
+    }
+
+    .pagination-btn.active {
+        background: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .billing-history {
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .pagination {
+        display: none;
+    }
+
+    .transactions-table tbody tr:hover {
+        background: none;
+    }
+
+    .invoice-link {
+        color: #000;
+        text-decoration: underline;
+    }
+}

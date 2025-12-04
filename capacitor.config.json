@@ -1,0 +1,35 @@
+{
+  "appId": "com.jobhuntmanager.app",
+  "appName": "Job Hunt Manager",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "jobhuntmanager.app",
+    "iosScheme": "capacitor"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#3498db",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": true,
+      "androidSpinnerStyle": "large",
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#ffffff",
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#3498db"
+    },
+    "Keyboard": {
+      "resize": "body",
+      "style": "DARK",
+      "resizeOnFullScreen": true
+    }
+  },
+  "cordova": {}
+}

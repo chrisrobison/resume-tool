@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Sync Diagnostic</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .test-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .test-result {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 12px;
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 6px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .status.success {
+            background: #27ae60;
+            color: white;
+        }
+        .status.error {
+            background: #e74c3c;
+            color: white;
+        }
+        .status.warning {
+            background: #f39c12;
+            color: white;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .action-buttons {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Extension Sync Diagnostic</h1>
+
+        <div class="test-section">
+            <div class="test-title">1. Extension Detection <span id="ext-status" class="status">Testing...</span></div>
+            <div id="ext-result" class="test-result">Checking...</div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">2. Bridge Script <span id="bridge-status" class="status">Testing...</span></div>
+            <div id="bridge-result" class="test-result">Checking...</div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">3. IndexedDB Service <span id="idb-status" class="status">Testing...</span></div>
+            <div id="idb-result" class="test-result">Checking...</div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">4. Extension Storage (Jobs) <span id="storage-status" class="status">Testing...</span></div>
+            <div id="storage-result" class="test-result">Checking...</div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">5. Web App Storage (IndexedDB) <span id="webapp-status" class="status">Testing...</span></div>
+            <div id="webapp-result" class="test-result">Checking...</div>
+        </div>
+
+        <div class="action-buttons">
+            <button id="manual-sync-btn">🔄 Trigger Manual Sync</button>
+            <button id="clear-extension-btn">🗑️ Clear Extension Storage</button>
+            <button id="clear-webapp-btn">🗑️ Clear Web App Storage</button>
+            <button onclick="location.reload()">🔁 Rerun Tests</button>
+        </div>
+    </div>
+
+    <script src="js/services/indexeddb-service.js"></script>
+    <script src="js/services/storage-migration.js"></script>
+    <script src="js/services/extension-sync.js"></script>
+
+    <script>
+        async function runDiagnostics() {
+            console.log('🔧 Starting diagnostics...');
+
+            // Test 1: Extension Detection
+            await testExtensionDetection();
+
+            // Test 2: Bridge Script
+            await testBridgeScript();
+
+            // Test 3: IndexedDB Service
+            await testIndexedDB();
+
+            // Test 4: Extension Storage
+            await testExtensionStorage();
+
+            // Test 5: Web App Storage
+            await testWebAppStorage();
+        }
+
+        async function testExtensionDetection() {
+            const status = document.getElementById('ext-status');
+            const result = document.getElementById('ext-result');
+
+            try {
+                // Check for extension marker
+                const marker = document.querySelector('[data-jhm-extension]');
+                const hasMarker = !!marker;
+
+                // Try to ping extension
+                let gotPong = false;
+                const pongPromise = new Promise((resolve) => {
+                    const timeout = setTimeout(() => resolve(false), 2000);
+                    window.addEventListener('message', function handler(event) {
+                        if (event.data && event.data.type === 'JHM_EXTENSION_PONG') {
+                            clearTimeout(timeout);
+                            window.removeEventListener('message', handler);
+                            resolve(true);
+                        }
+                    });
+                });
+
+                window.postMessage({ type: 'JHM_EXTENSION_PING' }, '*');
+                gotPong = await pongPromise;
+
+                const detected = hasMarker || gotPong;
+
+                status.className = 'status ' + (detected ? 'success' : 'error');
+                status.textContent = detected ? '✓ Detected' : '✗ Not Found';
+
+                result.textContent = `Marker found: ${hasMarker}\nPong received: ${gotPong}\nExtension active: ${detected}`;
+
+                if (!detected) {
+                    result.textContent += '\n\n⚠️ Extension not detected!\n1. Make sure extension is installed\n2. Reload the extension in chrome://extensions\n3. Refresh this page';
+                }
+
+                return detected;
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = '✗ Error';
+                result.textContent = `Error: ${error.message}`;
+                return false;
+            }
+        }
+
+        async function testBridgeScript() {
+            const status = document.getElementById('bridge-status');
+            const result = document.getElementById('bridge-result');
+
+            try {
+                const bridgeMarker = document.querySelector('[data-jhm-bridge]');
+                const hasBridge = !!bridgeMarker;
+
+                status.className = 'status ' + (hasBridge ? 'success' : 'warning');
+                status.textContent = hasBridge ? '✓ Active' : '⚠ Not Found';
+
+                result.textContent = `Bridge marker: ${hasBridge}`;
+
+                if (!hasBridge) {
+                    result.textContent += '\n\n⚠️ Bridge script not active!\nThe bridge should auto-inject on localhost:3000\n\nPossible fixes:\n1. Reload extension in chrome://extensions\n2. Make sure extension has permission for localhost\n3. Check console for errors';
+                }
+
+                return hasBridge;
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = '✗ Error';
+                result.textContent = `Error: ${error.message}`;
+                return false;
+            }
+        }
+
+        async function testIndexedDB() {
+            const status = document.getElementById('idb-status');
+            const result = document.getElementById('idb-result');
+
+            try {
+                // Wait for IndexedDB service
+                let attempts = 0;
+                while (!window.indexedDBService && attempts < 30) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+
+                const hasService = !!window.indexedDBService;
+
+                if (hasService) {
+                    // Try to initialize
+                    await window.indexedDBService.init();
+
+                    status.className = 'status success';
+                    status.textContent = '✓ Ready';
+                    result.textContent = `IndexedDB service: Available\nDatabase: ${window.indexedDBService.dbName}\nInitialized: Yes`;
+                } else {
+                    status.className = 'status error';
+                    status.textContent = '✗ Not Found';
+                    result.textContent = 'IndexedDB service not available\n\n⚠️ The service should be loaded from:\njs/services/indexeddb-service.js';
+                }
+
+                return hasService;
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = '✗ Error';
+                result.textContent = `Error: ${error.message}`;
+                return false;
+            }
+        }
+
+        async function testExtensionStorage() {
+            const status = document.getElementById('storage-status');
+            const result = document.getElementById('storage-result');
+
+            try {
+                // Request jobs from extension via bridge
+                const jobsPromise = new Promise((resolve) => {
+                    const timeout = setTimeout(() => resolve(null), 3000);
+
+                    window.addEventListener('message', function handler(event) {
+                        if (event.data && event.data.type === 'JHM_SYNC_DATA') {
+                            clearTimeout(timeout);
+                            window.removeEventListener('message', handler);
+                            resolve(event.data.jobs);
+                        }
+                    });
+                });
+
+                window.postMessage({ type: 'JHM_REQUEST_SYNC' }, '*');
+                const jobs = await jobsPromise;
+
+                if (jobs === null) {
+                    status.className = 'status warning';
+                    status.textContent = '⚠ Timeout';
+                    result.textContent = 'Could not retrieve jobs from extension\nBridge may not be active';
+                } else {
+                    status.className = 'status success';
+                    status.textContent = `✓ ${jobs.length} jobs`;
+                    result.textContent = `Jobs in extension storage: ${jobs.length}`;
+
+                    if (jobs.length > 0) {
+                        result.textContent += `\n\nMost recent jobs:`;
+                        jobs.slice(0, 3).forEach((job, i) => {
+                            result.textContent += `\n${i+1}. ${job.title} at ${job.company}`;
+                        });
+                    } else {
+                        result.textContent += '\n\n💡 No jobs saved yet.\nVisit LinkedIn/Indeed/Glassdoor and click "Save Job"';
+                    }
+                }
+
+                return jobs !== null;
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = '✗ Error';
+                result.textContent = `Error: ${error.message}`;
+                return false;
+            }
+        }
+
+        async function testWebAppStorage() {
+            const status = document.getElementById('webapp-status');
+            const result = document.getElementById('webapp-result');
+
+            try {
+                if (!window.indexedDBService) {
+                    status.className = 'status error';
+                    status.textContent = '✗ No Service';
+                    result.textContent = 'IndexedDB service not available';
+                    return false;
+                }
+
+                const jobs = await window.indexedDBService.getJobs();
+                const extensionJobs = jobs.filter(j => j.source === 'extension');
+
+                status.className = 'status success';
+                status.textContent = `✓ ${jobs.length} jobs`;
+
+                result.textContent = `Total jobs in IndexedDB: ${jobs.length}`;
+                result.textContent += `\nFrom extension: ${extensionJobs.length}`;
+                result.textContent += `\nFrom other sources: ${jobs.length - extensionJobs.length}`;
+
+                if (extensionJobs.length > 0) {
+                    result.textContent += `\n\nMost recent from extension:`;
+                    extensionJobs.slice(0, 3).forEach((job, i) => {
+                        result.textContent += `\n${i+1}. ${job.title} at ${job.company}`;
+                    });
+                }
+
+                return true;
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = '✗ Error';
+                result.textContent = `Error: ${error.message}`;
+                return false;
+            }
+        }
+
+        // Manual sync button
+        document.getElementById('manual-sync-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('manual-sync-btn');
+            btn.disabled = true;
+            btn.textContent = '🔄 Syncing...';
+
+            try {
+                // Request sync
+                window.postMessage({ type: 'JHM_REQUEST_SYNC' }, '*');
+
+                // Wait a bit for sync to complete
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Rerun tests
+                await runDiagnostics();
+
+                btn.textContent = '✓ Sync Complete';
+                setTimeout(() => {
+                    btn.textContent = '🔄 Trigger Manual Sync';
+                    btn.disabled = false;
+                }, 2000);
+            } catch (error) {
+                alert('Sync failed: ' + error.message);
+                btn.textContent = '🔄 Trigger Manual Sync';
+                btn.disabled = false;
+            }
+        });
+
+        // Clear extension storage
+        document.getElementById('clear-extension-btn').addEventListener('click', () => {
+            if (confirm('⚠️ This will delete all jobs from extension storage!\n\nAre you sure?')) {
+                window.postMessage({ type: 'JHM_CLEAR_EXTENSION_STORAGE' }, '*');
+                alert('Extension storage clear requested.\nNote: This requires bridge script to be active.');
+            }
+        });
+
+        // Clear web app storage
+        document.getElementById('clear-webapp-btn').addEventListener('click', async () => {
+            if (confirm('⚠️ This will delete all jobs from web app IndexedDB!\n\nAre you sure?')) {
+                try {
+                    const jobs = await window.indexedDBService.getJobs();
+                    for (const job of jobs) {
+                        await window.indexedDBService.deleteJob(job.id);
+                    }
+                    alert('✓ Web app storage cleared!');
+                    await runDiagnostics();
+                } catch (error) {
+                    alert('Error clearing storage: ' + error.message);
+                }
+            }
+        });
+
+        // Run diagnostics on load
+        window.addEventListener('load', () => {
+            setTimeout(runDiagnostics, 500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+/**
+ * Subscription Widget Styles
+ */
+
+.subscription-widget {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Loading State */
+.subscription-widget.loading {
+    text-align: center;
+    padding: 48px;
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #0d6efd;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.subscription-widget.error {
+    text-align: center;
+    padding: 48px;
+}
+
+.error-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.btn-retry {
+    margin-top: 16px;
+    padding: 8px 16px;
+    background: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-retry:hover {
+    background: #0b5ed7;
+}
+
+/* Login Prompt */
+.subscription-widget.login-prompt {
+    text-align: center;
+    padding: 48px;
+}
+
+.lock-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+/* Tier Badge */
+.tier-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-weight: 600;
+}
+
+.tier-icon {
+    font-size: 24px;
+}
+
+.tier-name {
+    font-size: 20px;
+    flex: 1;
+}
+
+.tier-status {
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.tier-status.inactive {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+/* Usage Stats */
+.usage-stats {
+    margin-bottom: 24px;
+}
+
+.usage-stats h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    color: #212529;
+}
+
+.usage-item {
+    margin-bottom: 20px;
+}
+
+.usage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.usage-count {
+    font-weight: 600;
+    color: #212529;
+}
+
+.usage-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.usage-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.usage-warning {
+    margin: 8px 0 0 0;
+    font-size: 13px;
+    color: #dc3545;
+}
+
+.usage-unlimited {
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    color: #198754;
+    font-weight: 500;
+}
+
+/* Features List */
+.features-list {
+    margin-bottom: 24px;
+}
+
+.features-list h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    color: #212529;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    transition: background 0.2s ease;
+}
+
+.feature-item:hover {
+    background: #f8f9fa;
+}
+
+.feature-item.unavailable {
+    opacity: 0.5;
+}
+
+.feature-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+.feature-text {
+    flex: 1;
+    font-size: 14px;
+    color: #212529;
+}
+
+.feature-status {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.feature-item.available .feature-status {
+    color: #198754;
+}
+
+.feature-item.unavailable .feature-status {
+    color: #dc3545;
+}
+
+/* Actions */
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.actions button,
+.actions a {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: #0d6efd;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0b5ed7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5c636a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.btn-upgrade {
+    font-size: 16px;
+}
+
+.btn-upgrade:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .subscription-widget {
+        padding: 16px;
+        border-radius: 8px;
+    }
+
+    .tier-badge {
+        padding: 12px;
+    }
+
+    .tier-name {
+        font-size: 18px;
+    }
+
+    .usage-stats h3,
+    .features-list h3 {
+        font-size: 16px;
+    }
+
+    .actions button,
+    .actions a {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .subscription-widget {
+        background: #1e1e1e;
+        color: #e0e0e0;
+    }
+
+    .usage-stats h3,
+    .features-list h3 {
+        color: #e0e0e0;
+    }
+
+    .usage-header {
+        color: #a0a0a0;
+    }
+
+    .usage-count {
+        color: #e0e0e0;
+    }
+
+    .usage-bar {
+        background: #333;
+    }
+
+    .feature-item:hover {
+        background: #2a2a2a;
+    }
+
+    .feature-text {
+        color: #e0e0e0;
+    }
+}
