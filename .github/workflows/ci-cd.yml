@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Default permissions for all jobs (principle of least privilege)
+permissions:
+  contents: read
+
 env:
   NODE_VERSION: '18'
   REGISTRY: ghcr.io

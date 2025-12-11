@@ -250,7 +250,7 @@ class JobSearch extends ComponentBase {
 
         // Check if AI is configured
         const apiKeys = this.getApiKeys();
-        console.log('JobSearch: API keys:', apiKeys);
+        console.log('JobSearch: API keys configured:', apiKeys ? `type=${apiKeys.type}` : 'none');
 
         if (!apiKeys || !apiKeys.key || !apiKeys.type) {
             console.log('JobSearch: No API keys configured - showing error');
@@ -349,10 +349,12 @@ Return 5-10 most relevant keywords for job searching. Be specific and use terms 
                 throw new Error('Unsupported AI type: ' + type);
             }
         } catch (error) {
-            console.error('JobSearch: AI API call failed:', error);
+            // Sanitize error message to prevent logging sensitive data
+            const safeMessage = error.message ? error.message.replace(/[A-Za-z0-9_-]{20,}/g, '[REDACTED]') : 'Unknown error';
+            console.error('JobSearch: AI API call failed:', safeMessage);
             return {
                 success: false,
-                error: error.message
+                error: safeMessage
             };
         }
     }
@@ -398,6 +400,23 @@ Return 5-10 most relevant keywords for job searching. Be specific and use terms 
 
     getApiKeys() {
         try {
+            // Try new obfuscated format first (v2)
+            const obfuscatedKeys = localStorage.getItem('resumeApiKeys_v2');
+            if (obfuscatedKeys) {
+                try {
+                    const reversed = decodeURIComponent(escape(atob(obfuscatedKeys)));
+                    const json = reversed.split('').reverse().join('');
+                    const apiKeys = JSON.parse(json);
+                    return {
+                        type: apiKeys.type,
+                        key: apiKeys.key
+                    };
+                } catch {
+                    // Fall through to legacy format
+                }
+            }
+
+            // Fall back to legacy plain format
             const apiKeysJson = localStorage.getItem('resumeApiKeys');
             if (!apiKeysJson) return null;
 
@@ -407,7 +426,7 @@ Return 5-10 most relevant keywords for job searching. Be specific and use terms 
                 key: apiKeys.key
             };
         } catch (error) {
-            console.error('JobSearch: Failed to load API keys:', error);
+            console.error('JobSearch: Failed to load API keys');
             return null;
         }
     }

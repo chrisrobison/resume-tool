@@ -93,9 +93,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Strategy 1: LLM Models & AI Assets (cache-first, very important)
+  // Use exact hostname matching to prevent domain spoofing
+  const isUnpkgHost = url.hostname === 'unpkg.com' || url.hostname.endsWith('.unpkg.com');
   if (url.pathname.includes('/vendor/web-llm/') ||
       /\.(gguf|ggml|bin|wasm|model|pt|safetensors)$/i.test(url.pathname) ||
-      url.hostname.includes('unpkg.com') && url.pathname.includes('@mlc-ai/web-llm')) {
+      (isUnpkgHost && url.pathname.includes('@mlc-ai/web-llm'))) {
 
     event.respondWith(
       caches.open(LLM_CACHE).then(async cache => {

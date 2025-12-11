@@ -63,10 +63,24 @@ app.use(helmet({
   },
 }));
 
-// CORS configuration
+// CORS configuration - Require explicit allowed origins in production
+const getAllowedOrigins = () => {
+  if (process.env.CORS_ORIGIN) {
+    return process.env.CORS_ORIGIN.split(',').map(origin => origin.trim());
+  }
+  // Default safe origins for development
+  if (process.env.NODE_ENV !== 'production') {
+    return ['http://localhost:3000', 'http://localhost:8080', 'http://127.0.0.1:3000'];
+  }
+  // In production without explicit CORS_ORIGIN, deny all cross-origin requests
+  return false;
+};
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
-  credentials: true
+  origin: getAllowedOrigins(),
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Body parsing
@@ -271,7 +285,9 @@ app.post('/api/ai-request', async (req, res) => {
     }
 
   } catch (error) {
-    console.error(`Error in AI request (${req.body.operation}):`, error);
+    // Sanitize operation name to prevent log injection
+    const sanitizedOp = String(req.body.operation || 'unknown').replace(/[^\w-]/g, '').substring(0, 50);
+    console.error(`Error in AI request (${sanitizedOp}):`, error);
     res.status(500).json({ error: error.message });
   }
 });

@@ -5,9 +5,42 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 const router = express.Router();
 
 const SALT_ROUNDS = 10;
+
+// Rate limiter for authentication endpoints
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 attempts per window
+    message: { error: 'Too many authentication attempts, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    // Use default keyGenerator which properly handles IPv6
+    validate: { xForwardedForHeader: false }
+});
+
+// Stricter rate limiter for password reset
+const passwordResetLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 5, // 5 attempts per hour
+    message: { error: 'Too many password reset attempts, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    // Use default keyGenerator which properly handles IPv6
+    validate: { xForwardedForHeader: false }
+});
+
+/**
+ * Generate cryptographically secure user ID
+ */
+function generateSecureUserId() {
+    const timestamp = Date.now();
+    const randomPart = crypto.randomBytes(6).toString('base64url');
+    return `user_${timestamp}_${randomPart}`;
+}
 
 /**
  * Initialize authentication routes
@@ -24,7 +57,7 @@ function initializeAuthRoutes(db, emailService) {
      * POST /api/auth/register
      * Register new user with email/password
      */
-    router.post('/register', async (req, res) => {
+    router.post('/register', authLimiter, async (req, res) => {
         try {
             const { email, password, displayName } = req.body;
 
@@ -46,8 +79,8 @@ function initializeAuthRoutes(db, emailService) {
             // Hash password
             const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-            // Create user
-            const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            // Create user with cryptographically secure ID
+            const userId = generateSecureUserId();
 
             await db.pool.execute(
                 `INSERT INTO users (
@@ -107,7 +140,7 @@ function initializeAuthRoutes(db, emailService) {
      * POST /api/auth/login
      * Login with email/password
      */
-    router.post('/login', async (req, res) => {
+    router.post('/login', authLimiter, async (req, res) => {
         try {
             const { email, password } = req.body;
 
@@ -180,7 +213,7 @@ function initializeAuthRoutes(db, emailService) {
      * POST /api/auth/resend-verification
      * Resend email verification link
      */
-    router.post('/resend-verification', async (req, res) => {
+    router.post('/resend-verification', authLimiter, async (req, res) => {
         try {
             const { email } = req.body;
 
@@ -256,7 +289,7 @@ function initializeAuthRoutes(db, emailService) {
      * POST /api/auth/forgot-password
      * Request password reset link
      */
-    router.post('/forgot-password', async (req, res) => {
+    router.post('/forgot-password', passwordResetLimiter, async (req, res) => {
         try {
             const { email } = req.body;
 
@@ -299,7 +332,7 @@ function initializeAuthRoutes(db, emailService) {
      * POST /api/auth/reset-password
      * Reset password with token
      */
-    router.post('/reset-password', async (req, res) => {
+    router.post('/reset-password', passwordResetLimiter, async (req, res) => {
         try {
             const { token, newPassword } = req.body;
 
