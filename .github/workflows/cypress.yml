@@ -27,12 +27,15 @@ jobs:
 
     - name: Start server
       run: |
-        npm run serve:bg
-        sleep 5
-      
+        python -m http.server 3000 --bind 0.0.0.0 &
+        echo $! > .server.pid
+        sleep 3
+        # Verify the server is running
+        curl -v http://localhost:3000/ || echo "Initial curl failed, but continuing..."
+
     - name: Wait for server
       run: |
-        npx wait-on http://localhost:3000 --timeout 30000
+        npx wait-on http://localhost:3000 --timeout 60000 --verbose
     
     - name: Run Cypress tests
       uses: cypress-io/github-action@v6
@@ -66,4 +69,7 @@ jobs:
     - name: Stop server
       if: always()
       run: |
-        pkill -f 'python.*server' || true
+        if [ -f .server.pid ]; then
+          kill $(cat .server.pid) 2>/dev/null || true
+        fi
+        pkill -f 'python.*http.server' || true
