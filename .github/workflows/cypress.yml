@@ -25,18 +25,6 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Start server
-      run: |
-        python -m http.server 3000 --bind 0.0.0.0 &
-        echo $! > .server.pid
-        sleep 3
-        # Verify the server is running
-        curl -v http://localhost:3000/ || echo "Initial curl failed, but continuing..."
-
-    - name: Wait for server
-      run: |
-        npx wait-on http://localhost:3000 --timeout 60000 --verbose
-    
     - name: Run Cypress tests
       uses: cypress-io/github-action@v6
       with:
@@ -44,6 +32,9 @@ jobs:
         headless: true
         record: false
         config: video=true,screenshotOnRunFailure=true
+        start: python -m http.server 3000 --bind 0.0.0.0
+        wait-on: 'http://127.0.0.1:3000'
+        wait-on-timeout: 60
         
     - name: Upload screenshots
       uses: actions/upload-artifact@v4
@@ -66,10 +57,3 @@ jobs:
         name: cypress-reports
         path: cypress/reports
 
-    - name: Stop server
-      if: always()
-      run: |
-        if [ -f .server.pid ]; then
-          kill $(cat .server.pid) 2>/dev/null || true
-        fi
-        pkill -f 'python.*http.server' || true
