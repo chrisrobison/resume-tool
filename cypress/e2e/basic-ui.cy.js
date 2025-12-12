@@ -11,7 +11,8 @@ describe('Basic UI Functionality', () => {
 
   it('should load the application successfully', () => {
     cy.get('body').should('be.visible');
-    cy.get('global-store-migrated').should('exist');
+    // Check for global-store element (not migrated version)
+    cy.get('global-store').should('exist');
     cy.get('.sidebar-nav').should('be.visible');
     
     // Take screenshot of initial load
@@ -50,9 +51,11 @@ describe('Basic UI Functionality', () => {
   });
 
   it('should display settings section', () => {
-    cy.navigateToSection('settings');
+    // Click settings nav item
+    cy.get('[data-section="settings"]').click();
+    // Settings section doesn't use title like other sections, just verify panel is visible
     cy.get('#settings-panel').should('be.visible');
-    
+
     cy.takeNamedScreenshot('settings-section');
   });
 
