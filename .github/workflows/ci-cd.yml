@@ -40,7 +40,7 @@ jobs:
         run: npm run lint || echo "Linting skipped (no lint script)"
 
       - name: Run tests
-        run: npm test || echo "Tests skipped (no test script)"
+        run: echo "Tests run in dedicated Cypress workflow"
 
       - name: Check for security vulnerabilities
         run: npm audit --production || echo "Some vulnerabilities found"
