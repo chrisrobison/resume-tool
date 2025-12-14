@@ -119,7 +119,7 @@ jobs:
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
           script: |
-            cd /opt/jobtool
+            cd /home/cdr2/cdr2/job-tool
             docker-compose pull
             docker-compose up -d
             docker-compose logs --tail=50
@@ -159,7 +159,7 @@ jobs:
           username: ${{ secrets.PRODUCTION_USER }}
           key: ${{ secrets.PRODUCTION_SSH_KEY }}
           script: |
-            cd /opt/jobtool
+            cd /home/cdr2/cdr2/job-tool
             docker-compose pull
             docker-compose up -d
             docker-compose logs --tail=50
@@ -194,7 +194,7 @@ jobs:
           username: ${{ secrets.PRODUCTION_USER }}
           key: ${{ secrets.PRODUCTION_SSH_KEY }}
           script: |
-            cd /opt/jobtool
+            cd /home/cdr2/cdr2/job-tool
             docker-compose down
             git checkout HEAD~1
             docker-compose up -d
