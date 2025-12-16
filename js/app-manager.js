@@ -271,6 +271,23 @@ class AppManager {
                 }
             });
 
+            // Auto-save form changes in details panel
+            this._autoSaveTimeout = null;
+            const detailsContent = document.getElementById('details-content');
+            if (detailsContent) {
+                const debouncedAutoSave = () => {
+                    if (this._autoSaveTimeout) {
+                        clearTimeout(this._autoSaveTimeout);
+                    }
+                    this._autoSaveTimeout = setTimeout(() => {
+                        this.autoSaveCurrentItem();
+                    }, 500);
+                };
+
+                detailsContent.addEventListener('input', debouncedAutoSave);
+                detailsContent.addEventListener('change', debouncedAutoSave);
+            }
+
             console.log('AppManager: Event listeners setup complete');
         } catch (error) {
             console.error('AppManager: Failed to setup event listeners:', error);
@@ -517,6 +534,55 @@ class AppManager {
         } catch (error) {
             console.error('AppManager: Failed to delete item:', error);
             this.handleError(error, 'Failed to delete item');
+        }
+    }
+
+    /**
+     * Auto-save the currently selected item from form data
+     */
+    autoSaveCurrentItem() {
+        try {
+            if (!this.currentItem) {
+                console.log('AppManager: No current item to auto-save');
+                return;
+            }
+
+            const detailsContent = document.getElementById('details-content');
+            if (!detailsContent) return;
+
+            // Collect form data from all inputs, textareas, and selects
+            const formData = { ...this.currentItem };
+
+            detailsContent.querySelectorAll('input, textarea, select').forEach(field => {
+                const name = field.name || field.id;
+                if (name && !name.startsWith('_')) {
+                    if (field.type === 'checkbox') {
+                        formData[name] = field.checked;
+                    } else {
+                        formData[name] = field.value;
+                    }
+                }
+            });
+
+            // Update the item in data array
+            const items = this.data[this.currentSection];
+            const index = items.findIndex(item => item.id === this.currentItem.id);
+
+            if (index >= 0) {
+                formData.dateModified = new Date().toISOString();
+                items[index] = { ...items[index], ...formData };
+                this.currentItem = items[index];
+
+                // Save to storage
+                this.saveData();
+
+                // Re-render the items list to reflect changes (e.g., status badge)
+                this.renderItemsList();
+
+                console.log('AppManager: Auto-saved item:', this.currentItem.id);
+            }
+        } catch (error) {
+            console.error('AppManager: Auto-save failed:', error);
         }
     }
 

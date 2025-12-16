@@ -11,19 +11,6 @@ class EmptyState extends HTMLElement {
         this.attachShadow({ mode: 'open' });
     }
 
-    /**
-     * Escape HTML to prevent XSS attacks
-     */
-    escapeHtml(unsafe) {
-        if (typeof unsafe !== 'string') return unsafe;
-        return unsafe
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
     static get observedAttributes() {
         return ['type', 'title', 'message', 'cta-text', 'cta-action', 'icon'];
     }
@@ -218,22 +205,22 @@ class EmptyState extends HTMLElement {
             <div class="tips">
                 <div class="tips-title">💡 Quick Tips:</div>
                 <ul class="tips-list">
-                    ${config.tips.map(tip => `<li>${this.escapeHtml(tip)}</li>`).join('')}
+                    ${config.tips.map(tip => `<li>${tip}</li>`).join('')}
                 </ul>
             </div>
         ` : '';
 
         const primaryButtonHTML = config.primaryAction ? `
-            <button class="btn btn-primary" data-action="${this.escapeHtml(config.primaryAction.action)}">
-                <i class="${this.escapeHtml(config.primaryAction.icon)}"></i>
-                ${this.escapeHtml(config.primaryAction.text)}
+            <button class="btn btn-primary" data-action="${config.primaryAction.action}">
+                <i class="${config.primaryAction.icon}"></i>
+                ${config.primaryAction.text}
             </button>
         ` : '';
 
         const secondaryButtonHTML = config.secondaryAction ? `
-            <button class="btn btn-secondary" data-action="${this.escapeHtml(config.secondaryAction.action)}">
-                <i class="${this.escapeHtml(config.secondaryAction.icon)}"></i>
-                ${this.escapeHtml(config.secondaryAction.text)}
+            <button class="btn btn-secondary" data-action="${config.secondaryAction.action}">
+                <i class="${config.secondaryAction.icon}"></i>
+                ${config.secondaryAction.text}
             </button>
         ` : '';
 
@@ -430,10 +417,10 @@ class EmptyState extends HTMLElement {
             </style>
 
             <div class="empty-state">
-                <div class="icon">${this.escapeHtml(config.icon)}</div>
+                <div class="icon">${config.icon}</div>
                 ${spinnerHTML}
-                <h2 class="title">${this.escapeHtml(config.title)}</h2>
-                <p class="message">${this.escapeHtml(config.message)}</p>
+                <h2 class="title">${config.title}</h2>
+                <p class="message">${config.message}</p>
 
                 <div class="actions">
                     ${primaryButtonHTML}

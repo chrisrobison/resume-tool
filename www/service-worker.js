@@ -129,11 +129,18 @@ self.addEventListener('fetch', (event) => {
       caches.match(request).then(cached => {
         const fetchPromise = fetch(request).then(response => {
           if (response.ok) {
+            // Clone immediately before any async operations
+            const responseClone = response.clone();
             caches.open(APP_CACHE).then(cache => {
-              cache.put(request, response.clone());
+              cache.put(request, responseClone);
+            }).catch(err => {
+              console.warn('[SW] Failed to cache navigation:', err);
             });
           }
           return response;
+        }).catch(err => {
+          console.error('[SW] Navigation fetch failed:', err);
+          throw err;
         });
 
         return cached || fetchPromise;

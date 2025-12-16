@@ -36,14 +36,11 @@ class JobExtractorService {
             const urlObj = new URL(url);
             const hostname = urlObj.hostname.toLowerCase();
 
-            // Use exact domain matching to prevent subdomain spoofing attacks
-            // (e.g., malicious-linkedin.com or linkedin.com.evil.com)
-            if (hostname === 'linkedin.com' || hostname.endsWith('.linkedin.com')) {
+            if (hostname.includes('linkedin.com')) {
                 return 'linkedin';
-            } else if (hostname === 'indeed.com' || hostname.endsWith('.indeed.com')) {
+            } else if (hostname.includes('indeed.com')) {
                 return 'indeed';
-            } else if (hostname === 'glassdoor.com' || hostname.endsWith('.glassdoor.com') ||
-                       hostname === 'glassdoor.ca' || hostname.endsWith('.glassdoor.ca')) {
+            } else if (hostname.includes('glassdoor.com') || hostname.includes('glassdoor.ca')) {
                 return 'glassdoor';
             } else {
                 return 'generic';

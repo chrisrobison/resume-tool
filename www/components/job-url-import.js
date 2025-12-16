@@ -21,19 +21,6 @@ class JobUrlImport extends HTMLElement {
         this.extractor = null;
     }
 
-    /**
-     * Escape HTML to prevent XSS attacks
-     */
-    escapeHtml(unsafe) {
-        if (typeof unsafe !== 'string') return '';
-        return unsafe
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
     connectedCallback() {
         this.render();
         this.initializeServices();
@@ -606,7 +593,7 @@ class JobUrlImport extends HTMLElement {
                         type="url"
                         id="job-url"
                         placeholder="https://www.linkedin.com/jobs/view/..."
-                        value="${this.escapeHtml(this.url)}"
+                        value="${this.url}"
                         ${this.isExtracting ? 'disabled' : ''}
                         class="${this.error ? 'has-error' : ''}"
                     />
@@ -632,7 +619,7 @@ class JobUrlImport extends HTMLElement {
                         <span class="error-icon">⚠️</span>
                         <div>
                             <strong>Import Failed</strong><br>
-                            ${this.escapeHtml(this.error)}
+                            ${this.error}
                         </div>
                     </div>
                 ` : ''}
@@ -662,49 +649,49 @@ class JobUrlImport extends HTMLElement {
                     ${job.title ? `
                         <div class="preview-field">
                             <label>Job Title</label>
-                            <div class="preview-field-value">${this.escapeHtml(job.title)}</div>
+                            <div class="preview-field-value">${job.title}</div>
                         </div>
                     ` : ''}
 
                     ${job.company ? `
                         <div class="preview-field">
                             <label>Company</label>
-                            <div class="preview-field-value">${this.escapeHtml(job.company)}</div>
+                            <div class="preview-field-value">${job.company}</div>
                         </div>
                     ` : ''}
 
                     ${job.location ? `
                         <div class="preview-field">
                             <label>Location</label>
-                            <div class="preview-field-value">${this.escapeHtml(job.location)}</div>
+                            <div class="preview-field-value">${job.location}</div>
                         </div>
                     ` : ''}
 
                     ${job.salary ? `
                         <div class="preview-field">
                             <label>Salary</label>
-                            <div class="preview-field-value">${this.escapeHtml(job.salary)}</div>
+                            <div class="preview-field-value">${job.salary}</div>
                         </div>
                     ` : ''}
 
                     ${job.employmentType ? `
                         <div class="preview-field">
                             <label>Employment Type</label>
-                            <div class="preview-field-value">${this.escapeHtml(job.employmentType)}</div>
+                            <div class="preview-field-value">${job.employmentType}</div>
                         </div>
                     ` : ''}
 
                     ${job.posted ? `
                         <div class="preview-field">
                             <label>Posted Date</label>
-                            <div class="preview-field-value">${this.escapeHtml(job.posted)}</div>
+                            <div class="preview-field-value">${job.posted}</div>
                         </div>
                     ` : ''}
 
                     ${job.description ? `
                         <div class="preview-field">
                             <label>Description (Preview)</label>
-                            <div class="preview-field-value multiline">${this.escapeHtml(job.description.substring(0, 500))}${job.description.length > 500 ? '...' : ''}</div>
+                            <div class="preview-field-value multiline">${job.description.substring(0, 500)}${job.description.length > 500 ? '...' : ''}</div>
                         </div>
                     ` : ''}
                 </div>

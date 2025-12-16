@@ -1,7 +1,5 @@
 // API Settings Component - Migrated to ComponentBase
 // Manages API keys and settings for AI service providers
-// Note: API keys are stored with basic obfuscation. For production use,
-// consider server-side storage with proper encryption.
 
 import { ComponentBase } from '../js/component-base.js';
 
@@ -9,12 +7,9 @@ class ApiSettings extends ComponentBase {
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
-
+        
         // Component-specific properties
         this._selectedService = 'claude';
-
-        // Storage key version for migration
-        this._storageVersion = 'v2';
         
         // Bind methods for external access
         this.saveApiKey = this.saveApiKey.bind(this);
@@ -128,83 +123,35 @@ class ApiSettings extends ComponentBase {
     }
 
     /**
-     * Encode sensitive data for storage (basic obfuscation)
-     * Note: This is not encryption - just obfuscation to prevent casual viewing
-     */
-    _encodeForStorage(data) {
-        try {
-            const json = JSON.stringify(data);
-            // Simple obfuscation: reverse + base64
-            const reversed = json.split('').reverse().join('');
-            return btoa(unescape(encodeURIComponent(reversed)));
-        } catch {
-            return null;
-        }
-    }
-
-    /**
-     * Decode sensitive data from storage
-     */
-    _decodeFromStorage(encoded) {
-        try {
-            const reversed = decodeURIComponent(escape(atob(encoded)));
-            const json = reversed.split('').reverse().join('');
-            return JSON.parse(json);
-        } catch {
-            return null;
-        }
-    }
-
-    /**
      * Load API keys from localStorage
      */
     async loadApiKeys() {
         try {
-            // Try to load v2 (obfuscated) format first
-            const savedKeysV2 = localStorage.getItem('resumeApiKeys_v2');
-            if (savedKeysV2) {
-                const apiKeys = this._decodeFromStorage(savedKeysV2);
-                if (apiKeys) {
-                    this.setData(apiKeys, 'storage-load');
-                    return;
-                }
-            }
-
-            // Fall back to v1 (plain) format for migration
-            const savedKeysV1 = localStorage.getItem('resumeApiKeys');
-            if (savedKeysV1) {
-                const apiKeys = JSON.parse(savedKeysV1);
-                this.setData(apiKeys, 'storage-load');
-                // Migrate to v2 format
-                this.saveApiKeys();
-                // Remove old format after successful migration
-                localStorage.removeItem('resumeApiKeys');
-                return;
-            }
-
-            // No saved keys found
-            this.setData({}, 'storage-load');
-
+            const savedKeys = localStorage.getItem('resumeApiKeys');
+            const apiKeys = savedKeys ? JSON.parse(savedKeys) : {};
+            
+            // Set the data using ComponentBase method
+            this.setData(apiKeys, 'storage-load');
+            
         } catch (error) {
             this.handleError(error, 'Failed to load API keys');
+            
+            // Fallback to empty keys
             this.setData({}, 'fallback');
         }
     }
 
     /**
-     * Save API keys to localStorage with obfuscation
+     * Save API keys to localStorage
      */
     saveApiKeys() {
         try {
             const apiKeys = this.getData() || {};
-            const encoded = this._encodeForStorage(apiKeys);
-            if (encoded) {
-                localStorage.setItem('resumeApiKeys_v2', encoded);
-            }
-
+            localStorage.setItem('resumeApiKeys', JSON.stringify(apiKeys));
+            
             // Update global state if available
             this.updateGlobalState({ apiKeys }, 'api-settings-save');
-
+            
         } catch (error) {
             this.handleError(error, 'Failed to save API keys');
         }
