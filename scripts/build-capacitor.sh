@@ -25,6 +25,9 @@ mkdir -p www/components
 cp -r js/services/*.js www/js/services/
 cp -r components/*.js www/components/
 
+# Copy core JavaScript files
+cp js/*.js www/js/ 2>/dev/null || true
+
 # Copy manifest and service worker
 cp manifest.json www/
 cp service-worker.js www/
