@@ -100,7 +100,7 @@ Cypress.Commands.add('seedJobData', (jobs = []) => {
     win.localStorage.setItem('jobHuntData', JSON.stringify(updatedData));
     
     // Try to update global store directly
-    const store = win.document.querySelector('global-store-migrated');
+    const store = win.document.querySelector('global-store');
     if (store && typeof store.setState === 'function') {
       store.setState({ jobs: jobs });
     }
@@ -146,9 +146,9 @@ Cypress.Commands.add('waitForComponent', (componentSelector, timeout = 5000) => 
 });
 
 Cypress.Commands.add('waitForStore', () => {
-  // Attempt to wait for the migrated store component or legacy store to exist
+  // Attempt to wait for the store component to exist
   // If the store isn't present, we will not fail — some layouts initialize without a globalStore global
-  cy.get('global-store-migrated, global-store', { timeout: 6000 }).then($els => {
+  cy.get('global-store', { timeout: 6000 }).then($els => {
     if ($els.length === 0) {
       cy.log('waitForStore: no store element found, continuing');
       return;

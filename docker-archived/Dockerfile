@@ -15,9 +15,6 @@ RUN npm ci
 # Copy application code
 COPY . .
 
-# Build marketing site (if needed)
-RUN cd marketing-site && npm ci && npm run build || echo "Marketing site build skipped"
-
 # Remove dev dependencies
 RUN npm prune --production
 

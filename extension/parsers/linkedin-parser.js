@@ -507,6 +507,7 @@ class LinkedInParser extends GenericParser {
 
     /**
      * Helper: Convert HTML to readable text
+     * Uses robust tag stripping to handle malformed/nested HTML
      */
     htmlToText(html) {
         // Replace <br> with newlines
@@ -518,8 +519,20 @@ class LinkedInParser extends GenericParser {
         // Replace list items with bullets
         html = html.replace(/<li[^>]*>/gi, '\n• ');
 
-        // Remove all other HTML tags
-        html = html.replace(/<[^>]+>/g, '');
+        // Remove script and style elements entirely (content included)
+        html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+        html = html.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+
+        // Robust HTML tag removal - loop until no more tags found
+        // This handles nested and malformed tags
+        let previousHtml;
+        do {
+            previousHtml = html;
+            html = html.replace(/<[^>]*>/g, '');
+        } while (html !== previousHtml);
+
+        // Also remove any remaining angle brackets that might indicate malformed HTML
+        html = html.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
         // Decode HTML entities
         const textarea = document.createElement('textarea');

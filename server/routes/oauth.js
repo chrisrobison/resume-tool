@@ -3,6 +3,17 @@
 
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
+
+// Rate limiter for OAuth management endpoints
+const oauthLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 20, // 20 requests per window
+    message: { error: 'Too many OAuth requests, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { xForwardedForHeader: false }
+});
 
 /**
  * Initialize OAuth routes
@@ -140,7 +151,7 @@ function initializeOAuthRoutes(oauthService, generateToken) {
      * POST /api/oauth/link
      * Link OAuth account to existing user (requires authentication)
      */
-    router.post('/link', async (req, res) => {
+    router.post('/link', oauthLimiter, async (req, res) => {
         try {
             const userId = req.user?.id;
             if (!userId) {
@@ -170,7 +181,7 @@ function initializeOAuthRoutes(oauthService, generateToken) {
      * POST /api/oauth/unlink
      * Unlink OAuth account from user (requires authentication)
      */
-    router.post('/unlink', async (req, res) => {
+    router.post('/unlink', oauthLimiter, async (req, res) => {
         try {
             const userId = req.user?.id;
             if (!userId) {

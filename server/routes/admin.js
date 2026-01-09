@@ -53,14 +53,32 @@ function initializeAdminRoutes(adminService) {
                 sortOrder = 'DESC'
             } = req.query;
 
+            // Validate and sanitize numeric parameters to prevent type confusion
+            const validatedPage = Math.max(1, Math.floor(Number(page)) || 1);
+            const validatedLimit = Math.min(100, Math.max(1, Math.floor(Number(limit)) || 50));
+
+            // Validate sortBy to prevent SQL injection
+            const allowedSortFields = ['created_at', 'email', 'display_name', 'subscription_tier', 'last_login_at'];
+            const validatedSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'created_at';
+
+            // Validate sortOrder
+            const validatedSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
+
+            // Validate tier and status if provided
+            const allowedTiers = ['free', 'pro', 'enterprise', null];
+            const validatedTier = allowedTiers.includes(tier) ? tier : null;
+
+            const allowedStatuses = ['active', 'suspended', 'cancelled', null];
+            const validatedStatus = allowedStatuses.includes(status) ? status : null;
+
             const result = await adminService.getUsers({
-                page: parseInt(page),
-                limit: parseInt(limit),
-                search,
-                tier,
-                status,
-                sortBy,
-                sortOrder
+                page: validatedPage,
+                limit: validatedLimit,
+                search: String(search || '').substring(0, 100), // Limit search length
+                tier: validatedTier,
+                status: validatedStatus,
+                sortBy: validatedSortBy,
+                sortOrder: validatedSortOrder
             });
 
             res.json(result);
@@ -144,6 +162,13 @@ function initializeAdminRoutes(adminService) {
             const { userId } = req.params;
             const { confirm } = req.query;
 
+            // Validate userId to prevent type confusion attacks
+            if (typeof userId !== 'string' || !userId.match(/^[\w-]+$/)) {
+                return res.status(400).json({
+                    error: 'Invalid user ID format'
+                });
+            }
+
             if (confirm !== 'DELETE') {
                 return res.status(400).json({
                     error: 'Confirmation required',
@@ -151,7 +176,7 @@ function initializeAdminRoutes(adminService) {
                 });
             }
 
-            const result = await adminService.deleteUser(userId);
+            const result = await adminService.deleteUser(String(userId));
 
             res.json(result);
 

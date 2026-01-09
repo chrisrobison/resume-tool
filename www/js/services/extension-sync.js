@@ -188,24 +188,29 @@ class ExtensionSync {
             ...results
         });
 
-        // Trigger global store refresh
-        if (window.globalStore && results.imported > 0) {
-            window.globalStore.dispatch({
-                type: 'EXTENSION_SYNC_COMPLETE',
-                payload: results
-            });
+        // Trigger UI reload
+        // Even if no jobs were imported (all skipped), we still need to refresh UI
+        // because jobs might exist in IndexedDB but not be showing in the UI
+        const totalJobs = results.imported + results.skipped;
 
-            // Also trigger a general data refresh event
-            window.dispatchEvent(new CustomEvent('jhm-data-updated', {
-                detail: {
-                    source: 'extension-sync',
-                    count: results.imported,
-                    results: results
-                }
-            }));
-
-            console.log(`ExtensionSync: Triggered UI refresh for ${results.imported} new jobs`);
+        // Trigger app-manager reload (always, not just when imported > 0)
+        if (window.appManager && typeof window.appManager.reloadFromStore === 'function') {
+            console.log(`ExtensionSync: Triggering app-manager reload (${results.imported} imported, ${results.skipped} skipped, ${totalJobs} total)`);
+            await window.appManager.reloadFromStore();
         }
+
+        // Also trigger a general data refresh event
+        window.dispatchEvent(new CustomEvent('jhm-data-updated', {
+            detail: {
+                source: 'extension-sync',
+                count: totalJobs,
+                imported: results.imported,
+                skipped: results.skipped,
+                results: results
+            }
+        }));
+
+        console.log(`ExtensionSync: UI refresh triggered (${totalJobs} total jobs in sync)`);
 
         return results;
     }

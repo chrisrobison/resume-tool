@@ -69,8 +69,8 @@
                 <h2 id="section-title">Jobs</h2>
                 <div class="stats-container" aria-hidden="false">
                     <!-- Backwards-compatible placeholder for visual tests and legacy layouts -->
-                    <div class="stats-item">Jobs: <span class="stat-count">0</span></div>
-                    <div class="stats-item">Resumes: <span class="stat-count">0</span></div>
+                    <div class="stats-item">Jobs: <span class="stat-count" id="jobs-count">0</span></div>
+                    <div class="stats-item">Resumes: <span class="stat-count" id="resumes-count">0</span></div>
                 </div>
                 <div class="header-actions">
                     <button class="btn btn-primary" id="import-job-btn" style="display: none;">
@@ -221,7 +221,7 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/job-tool/service-worker.js').then(reg => {
+            navigator.serviceWorker.register('/service-worker.js').then(reg => {
                 console.log('Service worker registered:', reg.scope);
             }).catch(err => console.warn('Service worker registration failed:', err));
         }
@@ -544,19 +544,49 @@
         import appManager from './js/app-manager.js';
         import { init as initModalManager } from './js/modal-manager.js';
         
+        // Update stats counters in header
+        function updateStatsCounters(state) {
+            const jobsCount = document.getElementById('jobs-count');
+            const resumesCount = document.getElementById('resumes-count');
+
+            if (jobsCount) {
+                jobsCount.textContent = state?.jobs?.length || 0;
+            }
+            if (resumesCount) {
+                resumesCount.textContent = state?.resumes?.length || 0;
+            }
+        }
+
         // Initialize modules
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 console.log('Initializing Job Hunt Manager...');
-                
+
                 // Initialize modal manager
                 initModalManager();
-                
+
                 // Initialize app manager
                 await appManager.init();
-                
+
+                // Subscribe to global state changes to update stats counters
+                document.addEventListener('global-state-changed', (event) => {
+                    updateStatsCounters(event.detail?.newState);
+                });
+
+                // Also listen for global-store-ready to set initial counts
+                document.addEventListener('global-store-ready', () => {
+                    if (window.globalStore) {
+                        updateStatsCounters(window.globalStore.getState());
+                    }
+                });
+
+                // Set initial counts if store is already ready
+                if (window.globalStore) {
+                    updateStatsCounters(window.globalStore.getState());
+                }
+
                 console.log('Job Hunt Manager initialized successfully!');
-                
+
             } catch (error) {
                 console.error('Failed to initialize Job Hunt Manager:', error);
             }

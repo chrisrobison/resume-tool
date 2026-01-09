@@ -2,6 +2,7 @@
 // Handles Google, GitHub, LinkedIn authentication flows
 
 const passport = require('passport');
+const crypto = require('crypto');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
 const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
@@ -267,10 +268,12 @@ class OAuthService {
     }
 
     /**
-     * Generate unique user ID
+     * Generate cryptographically secure unique user ID
      */
     generateUserId() {
-        return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const timestamp = Date.now();
+        const randomPart = crypto.randomBytes(6).toString('base64url');
+        return `user_${timestamp}_${randomPart}`;
     }
 
     /**
@@ -287,11 +290,14 @@ class OAuthService {
                 [provider, profile.id, accessToken, userId]
             );
 
-            console.log(`✅ Linked ${provider} account to user ${userId}`);
+            // Sanitize provider for logging to prevent format string injection
+            const sanitizedProvider = String(provider || 'unknown').replace(/[^\w-]/g, '').substring(0, 20);
+            console.log(`✅ Linked ${sanitizedProvider} account to user ${userId}`);
             return true;
 
         } catch (error) {
-            console.error(`❌ Error linking ${provider} account:`, error);
+            const sanitizedProvider = String(provider || 'unknown').replace(/[^\w-]/g, '').substring(0, 20);
+            console.error(`❌ Error linking ${sanitizedProvider} account:`, error);
             throw error;
         }
     }

@@ -93,9 +93,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Strategy 1: LLM Models & AI Assets (cache-first, very important)
+  // Use exact hostname matching to prevent domain spoofing
+  const isUnpkgHost = url.hostname === 'unpkg.com' || url.hostname.endsWith('.unpkg.com');
   if (url.pathname.includes('/vendor/web-llm/') ||
       /\.(gguf|ggml|bin|wasm|model|pt|safetensors)$/i.test(url.pathname) ||
-      url.hostname.includes('unpkg.com') && url.pathname.includes('@mlc-ai/web-llm')) {
+      (isUnpkgHost && url.pathname.includes('@mlc-ai/web-llm'))) {
 
     event.respondWith(
       caches.open(LLM_CACHE).then(async cache => {
@@ -127,11 +129,18 @@ self.addEventListener('fetch', (event) => {
       caches.match(request).then(cached => {
         const fetchPromise = fetch(request).then(response => {
           if (response.ok) {
+            // Clone immediately before any async operations
+            const responseClone = response.clone();
             caches.open(APP_CACHE).then(cache => {
-              cache.put(request, response.clone());
+              cache.put(request, responseClone);
+            }).catch(err => {
+              console.warn('[SW] Failed to cache navigation:', err);
             });
           }
           return response;
+        }).catch(err => {
+          console.error('[SW] Navigation fetch failed:', err);
+          throw err;
         });
 
         return cached || fetchPromise;

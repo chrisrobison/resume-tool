@@ -4,7 +4,6 @@
 node_modules
 npm-debug.log
 yarn-error.log
-package-lock.json
 
 # Environment files
 .env
@@ -55,11 +54,8 @@ logs/
 *.sqlite3
 *.db
 
-# Marketing site (built separately)
-marketing-site/node_modules
-marketing-site/.next
-marketing-site/out
-marketing-site/build
+# Cypress tests
+cypress/
 
 # CI/CD
 .github/
