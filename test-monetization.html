@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextRole - Monetization Test</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .status {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .auth-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .auth-status {
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .auth-status.authenticated {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .auth-status.not-authenticated {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .test-results {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .test-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-item.pending {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+        }
+
+        .test-item.running {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+
+        .test-item.pass {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .test-item.fail {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .test-name {
+            font-weight: 600;
+        }
+
+        .test-status {
+            font-size: 18px;
+        }
+
+        .log-viewer {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-entry.info { color: #4fc3f7; }
+        .log-entry.success { color: #81c784; }
+        .log-entry.error { color: #e57373; }
+        .log-entry.warning { color: #ffb74d; }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 NextRole Monetization Test Suite</h1>
+            <p>Comprehensive testing for authentication, subscriptions, and payments</p>
+            <div class="status">
+                <div class="status-badge" id="server-status">Server: Checking...</div>
+                <div class="status-badge" id="db-status">Database: Checking...</div>
+                <div class="status-badge" id="stripe-status">Stripe: Checking...</div>
+            </div>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="auth-section">
+            <h2>🔐 Authentication</h2>
+            <div class="auth-status" id="auth-status">
+                <strong>Status:</strong> <span id="auth-status-text">Checking...</span>
+            </div>
+            <div class="buttons">
+                <button class="btn-primary" onclick="showLoginModal()">Login</button>
+                <button class="btn-secondary" onclick="showRegisterModal()">Register</button>
+                <button class="btn-secondary" onclick="testOAuth()">Test OAuth</button>
+                <button class="btn-danger" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Account Dashboard Section -->
+        <div class="auth-section" id="dashboard-section" class="hidden">
+            <h2>📊 Account Dashboard</h2>
+            <account-dashboard></account-dashboard>
+        </div>
+
+        <!-- Test Runner Section -->
+        <div class="test-results">
+            <h2>🧪 Test Results</h2>
+            <div class="buttons">
+                <button class="btn-primary" onclick="runAllTests()">Run All Tests</button>
+                <button class="btn-secondary" onclick="runQuickTests()">Quick Test</button>
+                <button class="btn-secondary" onclick="clearLogs()">Clear Logs</button>
+            </div>
+
+            <div id="test-list" style="margin-top: 20px;">
+                <!-- Test items will be added here dynamically -->
+            </div>
+
+            <div class="log-viewer" id="log-viewer">
+                <div class="log-entry info">Test suite ready. Click "Run All Tests" to begin.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal (hidden by default) -->
+    <div id="auth-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <auth-manager></auth-manager>
+    </div>
+
+    <!-- Import components -->
+    <script type="module">
+        import './components/account-dashboard.js';
+        import './components/auth-manager.js';
+
+        // Make them available globally
+        window.accountDashboardReady = true;
+    </script>
+
+    <script>
+        // Global state
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+        let testLogs = [];
+
+        // Initialize on page load
+        window.addEventListener('load', async () => {
+            await checkServerStatus();
+            await checkAuthStatus();
+            initializeTestSuite();
+        });
+
+        // Listen for auth success
+        document.addEventListener('auth-success', (e) => {
+            authToken = e.detail.token;
+            currentUser = e.detail.user;
+            checkAuthStatus();
+            hideAuthModal();
+        });
+
+        // Server status check
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+
+                updateStatus('server-status', 'Server: Connected', 'success');
+                updateStatus('db-status', `MySQL: ${data.services.mysql || 'Unknown'}`,
+                    data.services.mysql === 'connected' ? 'success' : 'error');
+                updateStatus('stripe-status', `Stripe: ${data.services.stripe || 'Unknown'}`,
+                    data.services.stripe === 'initialized' ? 'success' : 'warning');
+
+                log('info', 'Server health check passed');
+                log('success', `Services: ${JSON.stringify(data.services)}`);
+            } catch (error) {
+                updateStatus('server-status', 'Server: Offline', 'error');
+                log('error', `Server check failed: ${error.message}`);
+            }
+        }
+
+        // Auth status check
+        async function checkAuthStatus() {
+            const statusEl = document.getElementById('auth-status');
+            const textEl = document.getElementById('auth-status-text');
+            const dashboardSection = document.getElementById('dashboard-section');
+
+            if (!authToken) {
+                statusEl.className = 'auth-status not-authenticated';
+                textEl.textContent = 'Not authenticated';
+                dashboardSection.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/subscriptions/me', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    statusEl.className = 'auth-status authenticated';
+                    textEl.innerHTML = `Authenticated as <strong>${currentUser.email}</strong> (${data.tier.toUpperCase()})`;
+                    dashboardSection.classList.remove('hidden');
+                    log('success', `Authenticated as ${currentUser.email}`);
+                } else {
+                    throw new Error('Token invalid');
+                }
+            } catch (error) {
+                localStorage.removeItem('authToken');
+                authToken = null;
+                statusEl.className = 'auth-status not-authenticated';
+                textEl.textContent = 'Token expired or invalid';
+                dashboardSection.classList.add('hidden');
+                log('warning', 'Authentication token expired');
+            }
+        }
+
+        // Modal functions
+        function showLoginModal() {
+            const modal = document.getElementById('auth-modal');
+            const authManager = modal.querySelector('auth-manager');
+            authManager._mode = 'login';
+            authManager.render();
+            modal.style.display = 'flex';
+        }
+
+        function showRegisterModal() {
+            const modal = document.getElementById('auth-modal');
+            const authManager = modal.querySelector('auth-manager');
+            authManager._mode = 'register';
+            authManager.render();
+            modal.style.display = 'flex';
+        }
+
+        function hideAuthModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            authToken = null;
+            currentUser = null;
+            log('info', 'Logged out successfully');
+            checkAuthStatus();
+        }
+
+        function testOAuth() {
+            log('info', 'OAuth providers: Google, GitHub, LinkedIn');
+            log('info', 'Click Login and choose an OAuth provider to test');
+            showLoginModal();
+        }
+
+        // Test suite
+        const tests = [
+            {
+                name: 'Health Check',
+                fn: async () => {
+                    const res = await fetch('/health');
+                    if (!res.ok) throw new Error('Health check failed');
+                    return await res.json();
+                }
+            },
+            {
+                name: 'API Status',
+                fn: async () => {
+                    const res = await fetch('/api/status');
+                    if (!res.ok) throw new Error('Status check failed');
+                    return await res.json();
+                }
+            },
+            {
+                name: 'Register New User',
+                fn: async () => {
+                    const randomEmail = `test${Date.now()}@example.com`;
+                    const res = await fetch('/api/auth/v2/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: randomEmail,
+                            password: 'TestPassword123!',
+                            displayName: 'Test User'
+                        })
+                    });
+                    if (!res.ok) {
+                        const error = await res.json();
+                        throw new Error(error.error || 'Registration failed');
+                    }
+                    return await res.json();
+                }
+            },
+            {
+                name: 'Get Subscription Tiers',
+                fn: async () => {
+                    if (!authToken) throw new Error('Not authenticated');
+                    const res = await fetch('/api/subscriptions/tiers', {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    if (!res.ok) throw new Error('Failed to get tiers');
+                    return await res.json();
+                }
+            },
+            {
+                name: 'Get Current Subscription',
+                fn: async () => {
+                    if (!authToken) throw new Error('Not authenticated');
+                    const res = await fetch('/api/subscriptions/me', {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    if (!res.ok) throw new Error('Failed to get subscription');
+                    return await res.json();
+                }
+            },
+            {
+                name: 'Get Usage Statistics',
+                fn: async () => {
+                    if (!authToken) throw new Error('Not authenticated');
+                    const res = await fetch('/api/subscriptions/usage', {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    if (!res.ok) throw new Error('Failed to get usage');
+                    return await res.json();
+                }
+            }
+        ];
+
+        function initializeTestSuite() {
+            const testList = document.getElementById('test-list');
+            testList.innerHTML = tests.map((test, i) => `
+                <div class="test-item pending" id="test-${i}">
+                    <span class="test-name">${test.name}</span>
+                    <span class="test-status">⏳</span>
+                </div>
+            `).join('');
+        }
+
+        async function runAllTests() {
+            log('info', '═══════════════════════════════════════');
+            log('info', 'Starting full test suite...');
+            log('info', '═══════════════════════════════════════');
+
+            for (let i = 0; i < tests.length; i++) {
+                await runTest(i);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            log('info', '═══════════════════════════════════════');
+            log('success', 'Test suite completed!');
+            log('info', '═══════════════════════════════════════');
+        }
+
+        async function runQuickTests() {
+            log('info', 'Running quick tests (health + status)...');
+            await runTest(0);
+            await new Promise(resolve => setTimeout(resolve, 300));
+            await runTest(1);
+        }
+
+        async function runTest(index) {
+            const test = tests[index];
+            const testEl = document.getElementById(`test-${index}`);
+
+            testEl.className = 'test-item running';
+            testEl.querySelector('.test-status').textContent = '⏳';
+            log('info', `Running: ${test.name}`);
+
+            try {
+                const result = await test.fn();
+                testEl.className = 'test-item pass';
+                testEl.querySelector('.test-status').textContent = '✓';
+                log('success', `${test.name}: PASS`);
+                if (result) {
+                    log('info', `Result: ${JSON.stringify(result).substring(0, 100)}...`);
+                }
+            } catch (error) {
+                testEl.className = 'test-item fail';
+                testEl.querySelector('.test-status').textContent = '✗';
+                log('error', `${test.name}: FAIL - ${error.message}`);
+            }
+        }
+
+        function updateStatus(id, text, type) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.className = `status-badge ${type}`;
+        }
+
+        function log(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            testLogs.push({ type, message: logEntry });
+
+            const viewer = document.getElementById('log-viewer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = logEntry;
+            viewer.appendChild(entry);
+            viewer.scrollTop = viewer.scrollHeight;
+        }
+
+        function clearLogs() {
+            testLogs = [];
+            document.getElementById('log-viewer').innerHTML = '';
+            log('info', 'Logs cleared');
+        }
+
+        // Close modal on click outside
+        document.getElementById('auth-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'auth-modal') {
+                hideAuthModal();
+            }
+        });
+    </script>
+</body>
+</html>

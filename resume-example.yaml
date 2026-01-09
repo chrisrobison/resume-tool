@@ -1,0 +1,184 @@
+# Example Resume in YAML format
+# This follows the JSON Resume schema (https://jsonresume.org/schema/)
+
+basics:
+  name: John Doe
+  label: Full Stack Developer
+  email: john.doe@example.com
+  phone: (555) 123-4567
+  website: https://johndoe.com
+  summary: >
+    Experienced full stack developer with 5+ years of expertise in building scalable
+    web applications. Passionate about clean code, modern frameworks, and creating
+    exceptional user experiences.
+  location:
+    address: 123 Main Street
+    city: San Francisco
+    region: CA
+    postalCode: 94102
+    countryCode: US
+  profiles:
+    - network: GitHub
+      username: johndoe
+      url: https://github.com/johndoe
+    - network: LinkedIn
+      username: johndoe
+      url: https://linkedin.com/in/johndoe
+    - network: Twitter
+      username: '@johndoe'
+      url: https://twitter.com/johndoe
+
+work:
+  - name: Tech Corp Inc
+    position: Senior Full Stack Developer
+    url: https://techcorp.com
+    startDate: 2021-03-15
+    endDate: null
+    location: San Francisco, CA
+    summary: Leading development of core platform features and mentoring junior developers
+    highlights:
+      - Architected and deployed microservices handling 10M+ requests daily
+      - Reduced API response time by 40% through optimization and caching strategies
+      - Led migration from monolithic to microservices architecture
+      - Mentored team of 5 junior developers
+
+  - name: StartupXYZ
+    position: Full Stack Developer
+    url: https://startupxyz.com
+    startDate: 2019-01-10
+    endDate: 2021-03-01
+    location: Remote
+    summary: Developed customer-facing features and internal tools for growing startup
+    highlights:
+      - Built responsive React applications serving 100K+ active users
+      - Implemented CI/CD pipeline reducing deployment time by 60%
+      - Developed RESTful APIs using Node.js and Express
+      - Collaborated with design team to implement pixel-perfect UIs
+
+  - name: WebDev Agency
+    position: Junior Developer
+    url: https://webdevagency.com
+    startDate: 2017-06-01
+    endDate: 2018-12-31
+    location: New York, NY
+    summary: Created client websites and maintained existing web applications
+    highlights:
+      - Delivered 15+ client websites using WordPress and custom solutions
+      - Improved site performance scores to 90+ on Google PageSpeed Insights
+      - Provided technical support and maintenance for 30+ client sites
+
+education:
+  - institution: University of California, Berkeley
+    area: Computer Science
+    studyType: Bachelor of Science
+    startDate: 2013-09-01
+    endDate: 2017-05-31
+    gpa: '3.8'
+    courses:
+      - Data Structures and Algorithms
+      - Web Development
+      - Database Systems
+      - Software Engineering
+      - Computer Networks
+
+  - institution: Online Learning Platform
+    area: Full Stack Web Development
+    studyType: Certificate
+    startDate: 2016-06-01
+    endDate: 2016-12-31
+
+skills:
+  - name: Frontend Development
+    level: Expert
+    keywords:
+      - React
+      - Vue.js
+      - TypeScript
+      - JavaScript
+      - HTML5
+      - CSS3
+      - Tailwind CSS
+      - Redux
+
+  - name: Backend Development
+    level: Expert
+    keywords:
+      - Node.js
+      - Express
+      - Python
+      - Django
+      - PostgreSQL
+      - MongoDB
+      - Redis
+      - GraphQL
+
+  - name: DevOps & Tools
+    level: Advanced
+    keywords:
+      - Docker
+      - Kubernetes
+      - AWS
+      - CI/CD
+      - Git
+      - Linux
+      - Nginx
+      - Jenkins
+
+  - name: Testing
+    level: Advanced
+    keywords:
+      - Jest
+      - Cypress
+      - React Testing Library
+      - Mocha
+      - Chai
+
+projects:
+  - name: E-Commerce Platform
+    description: Full-featured e-commerce platform with payment processing and inventory management
+    url: https://github.com/johndoe/ecommerce
+    startDate: 2022-01-01
+    endDate: 2022-06-30
+    highlights:
+      - Built using React, Node.js, and PostgreSQL
+      - Integrated Stripe for payment processing
+      - Implemented real-time inventory tracking
+      - Deployed on AWS with auto-scaling
+    keywords:
+      - React
+      - Node.js
+      - PostgreSQL
+      - Stripe
+      - AWS
+
+  - name: Task Management App
+    description: Collaborative task management tool with real-time updates
+    url: https://github.com/johndoe/taskmanager
+    startDate: 2021-08-01
+    endDate: 2021-11-30
+    highlights:
+      - Real-time collaboration using WebSockets
+      - Drag-and-drop interface with React DnD
+      - User authentication and authorization
+      - Mobile-responsive design
+    keywords:
+      - React
+      - WebSockets
+      - MongoDB
+      - Express
+
+  - name: Weather Dashboard
+    description: Weather forecast application with interactive maps
+    url: https://github.com/johndoe/weather-app
+    startDate: 2020-03-01
+    endDate: 2020-05-31
+    highlights:
+      - Integrated multiple weather APIs
+      - Interactive maps using Leaflet.js
+      - Progressive Web App with offline support
+      - Responsive design for all devices
+    keywords:
+      - Vue.js
+      - Weather API
+      - Leaflet
+      - PWA

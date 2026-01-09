@@ -1,0 +1,52 @@
+basics:
+  name: Christopher Robison
+  label: Senior Software Engineer / Engineering Lead
+  summary: Senior Software Engineer specializing in production-grade, operations-focused software systems. Deep expertise in Python-based backend development, real-time data systems, and workflow automation for logistics, transportation, and high-availability services. Known for end-to-end ownership, pragmatic architecture, and close collaboration with operations and product teams to deliver reliable systems that directly impact revenue and customer experience.
+  location:
+    city: San Francisco
+    region: CA
+  email: cdr@cdr2.com
+  phone: (415) 810-6991
+  website: https://www.cdr2.com/
+
+work:
+  - company: D. Harris Tours, Inc.
+    position: Senior Software Engineer / CTO
+    startDate: 2020-03-01
+    summary: Designed and built a Python-based operations platform supporting scheduling, dispatch, routing, invoicing, payments, and customer management for a growing transportation business.
+    highlights:
+      - Designed and built a Python-based operations platform for scheduling, dispatch, routing, invoicing, payments, and customer management.
+      - Implemented real-time GPS tracking, automated SMS/email notifications, and operational dashboards used daily by staff and drivers.
+      - Modeled complex real-world workflows involving customers, drivers, vehicles, and time-based constraints.
+      - Integrated payments, invoicing, and customer portals to streamline operations and improve cash flow.
+      - Collaborated directly with operations staff to translate business processes into maintainable software.
+      - Increased daily revenue by 30% through route optimization and improved asset utilization.
+
+  - company: Conversant, Inc.
+    position: Manager, Software Engineering
+    startDate: 2010-07-16
+    endDate: 2020-03-01
+    summary: Led development of high-throughput backend services and APIs supporting large-scale mobile and web advertising platforms.
+    highlights:
+      - Architected RESTful APIs and backend services serving tens of millions of users per day.
+      - Built scalable metrics pipelines and high-throughput backend systems.
+      - Led and mentored distributed engineering teams.
+      - Worked cross-functionally with product and operations teams.
+
+prior_experience:
+  - company: Mindjet
+    position: Web Architect
+    summary: Led development of Mindjet Catalyst, the company’s first SaaS product. Architected backend services and guided transition from Flash to HTML5, contributing to a major shift in business model and subscription growth.
+
+  - company: Simple Software, Inc.
+    position: Founder / Lead Engineer
+    summary: Built custom CMS and business process automation systems for small and mid-sized businesses.
+
+  - company: Genetic Savings & Clone
+    position: VP Engineering
+    summary: Architected internal automation systems and customer-facing portals supporting bioinformatics workflows and genetic data management.
+
+  - company: Inter@ctivate / Food.com / Financial Cafe
+    position: Engineering Leadership & Architecture
+    summary: Early internet platforms spanning e-commerce, online ordering, financial services, and high-volume messaging systems.
+
