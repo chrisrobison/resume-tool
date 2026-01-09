@@ -28,7 +28,12 @@
     "cap:ios": "npx cap open ios",
     "cap:android": "npx cap open android",
     "cap:run:ios": "npm run cap:sync && npx cap run ios",
-    "cap:run:android": "npm run cap:sync && npx cap run android"
+    "cap:run:android": "npm run cap:sync && npx cap run android",
+    "resume:pdf": "node yaml-to-pdf.js",
+    "resume:example": "node yaml-to-pdf.js resume-example.yaml example-resume.pdf",
+    "resume:modern": "node yaml-to-pdf.js resume.yaml resume-modern.pdf modern",
+    "resume:classic": "node yaml-to-pdf.js resume.yaml resume-classic.pdf classic",
+    "resume:minimal": "node yaml-to-pdf.js resume.yaml resume-minimal.pdf minimal"
   },
   "devDependencies": {
     "cypress": "^13.6.2",
@@ -49,7 +54,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chrisrobison/nextrole.git"
+    "url": "git+https://github.com/chrisrobison/nextrole.git"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -89,5 +94,13 @@
     "bcrypt": "^5.1.1",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.7"
-  }
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/chrisrobison/nextrole/issues"
+  },
+  "homepage": "https://github.com/chrisrobison/nextrole#readme"
 }
