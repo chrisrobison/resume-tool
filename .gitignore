@@ -5,6 +5,7 @@ resume-editor
 .env
 .aider*
 *.log
+server/server.log
 
 # Cypress artifacts (screenshots, videos, reports)
 cypress/screenshots/
