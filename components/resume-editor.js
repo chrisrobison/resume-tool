@@ -2,6 +2,13 @@
 // Comprehensive resume editing interface with tabbed navigation, modal dialogs, and real-time preview
 
 import { ComponentBase } from '../js/component-base.js';
+// Import extracted services
+import * as DataManager from '../js/resume-data-manager.js';
+import * as Validators from '../js/resume-validators.js';
+import * as Renderer from '../js/resume-renderer.js';
+import * as ModalManager from '../js/resume-modal-manager.js';
+import * as SectionEditor from '../js/resume-section-editor.js';
+
 // Signal module load for debugging
 console.info('Module loaded: components/resume-editor.js');
 

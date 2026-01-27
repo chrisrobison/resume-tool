@@ -4,12 +4,19 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import * as StoreModule from '../../js/store.js';
+// Import dynamically to reset module state
+let StoreModule;
 
 describe('Store Module', () => {
   let mockStore;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Reset modules to clear cached store instance
+    vi.resetModules();
+
+    // Re-import the module fresh
+    StoreModule = await import('../../js/store.js');
+
     // Create mock global-store element
     mockStore = {
       getState: vi.fn(() => ({ test: 'state' })),
