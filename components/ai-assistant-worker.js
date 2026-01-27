@@ -5,6 +5,12 @@ import { ComponentBase } from '../js/component-base.js';
 import aiService from '../js/ai-service.js';
 import { addResume, setCurrentResume, updateJob } from '../js/store.js';
 
+// Import extracted services
+import { getApiConfig, hasValidApiKey } from '../js/ai-config-provider.js';
+import { formatTime, escapeHtml } from '../js/ai-analysis-formatter.js';
+import * as UIHelpers from '../js/ai-ui-helpers.js';
+import * as AIOperations from '../js/ai-operation-handlers.js';
+
 class AIAssistantWorker extends ComponentBase {
     constructor() {
         super();
@@ -367,251 +373,38 @@ class AIAssistantWorker extends ComponentBase {
     renderCurrentSelection() {
         const allJobs = this.getGlobalState('jobs') || [];
         const allResumes = this.getGlobalState('resumes') || [];
-        
-        console.log('AIAssistantWorker renderCurrentSelection - Available jobs:', allJobs);
-        console.log('AIAssistantWorker renderCurrentSelection - Available resumes:', allResumes);
-        
-        return `
-            <div class="selection-item">
-                <div class="selection-info">
-                    <div class="label">Current Job</div>
-                    <div class="value ${!this._currentJob ? 'no-selection' : ''}">
-                        ${this._currentJob ? 
-                            `${this._currentJob.title || this._currentJob.position || 'Untitled'} at ${this._currentJob.company || 'Unknown Company'}` : 
-                            'No job selected'
-                        }
-                    </div>
-                </div>
-                <div class="selection-actions">
-                    <button class="selection-btn" id="select-job" ${allJobs.length === 0 ? 'disabled' : ''}>
-                        ${this._currentJob ? 'Change' : 'Select'} Job
-                    </button>
-                </div>
-            </div>
-            
-            <div class="selection-item">
-                <div class="selection-info">
-                    <div class="label">Current Resume</div>
-                    <div class="value ${!this._currentResume ? 'no-selection' : ''}">
-                        ${this._currentResume ? 
-                            `${this._currentResume.name || 'Untitled Resume'}${this._currentResume.data?.basics?.name ? ` (${this._currentResume.data.basics.name})` : ''}` : 
-                            'No resume selected'
-                        }
-                    </div>
-                </div>
-                <div class="selection-actions">
-                    <button class="selection-btn" id="select-resume" ${allResumes.length === 0 ? 'disabled' : ''}>
-                        ${this._currentResume ? 'Change' : 'Select'} Resume
-                    </button>
-                </div>
-            </div>
-            
-            ${allJobs.length === 0 ? '<p style="margin: 10px 0; color: #dc3545; font-size: 12px;"><i class="fas fa-info-circle"></i> Create jobs in the Jobs section first</p>' : ''}
-            ${allResumes.length === 0 ? '<p style="margin: 10px 0; color: #dc3545; font-size: 12px;"><i class="fas fa-info-circle"></i> Create resumes in the Resumes section first</p>' : ''}
-        `;
+
+        return UIHelpers.renderCurrentSelection(this._currentJob, this._currentResume, allJobs, allResumes);
     }
 
     /**
      * Render requirements status
      */
     renderRequirements() {
-        const hasJob = !!this._currentJob;
-        const hasResume = !!this._currentResume;
-        const hasJobDescription = hasJob && (this._currentJob.description || this._currentJob.jobDetails);
         const hasApiKey = this.hasValidApiKey();
-        
-        return `
-            <div class="requirement-item">
-                <div class="requirement-status ${hasJob ? 'valid' : 'invalid'}">
-                    ${hasJob ? '✓' : '✗'}
-                </div>
-                Job selected
-            </div>
-            <div class="requirement-item">
-                <div class="requirement-status ${hasJobDescription ? 'valid' : 'invalid'}">
-                    ${hasJobDescription ? '✓' : '✗'}
-                </div>
-                Job description provided
-            </div>
-            <div class="requirement-item">
-                <div class="requirement-status ${hasResume ? 'valid' : 'invalid'}">
-                    ${hasResume ? '✓' : '✗'}
-                </div>
-                Resume selected
-            </div>
-            <div class="requirement-item">
-                <div class="requirement-status ${hasApiKey ? 'valid' : 'invalid'}">
-                    ${hasApiKey ? '✓' : '✗'}
-                </div>
-                AI API key configured
-            </div>
-        `;
+        return UIHelpers.renderRequirements(this._currentJob, this._currentResume, hasApiKey);
     }
 
     /**
      * Render progress indicator
      */
     renderProgress() {
-        return `
-            <div class="progress">
-                <div class="progress-message">${this._currentProgress}</div>
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                </div>
-            </div>
-        `;
+        return UIHelpers.renderProgress(this._currentProgress);
     }
 
     /**
-     * Render progress log (new interactive console)
+     * Render progress log (interactive console)
      */
     renderProgressLog() {
-        const hasMessages = this._progressLog.length > 0;
-
-        return `
-            <div class="progress-log ${hasMessages ? '' : 'empty'}">
-                <div class="progress-log-header">
-                    <h4>AI Activity Log</h4>
-                    <div class="progress-log-controls">
-                        ${hasMessages ? `
-                            <button class="btn-small" id="clear-log" title="Clear log">
-                                <i class="fas fa-trash"></i> Clear
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-                <div class="progress-log-messages">
-                    ${hasMessages ?
-                        this._progressLog.map(entry => {
-                            const time = this.formatTime(entry.timestamp);
-                            return `
-                                <div class="log-entry">
-                                    <span class="log-time">${time}</span>
-                                    <span class="log-message">${this.escapeHtml(entry.message)}</span>
-                                </div>
-                            `;
-                        }).join('')
-                        :
-                        `<div class="log-empty">No activity yet. Start an AI operation to see progress here.</div>`
-                    }
-                </div>
-            </div>
-        `;
+        return UIHelpers.renderProgressLog(this._progressLog);
     }
 
-    /**
-     * Format timestamp for log display
-     */
-    formatTime(date) {
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const seconds = date.getSeconds().toString().padStart(2, '0');
-        const ms = date.getMilliseconds().toString().padStart(3, '0');
-        return `${hours}:${minutes}:${seconds}.${ms}`;
-    }
-
-    /**
-     * Escape HTML for safe display
-     */
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
 
     /**
      * Render AI operation result
      */
     renderResult() {
-        const result = this._lastResult;
-        let content = '';
-        
-        if (result.type === 'tailor-resume') {
-            const analysis = result.data.result.analysis;
-            content = `
-                <h4>✨ Resume Tailored Successfully</h4>
-                <div class="result-summary">
-                    <div class="result-stat">
-                        <span class="stat-label">Changes Made:</span>
-                        <span class="stat-value">${result.data.result.changes?.length || 0}</span>
-                    </div>
-                    ${analysis ? `
-                        <div class="result-stat">
-                            <span class="stat-label">Match Score:</span>
-                            <span class="stat-value match-score-${this.getScoreClass(analysis.matchScore)}">${analysis.matchScore}%</span>
-                        </div>
-                    ` : ''}
-                </div>
-                ${analysis ? this.renderMatchAnalysisSummary(analysis) : ''}
-                ${result.data.result.changes?.length > 0 ? `
-                    <div class="changes-preview">
-                        <h5>Key Changes:</h5>
-                        <ul>
-                            ${result.data.result.changes.slice(0, 3).map(change => `<li>${change}</li>`).join('')}
-                            ${result.data.result.changes.length > 3 ? `<li><em>+${result.data.result.changes.length - 3} more changes</em></li>` : ''}
-                        </ul>
-                    </div>
-                ` : ''}
-            `;
-        } else if (result.type === 'cover-letter') {
-            const analysis = result.data.result.analysis;
-            content = `
-                <h4>📝 Cover Letter Generated</h4>
-                <div class="result-summary">
-                    <div class="result-stat">
-                        <span class="stat-label">Length:</span>
-                        <span class="stat-value">${result.data.result.coverLetter?.length || 0} characters</span>
-                    </div>
-                    ${analysis ? `
-                        <div class="result-stat">
-                            <span class="stat-label">Match Score:</span>
-                            <span class="stat-value match-score-${this.getScoreClass(analysis.matchScore)}">${analysis.matchScore}%</span>
-                        </div>
-                    ` : ''}
-                </div>
-                ${analysis ? this.renderMatchAnalysisSummary(analysis) : ''}
-                ${result.data.result.keyPoints?.length > 0 ? `
-                    <div class="key-points">
-                        <h5>Key Selling Points:</h5>
-                        <ul>
-                            ${result.data.result.keyPoints.map(point => `<li>${point}</li>`).join('')}
-                        </ul>
-                    </div>
-                ` : ''}
-            `;
-        } else if (result.type === 'match-analysis') {
-            const analysis = result.data.result.analysis;
-            content = `
-                <h4>🔍 Match Analysis Complete</h4>
-                <div class="result-summary">
-                    <div class="result-stat">
-                        <span class="stat-label">Overall Score:</span>
-                        <span class="stat-value match-score-${this.getScoreClass(analysis.overallScore)}">${analysis.overallScore}%</span>
-                    </div>
-                    <div class="result-stat">
-                        <span class="stat-label">Skills Match:</span>
-                        <span class="stat-value match-score-${this.getScoreClass(analysis.skillsMatch.score)}">${analysis.skillsMatch.score}%</span>
-                    </div>
-                    <div class="result-stat">
-                        <span class="stat-label">Experience Match:</span>
-                        <span class="stat-value match-score-${this.getScoreClass(analysis.experienceMatch.score)}">${analysis.experienceMatch.score}%</span>
-                    </div>
-                </div>
-                ${this.renderDetailedAnalysis(analysis)}
-            `;
-        }
-        
-        return `
-            <div class="result">
-                ${content}
-                <div class="result-actions">
-                    <button class="result-btn" id="view-details">View Full Details</button>
-                    <button class="result-btn" id="save-result">Save to History</button>
-                    ${result.type === 'tailor-resume' ? '<button class="result-btn" id="apply-changes">Apply Changes</button>' : ''}
-                    ${result.type === 'cover-letter' ? '<button class="result-btn" id="save-cover-letter">Save Cover Letter</button>' : ''}
-                </div>
-            </div>
-        `;
+        return UIHelpers.renderResult(this._lastResult);
     }
 
     /**
@@ -702,140 +495,29 @@ class AIAssistantWorker extends ComponentBase {
      * Handle resume tailoring
      */
     async handleTailorResume() {
-        console.log('AIAssistantWorker handleTailorResume called');
-        console.log('Can tailor resume:', this.canTailorResume());
-        console.log('Current job:', this._currentJob);
-        console.log('Current resume:', this._currentResume);
-        
         if (!this.canTailorResume()) {
-            console.log('Cannot tailor resume - requirements not met');
             return;
         }
-        
+
         this._isProcessing = true;
         this._lastResult = null;
         this.render();
-        
+
         try {
-            const providerList = this.getApiConfig();
-            console.log('AIAssistantWorker - Provider list:', providerList);
-
-            console.log('AIAssistantWorker - About to call aiService.tailorResume...');
-
+            const providerList = getApiConfig(this.getGlobalState());
             const resumeData = this._currentResume.content || this._currentResume.data;
             const jobDesc = this._currentJob.description || this._currentJob.jobDetails;
 
-            console.log('AIAssistantWorker - Sending parameters:');
-            console.log('  - resume:', !!resumeData);
-            console.log('  - jobDescription:', !!jobDesc, jobDesc?.substring(0, 100) + '...');
-            console.log('  - providerList length:', providerList.length);
-
-            const result = await aiService.tailorResume({
+            const result = await AIOperations.executeTailorResume({
                 resume: resumeData,
                 jobDescription: jobDesc,
                 providerList,
-                includeAnalysis: true,
-                onProgress: this.handleProgress
+                onProgress: this.handleProgress,
+                currentJob: this._currentJob,
+                currentResume: this._currentResume
             });
-            
-            console.log('AIAssistantWorker - Received result:', result);
-            
+
             this._lastResult = { type: 'tailor-resume', data: result };
-
-            // Persist the tailored resume as a new saved resume and associate with the job
-            try {
-                // Robustly extract the tailored resume from the AI response. Different AI shapes
-                // may return the object under different keys or as a JSON string.
-                let tailored = null;
-                const payload = result?.result ?? result;
-
-                if (payload && typeof payload === 'object') {
-                    tailored = payload.tailoredResume || payload.tailored_resume || payload.tailored || null;
-                    // Sometimes the assistant returns the tailored resume directly under 'result'
-                    if (!tailored && payload.result && typeof payload.result === 'object') {
-                        tailored = payload.result.tailoredResume || payload.result.tailored || null;
-                    }
-                }
-
-                // If it's still a string, try to parse JSON
-                if (!tailored && typeof payload === 'string') {
-                    try {
-                        const parsed = JSON.parse(payload);
-                        tailored = parsed.tailoredResume || parsed;
-                    } catch (e) {
-                        // ignore parse error
-                    }
-                }
-
-                if (!tailored) {
-                    // As a last resort, try to parse JSON from any string fields
-                    const maybeText = JSON.stringify(result);
-                    try {
-                        const parsed = JSON.parse(maybeText);
-                        tailored = parsed?.tailoredResume || parsed;
-                    } catch (e) {
-                        // give up
-                        tailored = null;
-                    }
-                }
-
-                if (!tailored) throw new Error('AI response did not contain a tailored resume');
-
-                const timestamp = new Date().toISOString();
-                const newResume = {
-                    id: 'resume_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-                    name: `${this._currentJob?.title || 'Tailored Resume'} - ${new Date().toLocaleDateString()}`,
-                    content: tailored,
-                    dateCreated: timestamp,
-                    dateModified: timestamp
-                };
-
-                // Add to global store using helper functions
-                try {
-                    addResume(newResume);
-                    console.log('AIAssistantWorker: Added tailored resume via store helper', newResume.id);
-                } catch (e) {
-                    // Fallback to direct state update
-                    const currentRes = this.getGlobalState('resumes') || [];
-                    this.updateGlobalState({ resumes: [...currentRes, newResume] }, 'ai-assistant-add-resume');
-                }
-
-                // Associate the new resume with the job if a job is selected
-                if (this._currentJob && this._currentJob.id) {
-                    try {
-                        updateJob(this._currentJob.id, { resumeId: newResume.id, dateUpdated: timestamp });
-                    } catch (e) {
-                        this.updateGlobalState({ currentJob: { ...this._currentJob, resumeId: newResume.id } }, 'ai-assistant-associate-resume');
-                    }
-                }
-
-                // Update the currentResume pointer
-                try {
-                    setCurrentResume(newResume);
-                } catch (e) {
-                    this.updateGlobalState({ currentResume: newResume }, 'ai-assistant-tailor');
-                }
-
-                // Log the AI operation using logs.js
-                try {
-                    const { logApiCall } = await import('../js/logs.js');
-                    const usedProvider = result.usedProvider || result.provider || 'unknown';
-                    const usedModel = result.usedModel || 'unknown';
-                    logApiCall(usedProvider, 'tailor_resume', {
-                        model: usedModel,
-                        resume: !!this._currentResume,
-                        jobDescriptionLength: (this._currentJob?.description || '').length || 0
-                    }, result, null, { jobId: this._currentJob?.id, resumeId: newResume.id });
-                } catch (logErr) {
-                    console.warn('AIAssistantWorker: Failed to log API call', logErr);
-                }
-
-                // Update the currentResume pointer
-                this.updateGlobalState({ currentResume: newResume }, 'ai-assistant-tailor');
-
-            } catch (persistError) {
-                console.error('AIAssistantWorker: Failed to persist tailored resume', persistError);
-            }
 
             // Emit successful tailor event
             this.emitEvent('resume-tailored', {
@@ -844,11 +526,11 @@ class AIAssistantWorker extends ComponentBase {
                 changes: result.result.changes?.length || 0,
                 matchScore: result.result.analysis?.matchScore
             });
-            
+
         } catch (error) {
             console.error('AIAssistantWorker - Error in handleTailorResume:', error);
             this.handleError(error, 'Failed to tailor resume');
-            this.showError(`Failed to tailor resume: ${error.message}`);
+            UIHelpers.showToast(`Failed to tailor resume: ${error.message}`, 'error');
         } finally {
             this._isProcessing = false;
             this.render();
@@ -860,15 +542,15 @@ class AIAssistantWorker extends ComponentBase {
      */
     async handleGenerateCoverLetter() {
         if (!this.canGenerateCoverLetter()) return;
-        
+
         this._isProcessing = true;
         this._lastResult = null;
         this.render();
-        
-        try {
-            const providerList = this.getApiConfig();
 
-            const result = await aiService.generateCoverLetter({
+        try {
+            const providerList = getApiConfig(this.getGlobalState());
+
+            const result = await AIOperations.executeGenerateCoverLetter({
                 resume: this._currentResume.content || this._currentResume.data,
                 jobDescription: this._currentJob.description || this._currentJob.jobDetails,
                 jobInfo: {
@@ -877,46 +559,12 @@ class AIAssistantWorker extends ComponentBase {
                     location: this._currentJob.location
                 },
                 providerList,
-                includeAnalysis: true,
-                onProgress: this.handleProgress
+                onProgress: this.handleProgress,
+                currentJob: this._currentJob,
+                currentResume: this._currentResume
             });
-            
+
             this._lastResult = { type: 'cover-letter', data: result };
-
-            // Persist the generated cover letter and log the API call
-            try {
-                const coverLetter = result.result.coverLetter;
-                const usedProvider = result.usedProvider || result.provider || 'unknown';
-                const usedModel = result.usedModel || 'unknown';
-                const entry = {
-                    id: 'cover_' + Date.now() + '_' + Math.random().toString(36).substr(2,6),
-                    jobId: this._currentJob?.id,
-                    resumeId: this._currentResume?.id,
-                    content: coverLetter,
-                    createdDate: new Date().toISOString(),
-                    provider: usedProvider
-                };
-
-                const gs = window.globalStore;
-                if (gs && typeof gs.setState === 'function') {
-                    const existing = gs.getState('coverLetters') || [];
-                    gs.setState({ coverLetters: [...existing, entry] }, 'ai-assistant-save-cover-letter');
-                } else {
-                    const existing = this.getGlobalState('coverLetters') || [];
-                    this.updateGlobalState({ coverLetters: [...existing, entry] }, 'ai-assistant-save-cover-letter');
-                }
-
-                // log API call
-                try {
-                    const { logApiCall } = await import('../js/logs.js');
-                    logApiCall(usedProvider, 'generate_cover_letter', { model: usedModel }, result, null, { jobId: this._currentJob?.id, resumeId: this._currentResume?.id });
-                } catch (logErr) {
-                    console.warn('AIAssistantWorker: Failed to log cover letter API call', logErr);
-                }
-
-            } catch (persistErr) {
-                console.warn('AIAssistantWorker: Failed to persist cover letter', persistErr);
-            }
 
             // Emit successful cover letter event
             this.emitEvent('cover-letter-generated', {
@@ -925,10 +573,10 @@ class AIAssistantWorker extends ComponentBase {
                 length: result.result.coverLetter?.length || 0,
                 matchScore: result.result.analysis?.matchScore
             });
-            
+
         } catch (error) {
             this.handleError(error, 'Failed to generate cover letter');
-            this.showError(`Failed to generate cover letter: ${error.message}`);
+            UIHelpers.showToast(`Failed to generate cover letter: ${error.message}`, 'error');
         } finally {
             this._isProcessing = false;
             this.render();
@@ -940,23 +588,23 @@ class AIAssistantWorker extends ComponentBase {
      */
     async handleAnalyzeMatch() {
         if (!this.canAnalyzeMatch()) return;
-        
+
         this._isProcessing = true;
         this._lastResult = null;
         this.render();
-        
-        try {
-            const providerList = this.getApiConfig();
 
-            const result = await aiService.analyzeMatch({
+        try {
+            const providerList = getApiConfig(this.getGlobalState());
+
+            const result = await AIOperations.executeAnalyzeMatch({
                 resume: this._currentResume.content || this._currentResume.data,
                 jobDescription: this._currentJob.description || this._currentJob.jobDetails,
                 providerList,
                 onProgress: this.handleProgress
             });
-            
+
             this._lastResult = { type: 'match-analysis', data: result };
-            
+
             // Emit successful analysis event
             this.emitEvent('match-analyzed', {
                 jobId: this._currentJob?.id,
@@ -965,10 +613,10 @@ class AIAssistantWorker extends ComponentBase {
                 skillsScore: result.result.analysis?.skillsMatch?.score,
                 experienceScore: result.result.analysis?.experienceMatch?.score
             });
-            
+
         } catch (error) {
             this.handleError(error, 'Failed to analyze match');
-            this.showError(`Failed to analyze match: ${error.message}`);
+            UIHelpers.showToast(`Failed to analyze match: ${error.message}`, 'error');
         } finally {
             this._isProcessing = false;
             this.render();
@@ -994,33 +642,21 @@ class AIAssistantWorker extends ComponentBase {
     handleSaveResult() {
         if (this._lastResult) {
             try {
-                // Add to logs
-                const logEntry = {
-                    id: 'log_' + Date.now(),
-                    type: 'ai_action',
-                    action: this._lastResult.type,
-                    timestamp: new Date().toISOString(),
-                    details: {
-                        jobId: this._currentJob?.id,
-                        resumeId: this._currentResume?.id,
-                        provider: this._lastResult.data.provider,
-                        result: this._lastResult.data.result
-                    }
-                };
-                
-                const currentLogs = this.getGlobalState('logs') || [];
-                this.updateGlobalState({
-                    logs: [...currentLogs, logEntry]
-                }, 'ai-assistant-save');
-                
-                this.showToast('Result saved to history', 'success');
-                
+                const logEntry = AIOperations.saveResultToHistory(
+                    this._lastResult,
+                    this._currentJob,
+                    this._currentResume,
+                    this.updateGlobalState.bind(this)
+                );
+
+                UIHelpers.showToast('Result saved to history', 'success');
+
                 // Emit save event
                 this.emitEvent('result-saved', {
                     logId: logEntry.id,
                     type: this._lastResult.type
                 });
-                
+
             } catch (error) {
                 this.handleError(error, 'Failed to save result');
             }
@@ -1033,31 +669,26 @@ class AIAssistantWorker extends ComponentBase {
     handleApplyChanges() {
         if (this._lastResult && this._lastResult.type === 'tailor-resume') {
             try {
-                const tailoredResume = this._lastResult.data.result.tailoredResume;
-                
-                // Update the current resume with the tailored version
-                this.updateGlobalState({
-                    currentResume: {
-                        ...this._currentResume,
-                        data: tailoredResume,
-                        lastModified: new Date().toISOString(),
-                        tailoredFor: this._currentJob?.id
-                    }
-                }, 'ai-assistant-apply-changes');
-                
+                AIOperations.applyTailoredChanges(
+                    this._lastResult,
+                    this._currentResume,
+                    this._currentJob,
+                    this.updateGlobalState.bind(this)
+                );
+
                 // Show success message
-                this.showSuccess('Resume changes applied successfully!');
-                
+                UIHelpers.showToast('Resume changes applied successfully!', 'success');
+
                 // Clear the result since changes have been applied
                 this._lastResult = null;
                 this.render();
-                
+
                 // Emit apply event
                 this.emitEvent('changes-applied', {
                     jobId: this._currentJob?.id,
                     resumeId: this._currentResume?.id
                 });
-                
+
             } catch (error) {
                 this.handleError(error, 'Failed to apply changes');
             }
@@ -1071,7 +702,7 @@ class AIAssistantWorker extends ComponentBase {
         if (this._lastResult && this._lastResult.type === 'cover-letter') {
             try {
                 const coverLetter = this._lastResult.data.result.coverLetter;
-                
+
                 // Create a new cover letter entry
                 const coverLetterEntry = {
                     id: 'cover_' + Date.now(),
@@ -1083,13 +714,13 @@ class AIAssistantWorker extends ComponentBase {
                     createdDate: new Date().toISOString(),
                     provider: this._lastResult.data.provider
                 };
-                
+
                 // Add to cover letters in the store
                 const currentCoverLetters = this.getGlobalState('coverLetters') || [];
                 this.updateGlobalState({
                     coverLetters: [...currentCoverLetters, coverLetterEntry]
                 }, 'ai-assistant-save-cover-letter');
-                
+
                 // Also associate with the current job
                 if (this._currentJob) {
                     this.updateGlobalState({
@@ -1099,16 +730,16 @@ class AIAssistantWorker extends ComponentBase {
                         }
                     }, 'ai-assistant-associate-cover-letter');
                 }
-                
-                this.showSuccess('Cover letter saved successfully!');
-                
+
+                UIHelpers.showToast('Cover letter saved successfully!', 'success');
+
                 // Emit save event
                 this.emitEvent('cover-letter-saved', {
                     coverLetterId: coverLetterEntry.id,
                     jobId: this._currentJob?.id,
                     resumeId: this._currentResume?.id
                 });
-                
+
             } catch (error) {
                 this.handleError(error, 'Failed to save cover letter');
             }
@@ -1138,9 +769,7 @@ class AIAssistantWorker extends ComponentBase {
             // Auto-scroll to bottom of log after render
             setTimeout(() => {
                 const logContainer = this.shadowRoot.querySelector('.progress-log-messages');
-                if (logContainer) {
-                    logContainer.scrollTop = logContainer.scrollHeight;
-                }
+                UIHelpers.scrollLogToBottom(logContainer);
             }, 0);
         }
     }
@@ -1155,211 +784,36 @@ class AIAssistantWorker extends ComponentBase {
         }
     }
 
-    /**
-     * Show error message
-     */
-    showError(message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error';
-        errorDiv.textContent = message;
-        
-        const existing = this.shadowRoot.querySelector('.error');
-        if (existing) {
-            existing.remove();
-        }
-        
-        this.shadowRoot.querySelector('.ai-assistant').appendChild(errorDiv);
-        
-        setTimeout(() => {
-            errorDiv.remove();
-        }, 5000);
-    }
-
-    /**
-     * Show success message
-     */
-    showSuccess(message) {
-        const successDiv = document.createElement('div');
-        successDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #d4edda;
-            color: #155724;
-            padding: 15px 20px;
-            border-radius: 6px;
-            border: 1px solid #c3e6cb;
-            z-index: 10000;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        `;
-        successDiv.textContent = message;
-        
-        document.body.appendChild(successDiv);
-        
-        setTimeout(() => {
-            successDiv.remove();
-        }, 3000);
-    }
-
     // Capability Check Methods
 
     /**
      * Check if resume can be tailored
      */
     canTailorResume() {
-        return this._currentJob && (this._currentJob.description || this._currentJob.jobDetails) && 
-               this._currentResume && this.hasValidApiKey() && 
-               !this._isProcessing;
+        return AIOperations.canTailorResume(this._currentJob, this._currentResume, this.hasValidApiKey(), this._isProcessing);
     }
 
     /**
      * Check if cover letter can be generated
      */
     canGenerateCoverLetter() {
-        return this._currentJob && (this._currentJob.description || this._currentJob.jobDetails) && 
-               this._currentResume && this.hasValidApiKey() && 
-               !this._isProcessing;
+        return AIOperations.canGenerateCoverLetter(this._currentJob, this._currentResume, this.hasValidApiKey(), this._isProcessing);
     }
 
     /**
      * Check if match can be analyzed
      */
     canAnalyzeMatch() {
-        return this._currentJob && (this._currentJob.description || this._currentJob.jobDetails) && 
-               this._currentResume && this.hasValidApiKey() && 
-               !this._isProcessing;
+        return AIOperations.canAnalyzeMatch(this._currentJob, this._currentResume, this.hasValidApiKey(), this._isProcessing);
     }
 
     /**
      * Check if valid API key is configured
      */
     hasValidApiKey() {
-        try {
-            this.getApiConfig();
-            return true;
-        } catch (error) {
-            console.log('AIAssistantWorker hasValidApiKey - No valid API key:', error.message);
-            return false;
-        }
+        return hasValidApiKey(this.getGlobalState());
     }
 
-    /**
-     * Get API configuration - returns ordered list of providers to try
-     * @returns {Array} Array of provider configs in priority order
-     */
-    getApiConfig() {
-        const providerList = [];
-
-        // Check localStorage first (legacy support)
-        const apiKey = localStorage.getItem('api_key');
-        const apiType = localStorage.getItem('api_type') || 'claude';
-
-        console.log('AIAssistantWorker getApiConfig - localStorage API Key exists:', !!apiKey);
-        console.log('AIAssistantWorker getApiConfig - localStorage API Type:', apiType);
-
-        if (apiKey && apiKey.trim().length > 0) {
-            console.log('AIAssistantWorker getApiConfig - Using localStorage config');
-            const provider = apiType === 'chatgpt' ? 'openai' : apiType;
-            const defaultModels = { claude: 'claude-3-5-sonnet-20241022', openai: 'gpt-4o', browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC' };
-
-            // Try to get route from settings if available, fallback to 'auto'
-            let route = 'auto';
-            const settings = this.getGlobalState('settings');
-            if (settings && settings.apiProviders && settings.apiProviders[provider]) {
-                route = settings.apiProviders[provider].route || 'auto';
-            }
-
-            providerList.push({
-                provider,
-                apiKey: apiKey.trim(),
-                model: defaultModels[provider] || 'gpt-4o',
-                route: route
-            });
-            console.log(`AIAssistantWorker getApiConfig - Using route: ${route} for ${provider}`);
-        }
-
-        // Check newer settings structure
-        const settings = this.getGlobalState('settings');
-        if (settings && settings.apiProviders) {
-            const providers = settings.apiProviders;
-            const providerPriority = settings.preferences?.providerPriority || ['claude', 'openai', 'browser'];
-
-            console.log('AIAssistantWorker getApiConfig - Provider priority:', providerPriority);
-            console.log('AIAssistantWorker getApiConfig - Providers:', providers);
-
-            // Build provider list in priority order
-            for (const providerName of providerPriority) {
-                const config = providers[providerName];
-
-                // Skip if not configured, not enabled, or missing API key (browser provider doesn't need key)
-                if (!config || !config.enabled) continue;
-                if (providerName !== 'browser' && (!config.apiKey || config.apiKey.trim().length === 0)) continue;
-
-                // Don't add duplicate if already in list from localStorage
-                if (providerList.some(p => p.provider === providerName)) continue;
-
-                const defaultModels = {
-                    claude: 'claude-3-5-sonnet-20241022',
-                    openai: 'gpt-4o',
-                    browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC'
-                };
-
-                const providerConfig = {
-                    provider: providerName,
-                    apiKey: config.apiKey ? config.apiKey.trim() : '',
-                    model: config.model || defaultModels[providerName] || 'gpt-4o',
-                    route: config.route || 'auto'
-                };
-                providerList.push(providerConfig);
-
-                console.log(`AIAssistantWorker getApiConfig - Added provider to list: ${providerName}, route: ${providerConfig.route}, model: ${providerConfig.model}`);
-            }
-
-            // Fallback: add any remaining enabled providers not in priority list
-            for (const [providerName, config] of Object.entries(providers)) {
-                if (!config || !config.enabled) continue;
-                if (providerName !== 'browser' && (!config.apiKey || config.apiKey.trim().length === 0)) continue;
-                if (providerList.some(p => p.provider === providerName)) continue;
-
-                const defaultModels = {
-                    claude: 'claude-3-5-sonnet-20241022',
-                    openai: 'gpt-4o',
-                    browser: 'Llama-3.1-8B-Instruct-q4f32_1-MLC'
-                };
-
-                const providerConfig = {
-                    provider: providerName,
-                    apiKey: config.apiKey ? config.apiKey.trim() : '',
-                    model: config.model || defaultModels[providerName] || 'gpt-4o',
-                    route: config.route || 'auto'
-                };
-                providerList.push(providerConfig);
-
-                console.log(`AIAssistantWorker getApiConfig - Added fallback provider: ${providerName}, route: ${providerConfig.route}, model: ${providerConfig.model}`);
-            }
-        }
-
-        if (providerList.length === 0) {
-            console.log('AIAssistantWorker getApiConfig - No valid API providers found');
-            throw new Error('No valid API providers configured. Please set your API keys in Settings.');
-        }
-
-        console.log('AIAssistantWorker getApiConfig - Final provider list:', providerList);
-        return providerList;
-    }
-
-    /**
-     * Get single API configuration (legacy support)
-     * Returns the first provider from the list
-     */
-    getSingleApiConfig() {
-        const providerList = this.getApiConfig();
-        if (providerList.length === 0) {
-            throw new Error('No valid API providers configured');
-        }
-        return providerList[0];
-    }
 
     // Selection Modal Methods
 
@@ -1367,51 +821,21 @@ class AIAssistantWorker extends ComponentBase {
      * Show job selection modal
      */
     showJobSelectionModal() {
-        console.log('AIAssistantWorker showJobSelectionModal called');
         const modal = this.shadowRoot.getElementById('job-selection-modal');
         const list = this.shadowRoot.getElementById('job-selection-list');
-        
-        console.log('Modal element:', modal);
-        console.log('List element:', list);
-        
         const jobs = this.getGlobalState('jobs') || [];
-        console.log('Available jobs:', jobs);
-        
-        if (jobs.length === 0) {
-            list.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No jobs available. Create jobs in the Jobs section first.</div>';
-        } else {
-            list.innerHTML = jobs.map(job => `
-                <div class="selection-list-item ${this._currentJob?.id === job.id ? 'selected' : ''}" 
-                     data-job-id="${job.id}">
-                    <div class="title">${job.title || job.position || 'Untitled Job'}</div>
-                    <div class="subtitle">${job.company || 'Unknown Company'}${job.location ? ` • ${job.location}` : ''}</div>
-                </div>
-            `).join('');
-        }
-        
-        // Remove any existing event listeners to prevent duplicates
-        const newList = list.cloneNode(true);
-        list.parentNode.replaceChild(newList, list);
-        
-        // Add click handlers for job selection
-        newList.addEventListener('click', (e) => {
-            console.log('Job item clicked:', e.target);
-            const item = e.target.closest('.selection-list-item');
-            if (item) {
-                const jobId = item.dataset.jobId;
-                console.log('Selected job ID:', jobId);
-                const job = jobs.find(j => j.id === jobId);
-                if (job) {
-                    console.log('Setting job in store:', job);
-                    this.updateGlobalState({ currentJob: job }, 'ai-assistant-job-selection');
-                    this.hideJobSelectionModal();
-                    // Force immediate update
-                    setTimeout(() => this.updateFromStore(), 50);
-                }
+
+        UIHelpers.populateJobSelectionModal(
+            list,
+            jobs,
+            this._currentJob?.id,
+            (job) => {
+                this.updateGlobalState({ currentJob: job }, 'ai-assistant-job-selection');
+                this.hideJobSelectionModal();
+                setTimeout(() => this.updateFromStore(), 50);
             }
-        });
-        
-        console.log('Showing job modal');
+        );
+
         modal.classList.add('show');
     }
 
@@ -1427,48 +851,21 @@ class AIAssistantWorker extends ComponentBase {
      * Show resume selection modal
      */
     showResumeSelectionModal() {
-        console.log('AIAssistantWorker showResumeSelectionModal called');
         const modal = this.shadowRoot.getElementById('resume-selection-modal');
         const list = this.shadowRoot.getElementById('resume-selection-list');
-        
         const resumes = this.getGlobalState('resumes') || [];
-        console.log('Available resumes:', resumes);
-        
-        if (resumes.length === 0) {
-            list.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No resumes available. Create resumes in the Resumes section first.</div>';
-        } else {
-            list.innerHTML = resumes.map(resume => `
-                <div class="selection-list-item ${this._currentResume?.id === resume.id ? 'selected' : ''}" 
-                     data-resume-id="${resume.id}">
-                    <div class="title">${resume.name || 'Untitled Resume'}</div>
-                    <div class="subtitle">${resume.data?.basics?.name || 'No name set'}${resume.lastModified ? ` • Updated ${new Date(resume.lastModified).toLocaleDateString()}` : ''}</div>
-                </div>
-            `).join('');
-        }
-        
-        // Remove any existing event listeners to prevent duplicates
-        const newList = list.cloneNode(true);
-        list.parentNode.replaceChild(newList, list);
-        
-        // Add click handlers for resume selection
-        newList.addEventListener('click', (e) => {
-            console.log('Resume item clicked:', e.target);
-            const item = e.target.closest('.selection-list-item');
-            if (item) {
-                const resumeId = item.dataset.resumeId;
-                console.log('Selected resume ID:', resumeId);
-                const resume = resumes.find(r => r.id === resumeId);
-                if (resume) {
-                    console.log('Setting resume in store:', resume);
-                    this.updateGlobalState({ currentResume: resume }, 'ai-assistant-resume-selection');
-                    this.hideResumeSelectionModal();
-                    // Force immediate update
-                    setTimeout(() => this.updateFromStore(), 50);
-                }
+
+        UIHelpers.populateResumeSelectionModal(
+            list,
+            resumes,
+            this._currentResume?.id,
+            (resume) => {
+                this.updateGlobalState({ currentResume: resume }, 'ai-assistant-resume-selection');
+                this.hideResumeSelectionModal();
+                setTimeout(() => this.updateFromStore(), 50);
             }
-        });
-        
-        console.log('Showing resume modal');
+        );
+
         modal.classList.add('show');
     }
 
@@ -1480,109 +877,6 @@ class AIAssistantWorker extends ComponentBase {
         modal.classList.remove('show');
     }
 
-    // Analysis Helper Methods
-
-    /**
-     * Get score class for styling
-     */
-    getScoreClass(score) {
-        if (score >= 80) return 'excellent';
-        if (score >= 65) return 'good';
-        if (score >= 50) return 'fair';
-        return 'poor';
-    }
-
-    /**
-     * Render match analysis summary
-     */
-    renderMatchAnalysisSummary(analysis) {
-        if (!analysis) return '';
-        
-        return `
-            <div class="analysis-section">
-                <h5>📊 Match Analysis Summary</h5>
-                <div class="analysis-grid">
-                    ${analysis.strengths?.length > 0 ? `
-                        <div class="analysis-item">
-                            <h6>💪 Key Strengths</h6>
-                            <ul>
-                                ${analysis.strengths.slice(0, 3).map(strength => `<li>${strength}</li>`).join('')}
-                                ${analysis.strengths.length > 3 ? `<li><em>+${analysis.strengths.length - 3} more</em></li>` : ''}
-                            </ul>
-                        </div>
-                    ` : ''}
-                    
-                    ${analysis.improvements?.length > 0 || analysis.missingSkills?.length > 0 ? `
-                        <div class="analysis-item">
-                            <h6>🎯 Areas for Improvement</h6>
-                            <ul>
-                                ${(analysis.improvements || []).slice(0, 2).map(improvement => `<li>${improvement}</li>`).join('')}
-                                ${(analysis.missingSkills || []).slice(0, 2).map(skill => `<li>Missing: ${skill}</li>`).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Render detailed analysis
-     */
-    renderDetailedAnalysis(analysis) {
-        if (!analysis) return '';
-        
-        return `
-            <div class="analysis-section">
-                <h5>📋 Detailed Analysis</h5>
-                <div class="analysis-grid">
-                    ${analysis.skillsMatch ? `
-                        <div class="analysis-item">
-                            <h6>🛠️ Skills Analysis</h6>
-                            ${analysis.skillsMatch.matchedSkills?.length > 0 ? `
-                                <p style="font-size: 12px; margin: 5px 0; color: #28a745;"><strong>Matched:</strong> ${analysis.skillsMatch.matchedSkills.slice(0, 3).join(', ')}</p>
-                            ` : ''}
-                            ${analysis.skillsMatch.missingSkills?.length > 0 ? `
-                                <p style="font-size: 12px; margin: 5px 0; color: #dc3545;"><strong>Missing:</strong> ${analysis.skillsMatch.missingSkills.slice(0, 3).join(', ')}</p>
-                            ` : ''}
-                        </div>
-                    ` : ''}
-                    
-                    ${analysis.experienceMatch ? `
-                        <div class="analysis-item">
-                            <h6>💼 Experience Analysis</h6>
-                            ${analysis.experienceMatch.relevantExperience?.length > 0 ? `
-                                <ul>
-                                    ${analysis.experienceMatch.relevantExperience.slice(0, 2).map(exp => `<li>${exp}</li>`).join('')}
-                                </ul>
-                            ` : ''}
-                            ${analysis.experienceMatch.gaps?.length > 0 ? `
-                                <p style="font-size: 12px; margin: 5px 0; color: #ffc107;"><strong>Gaps:</strong> ${analysis.experienceMatch.gaps.slice(0, 2).join(', ')}</p>
-                            ` : ''}
-                        </div>
-                    ` : ''}
-                    
-                    ${analysis.recommendations?.length > 0 ? `
-                        <div class="analysis-item" style="grid-column: 1 / -1;">
-                            <h6>💡 Recommendations</h6>
-                            <ul>
-                                ${analysis.recommendations.slice(0, 4).map(rec => `<li>${rec}</li>`).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                    
-                    ${analysis.concerns?.length > 0 ? `
-                        <div class="analysis-item" style="grid-column: 1 / -1;">
-                            <h6>⚠️ Potential Concerns</h6>
-                            <ul>
-                                ${analysis.concerns.slice(0, 3).map(concern => `<li>${concern}</li>`).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }
 
     /**
      * Get component styles

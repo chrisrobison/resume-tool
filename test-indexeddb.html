@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndexedDB Migration Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 5px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 5px 0;
+        }
+        .log-success { color: #2ecc71; }
+        .log-error { color: #e74c3c; }
+        .log-info { color: #3498db; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #fff;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 IndexedDB Migration Test Suite</h1>
+        <p>Comprehensive testing for IndexedDB implementation and localStorage migration</p>
+
+        <div class="test-section">
+            <h2>Test Controls</h2>
+            <button onclick="runAllTests()">▶️ Run All Tests</button>
+            <button onclick="testInitialization()">1️⃣ Test Initialization</button>
+            <button onclick="testMigration()">2️⃣ Test Migration</button>
+            <button onclick="testCRUD()">3️⃣ Test CRUD Operations</button>
+            <button onclick="clearAll()">🗑️ Clear All Data</button>
+            <button onclick="setupTestData()">📦 Setup Test Data</button>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-tests">0</div>
+                <div class="stat-label">Tests Run</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-passed">0</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-failed">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+        </div>
+
+        <div id="results"></div>
+
+        <h2>Console Log</h2>
+        <div class="log" id="log"></div>
+    </div>
+
+    <!-- Load IndexedDB Services -->
+    <script type="module" src="./js/services/indexeddb-service.js"></script>
+    <script type="module" src="./js/services/storage-migration.js"></script>
+
+    <script type="module">
+        let testsPassed = 0;
+        let testsFailed = 0;
+        let testsRun = 0;
+
+        // Logging functions
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+
+            // Also log to console
+            console.log(message);
+        }
+
+        function updateStats() {
+            document.getElementById('stat-tests').textContent = testsRun;
+            document.getElementById('stat-passed').textContent = testsPassed;
+            document.getElementById('stat-failed').textContent = testsFailed;
+        }
+
+        function addResult(testName, passed, message) {
+            testsRun++;
+            if (passed) {
+                testsPassed++;
+            } else {
+                testsFailed++;
+            }
+            updateStats();
+
+            const resultsDiv = document.getElementById('results');
+            const result = document.createElement('div');
+            result.className = `test-result ${passed ? 'success' : 'error'}`;
+            result.innerHTML = `
+                <strong>${passed ? '✅' : '❌'} ${testName}</strong><br>
+                ${message}
+            `;
+            resultsDiv.appendChild(result);
+
+            log(`${passed ? 'PASS' : 'FAIL'}: ${testName} - ${message}`, passed ? 'success' : 'error');
+        }
+
+        // Test 1: IndexedDB Initialization
+        window.testInitialization = async function() {
+            log('🔄 Starting Initialization Tests...', 'info');
+
+            try {
+                // Test IndexedDBService class availability
+                if (typeof IndexedDBService === 'undefined') {
+                    addResult('IndexedDBService Class', false, 'IndexedDBService class not found');
+                    return;
+                }
+                addResult('IndexedDBService Class', true, 'Class is available globally');
+
+                // Test StorageMigration class availability
+                if (typeof StorageMigration === 'undefined') {
+                    addResult('StorageMigration Class', false, 'StorageMigration class not found');
+                    return;
+                }
+                addResult('StorageMigration Class', true, 'Class is available globally');
+
+                // Initialize IndexedDB
+                window.indexedDBService = new IndexedDBService();
+                const db = await window.indexedDBService.init();
+                addResult('IndexedDB Initialization', true, `Database '${db.name}' opened successfully`);
+
+                // Check object stores
+                const storeNames = ['jobs', 'resumes', 'letters', 'settings', 'metadata'];
+                let allStoresExist = true;
+                for (const storeName of storeNames) {
+                    if (!db.objectStoreNames.contains(storeName)) {
+                        allStoresExist = false;
+                        addResult(`Object Store: ${storeName}`, false, 'Store not found');
+                    } else {
+                        log(`✓ Object store '${storeName}' exists`, 'success');
+                    }
+                }
+                if (allStoresExist) {
+                    addResult('All Object Stores', true, `All ${storeNames.length} stores created successfully`);
+                }
+
+                // Initialize migration service
+                window.storageMigration = new StorageMigration();
+                addResult('StorageMigration Initialization', true, 'Migration service created');
+
+            } catch (error) {
+                addResult('Initialization', false, error.message);
+                log(`Error: ${error.message}`, 'error');
+            }
+        };
+
+        // Test 2: Migration from localStorage
+        window.testMigration = async function() {
+            log('🔄 Starting Migration Tests...', 'info');
+
+            try {
+                // Check migration status
+                const status = await window.storageMigration.getMigrationStatus();
+                log(`Migration status: ${JSON.stringify(status)}`, 'info');
+
+                // Run migration
+                log('Starting migration...', 'info');
+                const result = await window.storageMigration.migrate({
+                    clearLocalStorageAfter: false,
+                    backupLocalStorage: true,
+                    force: false
+                });
+
+                if (result.success || result.skipped) {
+                    addResult('Migration Execution', true,
+                        result.skipped ? 'Already migrated' : 'Migration completed successfully');
+
+                    if (!result.skipped) {
+                        const summary = `Jobs: ${result.jobs?.migrated || 0}, Resumes: ${result.resumes?.migrated || 0}, Letters: ${result.letters?.migrated || 0}`;
+                        log(`Migration summary: ${summary}`, 'success');
+                    }
+                } else {
+                    addResult('Migration Execution', false, 'Migration failed');
+                }
+
+            } catch (error) {
+                addResult('Migration', false, error.message);
+                log(`Error: ${error.message}`, 'error');
+            }
+        };
+
+        // Test 3: CRUD Operations
+        window.testCRUD = async function() {
+            log('🔄 Starting CRUD Tests...', 'info');
+
+            try {
+                // Test CREATE
+                const testJob = {
+                    id: 'test-job-' + Date.now(),
+                    company: 'Test Company',
+                    position: 'Test Position',
+                    status: 'saved',
+                    dateCreated: new Date().toISOString()
+                };
+
+                await window.indexedDBService.save('jobs', testJob);
+                addResult('CREATE Operation', true, `Job created with ID: ${testJob.id}`);
+
+                // Test READ
+                const retrieved = await window.indexedDBService.get('jobs', testJob.id);
+                const readSuccess = retrieved && retrieved.company === testJob.company;
+                addResult('READ Operation', readSuccess,
+                    readSuccess ? 'Job retrieved successfully' : 'Failed to retrieve job');
+
+                // Test UPDATE
+                testJob.status = 'applied';
+                await window.indexedDBService.save('jobs', testJob);
+                const updated = await window.indexedDBService.get('jobs', testJob.id);
+                const updateSuccess = updated && updated.status === 'applied';
+                addResult('UPDATE Operation', updateSuccess,
+                    updateSuccess ? 'Job updated successfully' : 'Failed to update job');
+
+                // Test LIST
+                const allJobs = await window.indexedDBService.getAll('jobs');
+                addResult('LIST Operation', Array.isArray(allJobs),
+                    `Retrieved ${allJobs.length} jobs from database`);
+
+                // Test DELETE
+                await window.indexedDBService.delete('jobs', testJob.id);
+                const deleted = await window.indexedDBService.get('jobs', testJob.id);
+                addResult('DELETE Operation', !deleted,
+                    !deleted ? 'Job deleted successfully' : 'Failed to delete job');
+
+            } catch (error) {
+                addResult('CRUD Operations', false, error.message);
+                log(`Error: ${error.message}`, 'error');
+            }
+        };
+
+        // Setup test data
+        window.setupTestData = async function() {
+            log('📦 Setting up test data in localStorage...', 'info');
+
+            const testJobs = [
+                { id: 'job1', company: 'Company A', position: 'Developer', status: 'saved' },
+                { id: 'job2', company: 'Company B', position: 'Engineer', status: 'applied' }
+            ];
+
+            const testResumes = [
+                { id: 'resume1', basics: { name: 'John Doe' } },
+                { id: 'resume2', basics: { name: 'Jane Smith' } }
+            ];
+
+            localStorage.setItem('jobs', JSON.stringify(testJobs));
+            localStorage.setItem('resumes', JSON.stringify(testResumes));
+            localStorage.setItem('letters', JSON.stringify([]));
+
+            log('✅ Test data added to localStorage', 'success');
+            alert('Test data added to localStorage. You can now test migration.');
+        };
+
+        // Clear all data
+        window.clearAll = async function() {
+            if (!confirm('Clear all IndexedDB and localStorage data?')) {
+                return;
+            }
+
+            log('🗑️ Clearing all data...', 'info');
+
+            // Clear localStorage
+            localStorage.clear();
+            log('✓ localStorage cleared', 'success');
+
+            // Clear IndexedDB
+            try {
+                if (window.indexedDBService) {
+                    await window.indexedDBService.clearAll('jobs');
+                    await window.indexedDBService.clearAll('resumes');
+                    await window.indexedDBService.clearAll('letters');
+                    await window.indexedDBService.clearAll('settings');
+                    await window.indexedDBService.clearAll('metadata');
+                    log('✓ IndexedDB cleared', 'success');
+                }
+            } catch (error) {
+                log(`Error clearing IndexedDB: ${error.message}`, 'error');
+            }
+
+            // Reset stats
+            testsRun = 0;
+            testsPassed = 0;
+            testsFailed = 0;
+            updateStats();
+            document.getElementById('results').innerHTML = '';
+
+            alert('All data cleared!');
+        };
+
+        // Run all tests
+        window.runAllTests = async function() {
+            log('🚀 Running all tests...', 'info');
+            document.getElementById('results').innerHTML = '';
+            testsRun = 0;
+            testsPassed = 0;
+            testsFailed = 0;
+            updateStats();
+
+            await testInitialization();
+            await testMigration();
+            await testCRUD();
+
+            log(`📊 Tests complete: ${testsPassed}/${testsRun} passed`,
+                testsFailed === 0 ? 'success' : 'error');
+        };
+
+        // Auto-run initialization on load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('🎯 Test suite ready. Click "Run All Tests" to begin.', 'info');
+        });
+    </script>
+</body>
+</html>

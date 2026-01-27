@@ -1,7 +1,6 @@
-// storage.js - Data storage operations with IndexedDB (via Worker) and localStorage fallback
+// storage.js - Data storage operations with IndexedDB and localStorage fallback
 import { config } from './config.js';
 import { safelyParseJSON, showToast } from './utils.js';
-import dataService from './data-service.js';
 
 // Storage mode: 'indexeddb' or 'localstorage'
 let storageMode = 'indexeddb';
@@ -10,82 +9,53 @@ let migrationComplete = false;
 // Initialize storage - try IndexedDB first, fallback to localStorage
 export async function initStorage() {
     try {
-        // Try to initialize IndexedDB via worker
-        const ready = await waitForWorker(5000);
-
-        if (ready) {
+        // Check if IndexedDB service is available (bootstrapped in app.html)
+        if (window.indexedDBService && window.indexedDBService.isInitialized) {
             console.log('Using IndexedDB for data storage');
             storageMode = 'indexeddb';
 
-            // Auto-migrate from localStorage if needed
-            await autoMigrateFromLocalStorage();
+            // Check if migration was already handled by bootstrap
+            if (window.storageMigration) {
+                const isMigrated = await window.storageMigration.isMigrationComplete();
+                migrationComplete = isMigrated;
+
+                if (!isMigrated) {
+                    // Migration will be handled by bootstrap script
+                    console.log('Migration will be handled by bootstrap initialization');
+                }
+            }
 
             return true;
+        } else {
+            console.warn('IndexedDB service not available, waiting for initialization...');
+
+            // Wait briefly for bootstrap to complete
+            await waitForIndexedDB(3000);
+
+            if (window.indexedDBService && window.indexedDBService.isInitialized) {
+                console.log('IndexedDB initialized, using IndexedDB for storage');
+                storageMode = 'indexeddb';
+                return true;
+            }
         }
     } catch (error) {
         console.warn('IndexedDB not available, falling back to localStorage:', error);
     }
 
     // Fallback to localStorage
+    console.log('Using localStorage for data storage');
     storageMode = 'localstorage';
     return initLocalStorage();
 }
 
-// Wait for worker to be ready
-async function waitForWorker(timeout = 5000) {
+// Wait for IndexedDB to be initialized
+async function waitForIndexedDB(timeout = 3000) {
     const startTime = Date.now();
-    while (!dataService.isWorkerReady() && (Date.now() - startTime) < timeout) {
+    while ((!window.indexedDBService || !window.indexedDBService.isInitialized) &&
+           (Date.now() - startTime) < timeout) {
         await new Promise(resolve => setTimeout(resolve, 100));
     }
-    return dataService.isWorkerReady();
-}
-
-// Auto-migrate from localStorage to IndexedDB
-async function autoMigrateFromLocalStorage() {
-    if (migrationComplete || dataService.isMigrated()) {
-        return;
-    }
-
-    try {
-        // Check if there's data in localStorage to migrate
-        const hasLocalData = localStorage.getItem(config.storage.resumeKey) ||
-                            localStorage.getItem(config.storage.savedResumesKey) ||
-                            localStorage.getItem(config.storage.settingsKey);
-
-        if (!hasLocalData) {
-            migrationComplete = true;
-            return;
-        }
-
-        console.log('Migrating data from localStorage to IndexedDB...');
-
-        // Gather localStorage data
-        const localStorageData = {
-            resumes: safelyParseJSON(localStorage.getItem(config.storage.resumeKey)),
-            savedResumes: safelyParseJSON(localStorage.getItem(config.storage.savedResumesKey)),
-            jobs: safelyParseJSON(localStorage.getItem(config.storage.jobsKey)),
-            logs: safelyParseJSON(localStorage.getItem(config.storage.logsKey)),
-            settings: safelyParseJSON(localStorage.getItem(config.storage.settingsKey))
-        };
-
-        // Migrate to IndexedDB
-        const result = await dataService.migrate(localStorageData);
-
-        console.log('Migration complete:', result);
-        migrationComplete = true;
-
-        // Optionally clear localStorage after successful migration
-        // Uncomment if you want to remove old data
-        // localStorage.removeItem(config.storage.resumeKey);
-        // localStorage.removeItem(config.storage.savedResumesKey);
-        // localStorage.removeItem(config.storage.jobsKey);
-        // localStorage.removeItem(config.storage.logsKey);
-        // localStorage.removeItem(config.storage.settingsKey);
-
-    } catch (error) {
-        console.error('Migration failed:', error);
-        // Don't set migrationComplete = true so we can retry later
-    }
+    return window.indexedDBService && window.indexedDBService.isInitialized;
 }
 
 // Initialize localStorage functionality (fallback)
@@ -118,7 +88,18 @@ export function getStorageMode() {
 export async function saveResumeToStorage(resumeData) {
     if (storageMode === 'indexeddb') {
         try {
-            await dataService.saveResume(resumeData);
+            // Ensure resume has an ID
+            if (!resumeData.id) {
+                resumeData.id = `resume_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            }
+
+            // Add timestamp metadata
+            resumeData.updatedAt = new Date().toISOString();
+            if (!resumeData.createdAt) {
+                resumeData.createdAt = resumeData.updatedAt;
+            }
+
+            await window.indexedDBService.save('resumes', resumeData);
             return true;
         } catch (error) {
             console.error('Error saving resume to IndexedDB:', error);
@@ -134,11 +115,20 @@ export async function loadResumeFromStorage(id = null) {
     if (storageMode === 'indexeddb') {
         try {
             if (id) {
-                return await dataService.getResume(id);
+                return await window.indexedDBService.get('resumes', id);
             }
             // Get most recent resume
-            const resumes = await dataService.getResumes();
-            return resumes && resumes.length > 0 ? resumes[0] : null;
+            const resumes = await window.indexedDBService.getAll('resumes');
+            if (!resumes || resumes.length === 0) return null;
+
+            // Sort by updatedAt or createdAt, most recent first
+            resumes.sort((a, b) => {
+                const dateA = new Date(a.updatedAt || a.createdAt || 0);
+                const dateB = new Date(b.updatedAt || b.createdAt || 0);
+                return dateB - dateA;
+            });
+
+            return resumes[0];
         } catch (error) {
             console.error('Error loading resume from IndexedDB:', error);
             // Fallback to localStorage
@@ -181,8 +171,20 @@ export async function saveNamedResume(resumeData, name) {
         try {
             // Add name to resume data
             resumeData.name = name;
-            const resumeId = await dataService.saveResume(resumeData);
-            return resumeId;
+
+            // Ensure resume has an ID
+            if (!resumeData.id) {
+                resumeData.id = `resume_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            }
+
+            // Add timestamp metadata
+            resumeData.updatedAt = new Date().toISOString();
+            if (!resumeData.createdAt) {
+                resumeData.createdAt = resumeData.updatedAt;
+            }
+
+            await window.indexedDBService.save('resumes', resumeData);
+            return resumeData.id;
         } catch (error) {
             console.error('Error saving named resume to IndexedDB:', error);
             return saveNamedResumeToLocalStorage(resumeData, name);
@@ -195,7 +197,7 @@ export async function saveNamedResume(resumeData, name) {
 export async function loadNamedResume(name) {
     if (storageMode === 'indexeddb') {
         try {
-            const resumes = await dataService.getResumes();
+            const resumes = await window.indexedDBService.getAll('resumes');
             const resume = resumes.find(r => r.name === name);
             return resume || null;
         } catch (error) {
@@ -210,7 +212,7 @@ export async function loadNamedResume(name) {
 export async function loadSavedResumesList() {
     if (storageMode === 'indexeddb') {
         try {
-            const resumes = await dataService.getResumes();
+            const resumes = await window.indexedDBService.getAll('resumes');
             // Convert to object format for compatibility
             const resumesList = {};
             resumes.forEach(resume => {
@@ -218,7 +220,7 @@ export async function loadSavedResumesList() {
                     resumesList[resume.name] = {
                         id: resume.id,
                         data: resume,
-                        timestamp: resume.timestamp || resume.lastModified
+                        timestamp: resume.updatedAt || resume.createdAt || resume.lastModified
                     };
                 }
             });
@@ -235,10 +237,10 @@ export async function loadSavedResumesList() {
 export async function deleteNamedResume(name) {
     if (storageMode === 'indexeddb') {
         try {
-            const resumes = await dataService.getResumes();
+            const resumes = await window.indexedDBService.getAll('resumes');
             const resume = resumes.find(r => r.name === name);
             if (resume) {
-                await dataService.deleteResume(resume.id);
+                await window.indexedDBService.delete('resumes', resume.id);
                 return true;
             }
             return false;
@@ -254,7 +256,10 @@ export async function deleteNamedResume(name) {
 export async function saveSettings(settings) {
     if (storageMode === 'indexeddb') {
         try {
-            await dataService.saveSettings(settings);
+            // Save each setting individually to the settings store
+            for (const [key, value] of Object.entries(settings)) {
+                await window.indexedDBService.saveSetting(key, value);
+            }
             return true;
         } catch (error) {
             console.error('Error saving settings to IndexedDB:', error);
@@ -268,7 +273,16 @@ export async function saveSettings(settings) {
 export async function loadSettings() {
     if (storageMode === 'indexeddb') {
         try {
-            return await dataService.getSettings();
+            // Get all settings from the settings store
+            const settingsArray = await window.indexedDBService.getAll('settings');
+
+            // Convert array to object
+            const settings = {};
+            settingsArray.forEach(item => {
+                settings[item.key] = item.value;
+            });
+
+            return settings;
         } catch (error) {
             console.error('Error loading settings from IndexedDB:', error);
             return loadSettingsFromLocalStorage();
@@ -371,5 +385,12 @@ function loadSettingsFromLocalStorage() {
     }
 }
 
-// Export data service for direct access if needed
-export { dataService };
+// Get IndexedDB service for direct access if needed
+export function getIndexedDBService() {
+    return window.indexedDBService;
+}
+
+// Get storage migration service for direct access if needed
+export function getStorageMigrationService() {
+    return window.storageMigration;
+}

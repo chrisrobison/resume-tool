@@ -537,6 +537,41 @@
     <!-- Global Store Instance -->
     <global-store></global-store>
 
+    <!-- IndexedDB Service Initialization -->
+    <script src="js/services/indexeddb-service.js"></script>
+    <script src="js/services/storage-migration.js"></script>
+    <script>
+      (async function initDB() {
+        console.log('🗄️ Bootstrapping IndexedDB service...');
+        try {
+          await window.indexedDBService.init();
+          console.log('✅ IndexedDB service ready');
+
+          const needsMigration = !(await window.storageMigration.isMigrationComplete());
+          if (needsMigration) {
+            const hasLocalData = localStorage.getItem('jobs') || localStorage.getItem('resumes') || localStorage.getItem('savedResumes');
+            if (hasLocalData) {
+              console.log('📦 Starting localStorage → IndexedDB migration...');
+              const result = await window.storageMigration.migrate({
+                clearLocalStorageAfter: false,
+                backupLocalStorage: true
+              });
+              if (result.success) {
+                console.log('✅ Migration complete:', result);
+              } else {
+                console.warn('⚠️ Migration failed:', result.error);
+              }
+            }
+          } else {
+            console.log('✅ Migration already complete');
+          }
+        } catch (error) {
+          console.error('❌ IndexedDB initialization failed:', error);
+          console.log('⚠️ App will fall back to localStorage');
+        }
+      })();
+    </script>
+
     <!-- Main Application JavaScript - Now Modular! -->
     <script type="module" src="./js/app-manager.js"></script>
     <script type="module">
