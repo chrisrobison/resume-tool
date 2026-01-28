@@ -194,11 +194,18 @@ function initializeAdminRoutes(adminService) {
         try {
             const { q } = req.query;
 
-            if (!q || q.length < 2) {
+            // Ensure q is a string to prevent type confusion (e.g., q being an array)
+            if (typeof q !== 'string') {
                 return res.status(400).json({ error: 'Search query too short (min 2 characters)' });
             }
 
-            const users = await adminService.searchUsers(q);
+            const query = q.trim();
+
+            if (!query || query.length < 2) {
+                return res.status(400).json({ error: 'Search query too short (min 2 characters)' });
+            }
+
+            const users = await adminService.searchUsers(query);
 
             res.json({ users });
 
